@@ -109,7 +109,8 @@ public class SQLPlugin extends Plugin implements ActionPlugin {
                                              NodeEnvironment nodeEnvironment,
                                              NamedWriteableRegistry namedWriteableRegistry,
                                              IndexNameExpressionResolver indexNameResolver,
-                                             Supplier<RepositoriesService> repositoriesServiceSupplier) {
+                                             Supplier<RepositoriesService>
+                                                       repositoriesServiceSupplier) {
     this.clusterService = clusterService;
     this.pluginSettings = new ElasticsearchSettings(clusterService.getClusterSettings());
 
