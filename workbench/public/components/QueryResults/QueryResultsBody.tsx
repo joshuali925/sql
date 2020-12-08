@@ -98,6 +98,7 @@ interface QueryResultsBodyState {
   isDownloadPopoverOpen: boolean;
   isModalVisible: boolean;
   downloadErrorModal: any;
+  items: any[];
 }
 
 interface FieldValue {
@@ -130,11 +131,11 @@ class QueryResultsBody extends React.Component<QueryResultsBodyProps, QueryResul
       isPopoverOpen: false,
       isDownloadPopoverOpen: false,
       isModalVisible: false,
-      downloadErrorModal: {}
+      downloadErrorModal: {},
+      items: [],
     };
 
     this.expandedRowColSpan = 0;
-    this.items = [];
     this.columns = [];
 
     this.panels = [
@@ -308,8 +309,7 @@ class QueryResultsBody extends React.Component<QueryResultsBodyProps, QueryResul
   }
 
   onSort(prop: string): void {
-    this.items = this.props.onSort(prop, this.items);
-    this.renderRows(this.items, this.columns, this.props.itemIdToExpandedRowMap);
+    this.setState({ items: this.props.onSort(prop, this.state.items) });
   }
 
   sortDataRows(dataRows: DataRow[], field: string): DataRow[] {
@@ -602,8 +602,8 @@ class QueryResultsBody extends React.Component<QueryResultsBodyProps, QueryResul
           key={label}
           width={colwidth}
           onSort={this.onSort.bind(this, label)}
-          isSorted={this.props.sortedColumn === label}
-          isSortAscending={this.props.sortableProperties.isAscendingByName(label)}
+          isSorted={this.props.sortableProperties.currentSortedProperty.name === label}
+          isSortAscending={this.props.sortableProperties.currentSortedProperty.isAscending}
         >
           {label}
         </EuiTableHeaderCell>
@@ -833,6 +833,18 @@ class QueryResultsBody extends React.Component<QueryResultsBodyProps, QueryResul
     );
   }
 
+  componentDidMount() {
+    if (this.props.queryResultSelected){
+      this.setState({ items: this.getItems(this.props.queryResultSelected.records) });
+    }
+  }
+
+  componentDidUpdate(prevProps: QueryResultsBodyProps) {
+    if(!_.isEqual(this.props.queryResultSelected, prevProps.queryResultSelected)) {
+      this.setState({ items: this.getItems(this.props.queryResultSelected.records) });
+    }
+  } 
+
   render() {
     // Action button with list of downloads
     const downloadsButton = (
@@ -859,7 +871,6 @@ class QueryResultsBody extends React.Component<QueryResultsBodyProps, QueryResul
       return this.renderMessagesTab();
     } else {
       if (this.props.queryResultSelected) {
-        this.items = this.getItems(this.props.queryResultSelected.records);
         //Adding an extra empty column for the expanding icon
         this.columns = this.addExpandingIconColumn(this.props.queryResultSelected.fields);
         this.expandedRowColSpan = this.columns.length;
@@ -875,7 +886,7 @@ class QueryResultsBody extends React.Component<QueryResultsBodyProps, QueryResul
                   <EuiText className="table-name">
                     <h4>
                       {this.props.selectedTabName}
-                      <span className="table-item-count">{` (${this.items.length})`}</span>
+                      <span className="table-item-count">{` (${this.state.items.length})`}</span>
                     </h4>
                   </EuiText>
                   <div className="search-panel">
@@ -918,7 +929,7 @@ class QueryResultsBody extends React.Component<QueryResultsBodyProps, QueryResul
 
                     <EuiTableBody>
                       {this.renderRows(
-                        this.items,
+                        this.state.items,
                         this.columns,
                         this.props.itemIdToExpandedRowMap
                       )}

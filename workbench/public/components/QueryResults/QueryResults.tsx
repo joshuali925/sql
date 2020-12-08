@@ -175,10 +175,9 @@ class QueryResults extends React.Component<QueryResultsProps, QueryResultsState>
   }
 
   onSort = (prop: string, items: DataRow[]): DataRow[] => {
-    let sortedRows = this.sortDataRows(items, prop);
     this.sortableProperties.sortOn(prop)
     this.sortedColumn = prop;
-    return sortedRows;
+    return this.sortDataRows(items, prop);
   }
 
   sortDataRows(dataRows: DataRow[], field: string): DataRow[] {
@@ -200,10 +199,8 @@ class QueryResults extends React.Component<QueryResultsProps, QueryResultsState>
       }
       return 0;
     }
-    if (!this.sortableProperties.isAscendingByName(field)) {
-      Comparators.reverse(comparator);
-    }
-    return copy.sort(comparator);
+    return this.sortableProperties.currentSortedProperty.isAscending ? copy.sort(comparator) :
+      copy.sort((a, b) => comparator(b, a));
   }
 
   renderTabs(): Tab[] {

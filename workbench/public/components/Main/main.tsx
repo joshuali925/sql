@@ -209,6 +209,8 @@ export class Main extends React.Component<MainProps, MainState> {
 
     this.state = {
       language: 'SQL',
+      // sqlQueriesString: 'select FlightNum,DestCountry from kibana_sample_data_flights limit 5',
+      // pplQueriesString: 'source=kibana_sample_data_flights',
       sqlQueriesString: 'SHOW tables LIKE %;',
       pplQueriesString: '',
       queries: [],
