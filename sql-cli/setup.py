@@ -41,7 +41,7 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setup(
-    name="odfe-sql-cli",
+    name="opendistro-sql-cli",
     author="Open Distro for Elasticsearch",
     author_email="odfe-infra@amazon.com",
     version=version,
