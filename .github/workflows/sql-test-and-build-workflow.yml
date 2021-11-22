@@ -32,7 +32,7 @@ jobs:
 
     - name: Create Artifact Path
       run: |
-        mkdir -p opensearch-sql-bulds
+        mkdir -p opensearch-sql-builds
         cp -r ./plugin/build/distributions/*.zip opensearch-sql-builds/
 
     # This step uses the codecov-action Github action: https://github.com/codecov/codecov-action
