@@ -32,6 +32,15 @@ public class MathematicalFunctionIT extends SQLIntegTestCase {
   }
 
   @Test
+  public void testSubQuery() throws IOException {
+    JSONObject result =
+      executeQuery(String.format("SELECT count(1),gender FROM (select gender from %s) group by gender",TEST_INDEX_BANK) );
+    verifySchema(result,
+        schema("PI()", null, "double"));
+    verifyDataRows(result, rows(3.141592653589793));
+  }
+
+  @Test
   public void testPI() throws IOException {
     JSONObject result =
             executeQuery(String.format("SELECT PI() FROM %s HAVING (COUNT(1) > 0)",TEST_INDEX_BANK) );

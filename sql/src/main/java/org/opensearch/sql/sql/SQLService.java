@@ -89,6 +89,8 @@ public class SQLService {
    */
   public UnresolvedPlan parse(String query) {
     ParseTree cst = parser.parse(query);
+    System.out.println("Debugging cst");
+    System.out.println(cst);
     return cst.accept(new AstBuilder(query));
   }
 

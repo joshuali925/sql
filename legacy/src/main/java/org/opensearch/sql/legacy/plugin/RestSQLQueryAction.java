@@ -101,6 +101,10 @@ public class RestSQLQueryAction extends BaseRestHandler {
     try {
       // For now analyzing and planning stage may throw syntax exception as well
       // which hints the fallback to legacy code is necessary here.
+      System.out.println("Debugging request.getQuery()");
+      System.out.println(request.getQuery());
+      System.out.println("Debugging sqlService.parse(request.getQuery())");
+      System.out.println(sqlService.parse(request.getQuery()));
       plan = sqlService.plan(
                 sqlService.analyze(
                     sqlService.parse(request.getQuery())));

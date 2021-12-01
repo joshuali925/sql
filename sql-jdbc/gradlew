@@ -19,6 +19,9 @@
 ##
 ##############################################################################
 
+export PATH=$HOME/.local/jdk-14.0.1/bin:$PATH
+export JAVA_HOME=$HOME/.local/jdk-14.0.1
+
 # Attempt to set APP_HOME
 # Resolve links: $0 may be a link
 PRG="$0"

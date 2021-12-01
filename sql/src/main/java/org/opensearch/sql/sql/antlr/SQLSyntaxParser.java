@@ -12,6 +12,7 @@ import org.opensearch.sql.common.antlr.CaseInsensitiveCharStream;
 import org.opensearch.sql.common.antlr.SyntaxAnalysisErrorListener;
 import org.opensearch.sql.sql.antlr.parser.OpenSearchSQLLexer;
 import org.opensearch.sql.sql.antlr.parser.OpenSearchSQLParser;
+import org.opensearch.sql.sql.antlr.parser.OpenSearchSQLParser.RootContext;
 
 /**
  * SQL syntax parser which encapsulates an ANTLR parser.
@@ -25,9 +26,16 @@ public class SQLSyntaxParser {
    */
   public ParseTree parse(String query) {
     OpenSearchSQLLexer lexer = new OpenSearchSQLLexer(new CaseInsensitiveCharStream(query));
+    System.out.println("Debugging lexer");
+    System.out.println(lexer.toString());
     OpenSearchSQLParser parser = new OpenSearchSQLParser(new CommonTokenStream(lexer));
+    System.out.println("Debugging parser");
+    System.out.println(parser.toString());
     parser.addErrorListener(new SyntaxAnalysisErrorListener());
-    return parser.root();
+    RootContext root = parser.root();
+    System.out.println("Debugging root");
+    System.out.println(root);
+    return root;
   }
 
 }

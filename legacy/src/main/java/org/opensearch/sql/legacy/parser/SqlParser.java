@@ -355,7 +355,12 @@ public class SqlParser {
             return fromList;
         }
 
-        SQLJoinTableSource joinTableSource = ((SQLJoinTableSource) from);
+        System.out.println("Debugging from");
+        System.out.println(from.toString());
+        System.out.println(from.getClass().getName());
+        SQLJoinTableSource joinTableSource = (SQLJoinTableSource) ((SQLTableSource) from);
+        System.out.println("Debugging joinTableSource");
+        System.out.println(joinTableSource.toString());
         List<From> fromList = new ArrayList<>();
         fromList.addAll(findFrom(joinTableSource.getLeft()));
         fromList.addAll(findFrom(joinTableSource.getRight()));
