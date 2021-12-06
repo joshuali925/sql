@@ -14,20 +14,22 @@ Developer Guide
 Prerequisites
 =============
 
-JDK
----
+JDK 11
+------
 
-Specific version of JDK is required to build the plugin because of the dependency on OpenSearch test framework in our integration test. So you must have the required version of JDK installation on your machine. After the installation, please configure the ``JAVA_HOME`` environment variable accordingly. If everything goes right, you should something similar to this sample output on macOS (take OpenJDK 14 for example)::
+OpenSearch builds using Java 11 at a minimum. This means you must have a JDK 11 installed with the environment variable ``JAVA_HOME`` referencing the path to Java home for your JDK 11 installation, e.g. ``JAVA_HOME=/usr/lib/jvm/jdk-11``. Here are the official instructions on how to set ``JAVA_HOME`` for different platforms: https://docs.oracle.com/cd/E19182-01/820-7851/inst_cli_jdk_javahome_t/.
 
-   $ echo $JAVA_HOME
-   /Library/Java/JavaVirtualMachines/adoptopenjdk-14.jdk/Contents/Home
+Download Java 11 from [here](https://adoptium.net/releases.html?variant=openjdk11).
 
-   $ java -version
-   openjdk version "14.0.1" 2020-04-14
-   OpenJDK Runtime Environment AdoptOpenJDK (build 14.0.1+7)
-   OpenJDK 64-Bit Server VM AdoptOpenJDK (build 14.0.1+7, mixed mode, sharing)
+JDK 8 and 14
+------------
 
-Here are the official instructions on how to set ``JAVA_HOME`` for different platforms: https://docs.oracle.com/cd/E19182-01/820-7851/inst_cli_jdk_javahome_t/. 
+To run the full suite of tests, download and install [JDK 8](https://adoptium.net/releases.html?variant=openjdk8) and [JDK 14](https://jdk.java.net/archive/) and set ``JAVA8_HOME``, ``JAVA11_HOME``, and ``JAVA14_HOME``. They are required by the [backwards compatibility test](docs/dev/Testing.md).
+
+Runtime JDK
+-----------
+
+By default, the test tasks use bundled JDK runtime, configured in ``buildSrc/version.properties`` and set to JDK 17 (LTS). Other kind of test tasks (integration, cluster, ... ) use the same runtime as ``JAVA_HOME``. However, since OpenSearch supports JDK 8 as the runtime, the build supports compiling with JDK 11 and testing on a different version of JDK runtime. To do this, set ``RUNTIME_JAVA_HOME`` pointing to the Java home of another JDK installation, e.g. ``RUNTIME_JAVA_HOME=/usr/lib/jvm/jdk-8``. Alternatively, the runtime JDK version could be provided as the command line argument, using combination of ``runtime.java=<major JDK version>`` property and ``JAVA<major JDK version>_HOME`` environment variable, for example ``./gradlew -Druntime.java=17 ...`` (in this case, the tooling expects ``JAVA17_HOME`` environment variable to be set).
 
 OpenSearch & OpenSearch Dashboards
 ----------------------------------
