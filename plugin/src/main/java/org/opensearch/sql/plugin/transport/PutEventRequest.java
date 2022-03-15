@@ -1,3 +1,9 @@
+/*
+ * Copyright OpenSearch Contributors
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+
 package org.opensearch.sql.plugin.transport;
 
 import java.io.IOException;
@@ -28,11 +34,11 @@ public class PutEventRequest extends ActionRequest {
     return tags;
   }
 
-  private String index;
-  private String type;
-  private String bucket;
-  private String object;
-  private Map<String, Object> tags;
+  private final String index;
+  private final String type;
+  private final String bucket;
+  private final String object;
+  private final Map<String, Object> tags;
 
   public PutEventRequest(String index, String type, String bucket, String object,
                          Map<String, Object> tags) {

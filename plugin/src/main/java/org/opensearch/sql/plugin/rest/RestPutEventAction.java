@@ -1,8 +1,15 @@
+/*
+ * Copyright OpenSearch Contributors
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+
 package org.opensearch.sql.plugin.rest;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.ImmutableList;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -23,7 +30,7 @@ public class RestPutEventAction extends BaseRestHandler {
 
   private static final String PUT_EVENT_ACTION = "put_event_action";
 
-  private static ObjectMapper objectMapper = new ObjectMapper();
+  private static final ObjectMapper objectMapper = new ObjectMapper();
 
   @Override
   public String getName() {
@@ -32,7 +39,7 @@ public class RestPutEventAction extends BaseRestHandler {
 
   @Override
   public List<Route> routes() {
-    return Arrays.asList(
+    return ImmutableList.of(
         new Route(RestRequest.Method.POST, "/_opensearch/log-stream/")
     );
   }
