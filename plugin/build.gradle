@@ -63,6 +63,10 @@ configurations.all {
     resolutionStrategy.force 'com.google.guava:guava:31.0.1-jre'
     resolutionStrategy.force 'com.fasterxml.jackson.dataformat:jackson-dataformat-cbor:2.13.2'
     resolutionStrategy.force 'com.fasterxml.jackson.core:jackson-databind:2.13.2.2'
+    // conflict with awssdk:s3
+    resolutionStrategy.force 'io.netty:netty-codec-http:4.1.63.Final'
+    resolutionStrategy.force 'io.netty:netty-handler:4.1.63.Final'
+    resolutionStrategy.force 'org.apache.httpcomponents:httpcore:4.4.13'
 }
 
 dependencies {
