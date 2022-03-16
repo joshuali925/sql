@@ -10,8 +10,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
-import java.io.IOException;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -45,8 +43,7 @@ public class RestPutEventAction extends BaseRestHandler {
   }
 
   @Override
-  protected RestChannelConsumer prepareRequest(RestRequest request, NodeClient client)
-      throws IOException {
+  protected RestChannelConsumer prepareRequest(RestRequest request, NodeClient client) {
     return channel -> client.execute(PutEventAction.INSTANCE, buildRequest(request),
         new RestToXContentListener<>(channel));
   }

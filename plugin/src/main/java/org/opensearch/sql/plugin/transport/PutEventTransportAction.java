@@ -74,6 +74,7 @@ public class PutEventTransportAction extends HandledTransportAction<PutEventRequ
     metaInfo.put("object", request.getObject());
     content.putAll(request.getTags());
     content.put("meta", metaInfo);
+    content.put("raw", "");
     final IndexRequest indexRequest = new IndexRequest(request.getIndex())
         .source(content);
 
