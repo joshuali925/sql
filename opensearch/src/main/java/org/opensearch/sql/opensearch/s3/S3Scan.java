@@ -56,6 +56,6 @@ public class S3Scan implements Iterator<ExprValue> {
   }
 
   private ExprValue asExprValue(String line) {
-    return ExprTupleValue.fromExprValueMap(ImmutableMap.of("_raw", new ExprStringValue(line)));
+    return ExprTupleValue.fromExprValueMap(ImmutableMap.of("raw", new ExprStringValue(line)));
   }
 }
