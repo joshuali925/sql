@@ -21,7 +21,7 @@ public class S3Scan implements Iterator<ExprValue> {
 
   private final Iterator<Pair<String, String>> s3Objects;
 
-  private S3ObjectContent content;
+  private final S3ObjectContent content;
 
   public S3Scan(List<Pair<String, String>> s3Objects) {
     this.s3Objects = s3Objects.iterator();

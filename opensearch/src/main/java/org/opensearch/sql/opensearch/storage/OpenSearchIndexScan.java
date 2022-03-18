@@ -74,8 +74,6 @@ public class OpenSearchIndexScan extends TableScanOperator {
    */
   private Iterator<ExprValue> iterator;
 
-  private S3Scan s3Scan;
-
   /**
    * Constructor.
    */
@@ -114,7 +112,7 @@ public class OpenSearchIndexScan extends TableScanOperator {
     S3Scan s3Scan = new S3Scan(s3Objects(logStream));
     s3Scan.open();
     // Todo. Return 100 records now for testing purpose
-    iterator = Iterators.limit(s3Scan, 100);
+    iterator = Iterators.limit(s3Scan, 20000);
   }
 
   private List<Pair<String, String>> s3Objects(Iterator<ExprValue> logStream) {
