@@ -15,8 +15,8 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.opensearch.sql.opensearch.security.SecurityAccess;
-import software.amazon.awssdk.auth.credentials.EnvironmentVariableCredentialsProvider;
 import software.amazon.awssdk.core.ResponseBytes;
+import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
@@ -42,7 +42,6 @@ class S3ObjectContent implements Iterator<String> {
     s3 = doPrivileged(() -> S3Client
         .builder()
         .region(Region.US_WEST_2)
-        .credentialsProvider(EnvironmentVariableCredentialsProvider.create())
         .build());
   }
 
@@ -52,11 +51,9 @@ class S3ObjectContent implements Iterator<String> {
         .key(s3Object.getRight())
         .build();
 
-    ResponseBytes<GetObjectResponse> s3Objects =
-        doPrivileged(() -> s3.getObjectAsBytes(getObjectRequest));
+    ResponseInputStream<GetObjectResponse> s3Stream = doPrivileged(() -> s3.getObject(getObjectRequest));
     try {
-      reader =
-          new BufferedReader(new InputStreamReader(new GZIPInputStream(s3Objects.asInputStream())));
+      reader = new BufferedReader(new InputStreamReader(new GZIPInputStream(s3Stream)));
       currIterator = reader.lines().iterator();
     } catch (IOException e) {
       log.error("failed to read s3 object {} ", s3Object, e);
