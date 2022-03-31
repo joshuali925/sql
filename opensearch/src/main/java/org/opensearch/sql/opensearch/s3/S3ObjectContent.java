@@ -11,13 +11,10 @@ import java.io.InputStreamReader;
 import java.security.PrivilegedExceptionAction;
 import java.util.Iterator;
 import java.util.zip.GZIPInputStream;
-import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.opensearch.sql.opensearch.security.SecurityAccess;
-import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.ResponseInputStream;
-import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
@@ -39,19 +36,17 @@ class S3ObjectContent implements Iterator<String> {
   private BufferedReader reader;
 
   public S3ObjectContent() {
-    s3 = doPrivileged(() -> S3Client
-        .builder()
-        .region(Region.US_WEST_2)
-        .build());
+    s3 = doPrivileged(S3Client::create);
   }
 
-  public void open(Pair<String, String> s3Object) {
+  public void open(S3ObjectMetaData s3Object) {
     GetObjectRequest getObjectRequest = GetObjectRequest.builder()
-        .bucket(s3Object.getLeft())
-        .key(s3Object.getRight())
+        .bucket(s3Object.getBucket())
+        .key(s3Object.getObject())
         .build();
 
-    ResponseInputStream<GetObjectResponse> s3Stream = doPrivileged(() -> s3.getObject(getObjectRequest));
+    ResponseInputStream<GetObjectResponse> s3Stream =
+        doPrivileged(() -> s3.getObject(getObjectRequest));
     try {
       reader = new BufferedReader(new InputStreamReader(new GZIPInputStream(s3Stream)));
       currIterator = reader.lines().iterator();
