@@ -42,6 +42,7 @@ import org.opensearch.sql.opensearch.request.OpenSearchQueryRequest;
 import org.opensearch.sql.opensearch.request.OpenSearchRequest;
 import org.opensearch.sql.opensearch.response.OpenSearchResponse;
 import org.opensearch.sql.opensearch.response.agg.OpenSearchAggregationResponseParser;
+import org.opensearch.sql.opensearch.s3.S3ObjectMetaData;
 import org.opensearch.sql.opensearch.s3.S3Scan;
 import org.opensearch.sql.opensearch.security.SecurityAccess;
 import org.opensearch.sql.storage.TableScanOperator;
@@ -111,12 +112,11 @@ public class OpenSearchIndexScan extends TableScanOperator {
 
     S3Scan s3Scan = new S3Scan(s3Objects(logStream));
     s3Scan.open();
-    // Todo. Return 100 records now for testing purpose
-    iterator = Iterators.limit(s3Scan, 20000);
+    iterator = Iterators.limit(s3Scan, request.getSourceBuilder().size());
   }
 
-  private List<Pair<String, String>> s3Objects(Iterator<ExprValue> logStream) {
-    List<Pair<String, String>> s3Objects = new ArrayList<>();
+  private List<S3ObjectMetaData> s3Objects(Iterator<ExprValue> logStream) {
+    List<S3ObjectMetaData> s3Objects = new ArrayList<>();
     logStream.forEachRemaining(value -> {
       final BindingTuple tuple = value.bindingTuples();
       final ExprValue bucket =
@@ -124,17 +124,9 @@ public class OpenSearchIndexScan extends TableScanOperator {
       final ExprValue object =
           tuple.resolve(new ReferenceExpression("meta.object", ExprCoreType.STRING));
       log.info("bucket {}, object {}", bucket.stringValue(), object.stringValue());
-      s3Objects.add(Pair.of(bucket.stringValue(), object.stringValue()));
+      s3Objects.add(new S3ObjectMetaData(bucket.stringValue(), object.stringValue()));
     });
     return s3Objects;
-  }
-
-  private <T> T doPrivileged(PrivilegedExceptionAction<T> action) {
-    try {
-      return SecurityAccess.doPrivileged(action);
-    } catch (IOException e) {
-      throw new IllegalStateException("Failed to perform privileged action", e);
-    }
   }
 
   @Override
