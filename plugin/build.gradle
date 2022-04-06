@@ -74,6 +74,7 @@ dependencies {
     api project(":ppl")
     api project(':legacy')
     api project(':opensearch')
+    implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.13.2.2'
 }
 
 
