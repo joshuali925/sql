@@ -118,6 +118,8 @@ public class OpenSearchDescribeIndexRequest implements OpenSearchSystemRequest {
               .filter(entry -> !ExprCoreType.UNKNOWN.equals(entry.getValue()))
               .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
     }
+    fieldTypes.put("@timestamp", ExprCoreType.TIMESTAMP);
+    fieldTypes.put("raw", ExprCoreType.STRING);
     return fieldTypes;
   }
 

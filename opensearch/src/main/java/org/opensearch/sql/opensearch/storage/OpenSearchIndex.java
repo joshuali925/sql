@@ -125,6 +125,12 @@ public class OpenSearchIndex implements Table {
      */
     public PhysicalPlan visitIndexScan(OpenSearchLogicalIndexScan node,
                                        OpenSearchIndexScan context) {
+      if (context.isS3Scan()) {
+        if (node.getFilter() != null) {
+          context.pushDownS3TimeFilters(node.getFilter());
+        }
+        return indexScan;
+      }
       if (null != node.getSortList()) {
         final SortQueryBuilder builder = new SortQueryBuilder();
         context.pushDownSort(node.getSortList().stream()
