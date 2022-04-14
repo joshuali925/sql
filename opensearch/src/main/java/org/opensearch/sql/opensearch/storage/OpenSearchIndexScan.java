@@ -11,9 +11,8 @@ import static org.opensearch.search.sort.SortOrder.ASC;
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Iterators;
-import java.io.IOException;
-import java.security.PrivilegedExceptionAction;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -35,6 +34,8 @@ import org.opensearch.sql.common.setting.Settings;
 import org.opensearch.sql.data.model.ExprValue;
 import org.opensearch.sql.data.type.ExprCoreType;
 import org.opensearch.sql.data.type.ExprType;
+import org.opensearch.sql.expression.Expression;
+import org.opensearch.sql.expression.FunctionExpression;
 import org.opensearch.sql.expression.ReferenceExpression;
 import org.opensearch.sql.opensearch.client.OpenSearchClient;
 import org.opensearch.sql.opensearch.data.value.OpenSearchExprValueFactory;
@@ -44,7 +45,6 @@ import org.opensearch.sql.opensearch.response.OpenSearchResponse;
 import org.opensearch.sql.opensearch.response.agg.OpenSearchAggregationResponseParser;
 import org.opensearch.sql.opensearch.s3.S3ObjectMetaData;
 import org.opensearch.sql.opensearch.s3.S3Scan;
-import org.opensearch.sql.opensearch.security.SecurityAccess;
 import org.opensearch.sql.storage.TableScanOperator;
 import org.opensearch.sql.storage.bindingtuple.BindingTuple;
 
@@ -75,6 +75,9 @@ public class OpenSearchIndexScan extends TableScanOperator {
    */
   private Iterator<ExprValue> iterator;
 
+  @Getter
+  private boolean isS3Scan;
+
   /**
    * Constructor.
    */
@@ -90,6 +93,10 @@ public class OpenSearchIndexScan extends TableScanOperator {
   public OpenSearchIndexScan(OpenSearchClient client,
                              Settings settings, OpenSearchRequest.IndexName indexName,
                              OpenSearchExprValueFactory exprValueFactory) {
+    if (Arrays.stream(indexName.getIndexNames())
+        .anyMatch(name -> name.startsWith("s3-") && name.endsWith("-metadata"))) {
+      isS3Scan = true;
+    }
     this.client = client;
     this.request = new OpenSearchQueryRequest(indexName,
         settings.getSettingValue(Settings.Key.QUERY_SIZE_LIMIT), exprValueFactory);
@@ -106,10 +113,13 @@ public class OpenSearchIndexScan extends TableScanOperator {
       responses.add(response);
       response = client.search(request);
     }
-    // iterator = Iterables.concat(responses.toArray(new OpenSearchResponse[0])).iterator();
+    if (!isS3Scan) {
+      iterator = Iterables.concat(responses.toArray(new OpenSearchResponse[0])).iterator();
+      return;
+    }
+
     Iterator<ExprValue> logStream =
         Iterables.concat(responses.toArray(new OpenSearchResponse[0])).iterator();
-
     S3Scan s3Scan = new S3Scan(s3Objects(logStream));
     s3Scan.open();
     iterator = Iterators.limit(s3Scan, request.getSourceBuilder().size());
@@ -137,6 +147,29 @@ public class OpenSearchIndexScan extends TableScanOperator {
   @Override
   public ExprValue next() {
     return iterator.next();
+  }
+
+  public void pushDownS3TimeFilters(Expression filter) {
+    String start =
+        ((FunctionExpression) ((FunctionExpression) filter).getArguments()
+            .get(0)).getArguments().get(1).valueOf(null).timestampValue().toString();
+    String end =
+        ((FunctionExpression) ((FunctionExpression) filter).getArguments()
+            .get(1)).getArguments().get(1).valueOf(null).timestampValue().toString();
+
+    BoolQueryBuilder left = QueryBuilders.boolQuery();
+    left.must(QueryBuilders.rangeQuery("meta.startTime").lte(start));
+    left.must(QueryBuilders.rangeQuery("meta.endTime").gte(start));
+    BoolQueryBuilder right = QueryBuilders.boolQuery();
+    right.must(QueryBuilders.rangeQuery("meta.startTime").lte(end));
+    right.must(QueryBuilders.rangeQuery("meta.endTime").gte(end));
+    BoolQueryBuilder center = QueryBuilders.boolQuery();
+    center.must(QueryBuilders.rangeQuery("meta.startTime").gte(start));
+    center.must(QueryBuilders.rangeQuery("meta.endTime").lte(end));
+
+    BoolQueryBuilder query = QueryBuilders.boolQuery();
+    query.should(left).should(right).should(center);
+    pushDown(query);
   }
 
   /**

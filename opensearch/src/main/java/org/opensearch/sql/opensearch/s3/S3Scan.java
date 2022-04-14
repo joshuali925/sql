@@ -28,9 +28,11 @@ public class S3Scan implements Iterator<ExprValue> {
   }
 
   public void open() {
-    final S3ObjectMetaData next = s3Objects.next();
-    System.out.println("next file " + next);
-    content.open(next);
+    if (hasNext()) {
+      final S3ObjectMetaData next = s3Objects.next();
+      System.out.println("next file " + next);
+      content.open(next);
+    }
   }
 
   // either content not been consumed or s3 objects still not been consumed.
