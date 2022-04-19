@@ -73,6 +73,23 @@ PPL query::
     | Dale        | 33    |
     +-------------+-------+
 
+Example 3: Get first N results after offset M
+===========================================
+
+The example show first N results after offset M from accounts index.
+
+PPL query::
+
+    os> source=accounts | fields firstname, age | head 3 offset 3;
+    fetched rows / total rows = 3/3
+    +---------------+-----------+
+    | firstname     | age       |
+    |---------------+-----------|
+    | Dale          | 33        |
+    | Elinor        | 36        |
+    | Virginia      | 39        |
+    +---------------+-----------+
+
 Limitation
 ==========
 The ``head`` command is not rewritten to OpenSearch DSL, it is only executed on the coordination node.
