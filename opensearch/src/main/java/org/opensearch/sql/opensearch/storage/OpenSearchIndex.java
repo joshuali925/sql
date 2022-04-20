@@ -129,6 +129,9 @@ public class OpenSearchIndex implements Table {
         if (node.getFilter() != null) {
           context.pushDownS3TimeFilters(node.getFilter());
         }
+        if (node.getLimit() != null) {
+          context.pushDownS3Limit(node.getLimit(), node.getOffset());
+        }
         return indexScan;
       }
       if (null != node.getSortList()) {
