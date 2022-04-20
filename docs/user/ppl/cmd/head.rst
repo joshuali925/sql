@@ -74,21 +74,21 @@ PPL query::
     +-------------+-------+
 
 Example 3: Get first N results after offset M
-===========================================
+=============================================
 
 The example show first N results after offset M from accounts index.
 
 PPL query::
 
-    os> source=accounts | fields firstname, age | head 3 offset 3;
+    os> source=accounts | fields firstname, age | head 3 from 1;
     fetched rows / total rows = 3/3
-    +---------------+-----------+
-    | firstname     | age       |
-    |---------------+-----------|
-    | Dale          | 33        |
-    | Elinor        | 36        |
-    | Virginia      | 39        |
-    +---------------+-----------+
+    +-------------+-------+
+    | firstname   | age   |
+    |-------------+-------|
+    | Hattie      | 36    |
+    | Nanette     | 28    |
+    | Dale        | 33    |
+    +-------------+-------+
 
 Limitation
 ==========
