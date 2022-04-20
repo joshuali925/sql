@@ -40,15 +40,15 @@ public class S3Scan implements Iterator<ExprValue> {
   public boolean hasNext() {
     if (content.hasNext()) {
       return true;
-    } else if (!s3Objects.hasNext()) {
-      return false;
-    } else {
-      content.close();
-      final S3ObjectMetaData next = s3Objects.next();
-      System.out.println("next file " + next);
-      content.open(next);
-      return content.hasNext();
     }
+    if (!s3Objects.hasNext()) {
+      return false;
+    }
+    content.close();
+    final S3ObjectMetaData next = s3Objects.next();
+    System.out.println("next file " + next);
+    content.open(next);
+    return content.hasNext();
   }
 
   @Override

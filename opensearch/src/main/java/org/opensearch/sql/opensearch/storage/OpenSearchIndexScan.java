@@ -77,6 +77,8 @@ public class OpenSearchIndexScan extends TableScanOperator {
 
   @Getter
   private boolean isS3Scan;
+  private int s3Limit = 200;
+  private int s3Offset = 0;
 
   /**
    * Constructor.
@@ -122,7 +124,8 @@ public class OpenSearchIndexScan extends TableScanOperator {
         Iterables.concat(responses.toArray(new OpenSearchResponse[0])).iterator();
     S3Scan s3Scan = new S3Scan(s3Objects(logStream));
     s3Scan.open();
-    iterator = Iterators.limit(s3Scan, request.getSourceBuilder().size());
+    Iterators.advance(s3Scan, s3Offset);
+    iterator = Iterators.limit(s3Scan, s3Limit);
   }
 
   private List<S3ObjectMetaData> s3Objects(Iterator<ExprValue> logStream) {
@@ -147,6 +150,11 @@ public class OpenSearchIndexScan extends TableScanOperator {
   @Override
   public ExprValue next() {
     return iterator.next();
+  }
+
+  public void pushDownS3Limit(int limit, int offset) {
+    this.s3Limit = limit;
+    this.s3Offset = offset;
   }
 
   public void pushDownS3TimeFilters(Expression filter) {
