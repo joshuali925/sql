@@ -43,8 +43,8 @@ import org.opensearch.sql.opensearch.request.OpenSearchQueryRequest;
 import org.opensearch.sql.opensearch.request.OpenSearchRequest;
 import org.opensearch.sql.opensearch.response.OpenSearchResponse;
 import org.opensearch.sql.opensearch.response.agg.OpenSearchAggregationResponseParser;
-import org.opensearch.sql.opensearch.s3.S3ObjectMetaData;
-import org.opensearch.sql.opensearch.s3.S3Scan;
+import org.opensearch.sql.opensearch.storage.s3.S3ObjectMetaData;
+import org.opensearch.sql.opensearch.storage.s3.S3Scan;
 import org.opensearch.sql.storage.TableScanOperator;
 import org.opensearch.sql.storage.bindingtuple.BindingTuple;
 
@@ -73,12 +73,7 @@ public class OpenSearchIndexScan extends TableScanOperator {
   /**
    * Search response for current batch.
    */
-  private Iterator<ExprValue> iterator;
-
-  @Getter
-  private boolean isS3Scan;
-  private int s3Limit = 200;
-  private int s3Offset = 0;
+  protected Iterator<ExprValue> iterator;
 
   /**
    * Constructor.
@@ -95,10 +90,6 @@ public class OpenSearchIndexScan extends TableScanOperator {
   public OpenSearchIndexScan(OpenSearchClient client,
                              Settings settings, OpenSearchRequest.IndexName indexName,
                              OpenSearchExprValueFactory exprValueFactory) {
-    if (Arrays.stream(indexName.getIndexNames())
-        .anyMatch(name -> name.startsWith("s3-") && name.endsWith("-metadata"))) {
-      isS3Scan = true;
-    }
     this.client = client;
     this.request = new OpenSearchQueryRequest(indexName,
         settings.getSettingValue(Settings.Key.QUERY_SIZE_LIMIT), exprValueFactory);
@@ -115,31 +106,7 @@ public class OpenSearchIndexScan extends TableScanOperator {
       responses.add(response);
       response = client.search(request);
     }
-    if (!isS3Scan) {
-      iterator = Iterables.concat(responses.toArray(new OpenSearchResponse[0])).iterator();
-      return;
-    }
-
-    Iterator<ExprValue> logStream =
-        Iterables.concat(responses.toArray(new OpenSearchResponse[0])).iterator();
-    S3Scan s3Scan = new S3Scan(s3Objects(logStream));
-    s3Scan.open();
-    Iterators.advance(s3Scan, s3Offset);
-    iterator = Iterators.limit(s3Scan, s3Limit);
-  }
-
-  private List<S3ObjectMetaData> s3Objects(Iterator<ExprValue> logStream) {
-    List<S3ObjectMetaData> s3Objects = new ArrayList<>();
-    logStream.forEachRemaining(value -> {
-      final BindingTuple tuple = value.bindingTuples();
-      final ExprValue bucket =
-          tuple.resolve(new ReferenceExpression("meta.bucket", ExprCoreType.STRING));
-      final ExprValue object =
-          tuple.resolve(new ReferenceExpression("meta.object", ExprCoreType.STRING));
-      log.info("bucket {}, object {}", bucket.stringValue(), object.stringValue());
-      s3Objects.add(new S3ObjectMetaData(bucket.stringValue(), object.stringValue()));
-    });
-    return s3Objects;
+    iterator = Iterables.concat(responses.toArray(new OpenSearchResponse[0])).iterator();
   }
 
   @Override
@@ -150,34 +117,6 @@ public class OpenSearchIndexScan extends TableScanOperator {
   @Override
   public ExprValue next() {
     return iterator.next();
-  }
-
-  public void pushDownS3Limit(int limit, int offset) {
-    this.s3Limit = limit;
-    this.s3Offset = offset;
-  }
-
-  public void pushDownS3TimeFilters(Expression filter) {
-    String start =
-        ((FunctionExpression) ((FunctionExpression) filter).getArguments()
-            .get(0)).getArguments().get(1).valueOf(null).timestampValue().toString();
-    String end =
-        ((FunctionExpression) ((FunctionExpression) filter).getArguments()
-            .get(1)).getArguments().get(1).valueOf(null).timestampValue().toString();
-
-    BoolQueryBuilder left = QueryBuilders.boolQuery();
-    left.must(QueryBuilders.rangeQuery("meta.startTime").lte(start));
-    left.must(QueryBuilders.rangeQuery("meta.endTime").gte(start));
-    BoolQueryBuilder right = QueryBuilders.boolQuery();
-    right.must(QueryBuilders.rangeQuery("meta.startTime").lte(end));
-    right.must(QueryBuilders.rangeQuery("meta.endTime").gte(end));
-    BoolQueryBuilder center = QueryBuilders.boolQuery();
-    center.must(QueryBuilders.rangeQuery("meta.startTime").gte(start));
-    center.must(QueryBuilders.rangeQuery("meta.endTime").lte(end));
-
-    BoolQueryBuilder query = QueryBuilders.boolQuery();
-    query.should(left).should(right).should(center);
-    pushDown(query);
   }
 
   /**

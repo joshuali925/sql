@@ -7,16 +7,21 @@
 package org.opensearch.sql.opensearch.storage;
 
 import com.google.common.annotations.VisibleForTesting;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.tuple.Pair;
+import org.opensearch.index.query.BoolQueryBuilder;
 import org.opensearch.index.query.QueryBuilder;
+import org.opensearch.index.query.QueryBuilders;
 import org.opensearch.search.aggregations.AggregationBuilder;
 import org.opensearch.sql.common.setting.Settings;
 import org.opensearch.sql.common.utils.StringUtils;
 import org.opensearch.sql.data.type.ExprType;
+import org.opensearch.sql.expression.Expression;
+import org.opensearch.sql.expression.FunctionExpression;
 import org.opensearch.sql.opensearch.client.OpenSearchClient;
 import org.opensearch.sql.opensearch.data.value.OpenSearchExprValueFactory;
 import org.opensearch.sql.opensearch.planner.logical.OpenSearchLogicalIndexAgg;
@@ -27,6 +32,7 @@ import org.opensearch.sql.opensearch.planner.physical.MLCommonsOperator;
 import org.opensearch.sql.opensearch.request.OpenSearchRequest;
 import org.opensearch.sql.opensearch.request.system.OpenSearchDescribeIndexRequest;
 import org.opensearch.sql.opensearch.response.agg.OpenSearchAggregationResponseParser;
+import org.opensearch.sql.opensearch.storage.s3.S3IndexScan;
 import org.opensearch.sql.opensearch.storage.script.aggregation.AggregationQueryBuilder;
 import org.opensearch.sql.opensearch.storage.script.filter.FilterQueryBuilder;
 import org.opensearch.sql.opensearch.storage.script.sort.SortQueryBuilder;
@@ -39,10 +45,14 @@ import org.opensearch.sql.planner.logical.LogicalRelation;
 import org.opensearch.sql.planner.physical.PhysicalPlan;
 import org.opensearch.sql.storage.Table;
 
-/** OpenSearch table (index) implementation. */
+/**
+ * OpenSearch table (index) implementation.
+ */
 public class OpenSearchIndex implements Table {
 
-  /** OpenSearch client connection. */
+  /**
+   * OpenSearch client connection.
+   */
   private final OpenSearchClient client;
 
   private final Settings settings;
@@ -84,8 +94,15 @@ public class OpenSearchIndex implements Table {
    */
   @Override
   public PhysicalPlan implement(LogicalPlan plan) {
-    OpenSearchIndexScan indexScan = new OpenSearchIndexScan(client, settings, indexName,
-        new OpenSearchExprValueFactory(getFieldTypes()));
+    OpenSearchIndexScan indexScan;
+    if (Arrays.stream(indexName.getIndexNames())
+        .anyMatch(name -> name.startsWith("s3-") && name.endsWith("-metadata"))) {
+      indexScan = new S3IndexScan(client, settings, indexName,
+          new OpenSearchExprValueFactory(getFieldTypes()));
+    } else {
+      indexScan = new OpenSearchIndexScan(client, settings, indexName,
+          new OpenSearchExprValueFactory(getFieldTypes()));
+    }
 
     /*
      * Visit logical plan with index scan as context so logical operators visited, such as
@@ -120,20 +137,34 @@ public class OpenSearchIndex implements Table {
       }
     }
 
+    public QueryBuilder pushDownS3TimeFilters(Expression filter) {
+      String start =
+          ((FunctionExpression) ((FunctionExpression) filter).getArguments()
+              .get(0)).getArguments().get(1).valueOf(null).timestampValue().toString();
+      String end =
+          ((FunctionExpression) ((FunctionExpression) filter).getArguments()
+              .get(1)).getArguments().get(1).valueOf(null).timestampValue().toString();
+
+      BoolQueryBuilder left = QueryBuilders.boolQuery();
+      left.must(QueryBuilders.rangeQuery("meta.startTime").lte(start));
+      left.must(QueryBuilders.rangeQuery("meta.endTime").gte(start));
+      BoolQueryBuilder right = QueryBuilders.boolQuery();
+      right.must(QueryBuilders.rangeQuery("meta.startTime").lte(end));
+      right.must(QueryBuilders.rangeQuery("meta.endTime").gte(end));
+      BoolQueryBuilder center = QueryBuilders.boolQuery();
+      center.must(QueryBuilders.rangeQuery("meta.startTime").gte(start));
+      center.must(QueryBuilders.rangeQuery("meta.endTime").lte(end));
+
+      BoolQueryBuilder query = QueryBuilders.boolQuery();
+      query.should(left).should(right).should(center);
+      return query;
+    }
+
     /**
      * Implement ElasticsearchLogicalIndexScan.
      */
     public PhysicalPlan visitIndexScan(OpenSearchLogicalIndexScan node,
                                        OpenSearchIndexScan context) {
-      if (context.isS3Scan()) {
-        if (node.getFilter() != null) {
-          context.pushDownS3TimeFilters(node.getFilter());
-        }
-        if (node.getLimit() != null) {
-          context.pushDownS3Limit(node.getLimit(), node.getOffset());
-        }
-        return indexScan;
-      }
       if (null != node.getSortList()) {
         final SortQueryBuilder builder = new SortQueryBuilder();
         context.pushDownSort(node.getSortList().stream()
@@ -142,6 +173,9 @@ public class OpenSearchIndex implements Table {
       }
 
       if (null != node.getFilter()) {
+        if (context instanceof S3IndexScan) {
+          context.pushDown(pushDownS3TimeFilters(node.getFilter()));
+        }
         FilterQueryBuilder queryBuilder = new FilterQueryBuilder(new DefaultExpressionSerializer());
         QueryBuilder query = queryBuilder.build(node.getFilter());
         context.pushDown(query);
@@ -188,13 +222,13 @@ public class OpenSearchIndex implements Table {
     @Override
     public PhysicalPlan visitMLCommons(LogicalMLCommons node, OpenSearchIndexScan context) {
       return new MLCommonsOperator(visitChild(node, context), node.getAlgorithm(),
-              node.getArguments(), client.getNodeClient());
+          node.getArguments(), client.getNodeClient());
     }
 
     @Override
     public PhysicalPlan visitAD(LogicalAD node, OpenSearchIndexScan context) {
       return new ADOperator(visitChild(node, context),
-              node.getArguments(), client.getNodeClient());
+          node.getArguments(), client.getNodeClient());
     }
   }
 }
