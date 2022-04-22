@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package org.opensearch.sql.opensearch.s3;
+package org.opensearch.sql.opensearch.storage.s3;
 
 import java.io.BufferedReader;
 import java.io.IOException;
