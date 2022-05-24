@@ -20,6 +20,6 @@ public class LibPPLExecutionEngine implements ExecutionEngine {
 
   @Override
   public void explain(PhysicalPlan plan, ResponseListener<ExplainResponse> listener) {
-
+    throw new UnsupportedOperationException("Explain is not supported in LibPPL.");
   }
 }

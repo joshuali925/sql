@@ -6,6 +6,10 @@ import org.opensearch.sql.storage.Table;
 public class LibPPLStorageEngine implements StorageEngine {
   @Override
   public Table getTable(String name) {
-    return new LibPPLTable();
+    if (name.equals("stdin"))
+      return new StdinTable();
+
+    // TODO: support other tables types
+    return new StdinTable();
   }
 }
