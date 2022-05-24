@@ -1,19 +1,16 @@
 package org.opensearch.sql.libppl;
 
+import java.util.Arrays;
 import org.opensearch.sql.ppl.domain.PPLQueryRequest;
 
 public class LibPPL {
 
-  public void parseArgs(String[] args) {
-    // parse command line args
-    
-  }
   public static void main(String[] args) {
     LibPPLQueryAction queryAction = new LibPPLQueryAction();
 
-    String query = args.length > 0 ? args[0] : "source = stdin";
+    String[] queries = args.length > 0 ? args : new String[] {"source = stdin"};
 
-    PPLQueryRequest request = new PPLQueryRequest(query, null, "");
-    queryAction.execute(request);
+    Arrays.stream(queries)
+        .forEach(query -> queryAction.execute(new PPLQueryRequest(query, null, "")));
   }
 }
