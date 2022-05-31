@@ -91,23 +91,36 @@ jacocoTestCoverageVerification {
 check.dependsOn jacocoTestCoverageVerification
 jacocoTestCoverageVerification.dependsOn jacocoTestReport
 
-// jar {
-//     zip64 = true
-//     dependsOn configurations.runtimeClasspath
-//     manifest {
-//         attributes('Implementation-Title': project.name,
-//                 'Implementation-Version': project.version,
-//                 'Main-Class': 'org.opensearch.sql.libppl.LibPPL')
-//     }
-//     from {
-//         configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
-//         duplicatesStrategy(DuplicatesStrategy.INCLUDE)
-//     }
-//     from {
-//         configurations.runtimeClasspath.findAll { it.name.endsWith('jar') }.collect { zipTree(it) }
-//     }
-//     exclude 'META-INF/*.RSA'
-//     exclude 'META-INF/*.SF'
-//     exclude 'META-INF/*.DSA'
-// }
+bootJar {
+    classifier = 'boot'
+}
 
+jar {
+    classifier = ''
+    zip64 = true
+    dependsOn configurations.runtimeClasspath
+    manifest {
+        attributes('Implementation-Title': project.name,
+                'Implementation-Version': project.version,
+                'Main-Class': 'org.opensearch.sql.libppl.LibPPL')
+    }
+    from {
+        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+        duplicatesStrategy(DuplicatesStrategy.INCLUDE)
+    }
+    from {
+        configurations.runtimeClasspath.findAll { it.name.endsWith('jar') }.collect { zipTree(it) }
+    }
+    exclude 'META-INF/*.RSA'
+    exclude 'META-INF/*.SF'
+    exclude 'META-INF/*.DSA'
+}
+
+// jar {
+//   manifest {
+//     attributes "Main-Class": 'org.opensearch.sql.libppl.LibPPL'
+//   }
+//   from {
+//     configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
+//   }
+// }
