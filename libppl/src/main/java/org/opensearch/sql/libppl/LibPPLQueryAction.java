@@ -32,7 +32,7 @@ public class LibPPLQueryAction {
   private static final Logger log = LogManager.getLogger(LibPPLQueryAction.class);
   private final Iterable<ExprValue> input;
   @Getter
-  private Iterable<Map<String, Object>> output;
+  private List<Map<String, Object>> output = new ArrayList<>();
 
   public LibPPLQueryAction(Iterable<ExprValue> input) {
     this.input = input;
@@ -73,6 +73,9 @@ public class LibPPLQueryAction {
       @Override
       public void onResponse(ExecutionEngine.QueryResponse response) {
         QueryResult result = new QueryResult(response.getSchema(), response.getResults());
+        // String formattedResult = formatter.format(result);
+        // System.out.println(formattedResult);
+
         List<Map<String, Object>> rows = new ArrayList<>();
         List<ExecutionEngine.Schema.Column> columns = result.getSchema().getColumns();
         for (Object[] objects : result) {
@@ -82,9 +85,7 @@ public class LibPPLQueryAction {
           }
           rows.add(row);
         }
-        output = rows;
-        // String formattedResult = formatter.format(result);
-        // System.out.println(formattedResult);
+        output.addAll(rows);
       }
 
       @Override
@@ -92,8 +93,5 @@ public class LibPPLQueryAction {
         log.error("Error happened during query handling", e);
       }
     };
-  }
-
-  public static class LibPPLCollectionsInput {
   }
 }

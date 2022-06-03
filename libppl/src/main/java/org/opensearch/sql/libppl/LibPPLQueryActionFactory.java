@@ -12,6 +12,7 @@ import java.util.stream.Collectors;
 import org.opensearch.sql.data.model.ExprStringValue;
 import org.opensearch.sql.data.model.ExprTupleValue;
 import org.opensearch.sql.data.model.ExprValue;
+import org.opensearch.sql.data.model.ExprValueUtils;
 
 public class LibPPLQueryActionFactory {
   public static LibPPLQueryAction createFromStdin() {
@@ -46,7 +47,7 @@ public class LibPPLQueryActionFactory {
     List<ExprValue> values = input.stream().map(map -> {
       LinkedHashMap<String, ExprValue> exprValueMap = new LinkedHashMap<>();
       map.forEach((key, value) -> {
-        exprValueMap.put(key, new ExprStringValue(value.toString()));
+        exprValueMap.put(key, ExprValueUtils.fromObjectValue(value));
       });
       return new ExprTupleValue(exprValueMap);
     }).collect(Collectors.toList());

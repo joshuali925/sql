@@ -4,10 +4,10 @@ import java.util.Iterator;
 import org.opensearch.sql.data.model.ExprValue;
 import org.opensearch.sql.storage.TableScanOperator;
 
-public class IteratorTableScan extends TableScanOperator {
-  private Iterator<ExprValue> iterator;
+public class IterableTableScan extends TableScanOperator {
+  private final Iterator<ExprValue> iterator;
 
-  public IteratorTableScan(Iterator<ExprValue> iterator) {
+  public IterableTableScan(Iterator<ExprValue> iterator) {
     this.iterator = iterator;
   }
 
