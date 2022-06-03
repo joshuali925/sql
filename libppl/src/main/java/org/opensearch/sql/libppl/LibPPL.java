@@ -13,19 +13,26 @@ public class LibPPL {
     sample.add("2def");
     sample.add("3ghi");
     LibPPLQueryAction queryAction = LibPPLQueryActionFactory.createFromString(sample);
+    queryAction = LibPPLQueryActionFactory.createFromStdin();
+    queryAction.execute(queries[0]);
+    queryAction.getOutput().forEach(map -> {
+      map.forEach((key, value) -> {
+        System.out.println(key + ": " + value);
+      });
+    });
 
-    Arrays.stream(queries)
-        .forEach(query -> {
-          queryAction.execute(query);
-          queryAction.getOutput();
-          // queryAction.getOutput().forEach(o -> {
-          //   System.out.println(o.getClass().getName());
-          //   System.out.println(Arrays.toString(o));
-          //   for (Object value : o) {
-          //     System.out.println(value.getClass().getName());
-          //     System.out.println(value);
-          //   }
-          // });
-        });
+  //   Arrays.stream(queries)
+  //       .forEach(query -> {
+  //         queryAction.execute(query);
+  //         // queryAction.getOutput();
+  //         // queryAction.getOutput().forEach(o -> {
+  //         //   System.out.println(o.getClass().getName());
+  //         //   System.out.println(Arrays.toString(o));
+  //         //   for (Object value : o) {
+  //         //     System.out.println(value.getClass().getName());
+  //         //     System.out.println(value);
+  //         //   }
+  //         // });
+  //       });
   }
 }
