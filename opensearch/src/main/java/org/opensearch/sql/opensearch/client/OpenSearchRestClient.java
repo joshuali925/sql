@@ -43,7 +43,9 @@ import org.opensearch.sql.opensearch.response.OpenSearchResponse;
 @RequiredArgsConstructor
 public class OpenSearchRestClient implements OpenSearchClient {
 
-  /** OpenSearch high level REST client. */
+  /**
+   * OpenSearch high level REST client.
+   */
   private final RestHighLevelClient client;
 
   @Override
@@ -169,6 +171,15 @@ public class OpenSearchRestClient implements OpenSearchClient {
   @Override
   public void schedule(Runnable task) {
     task.run();
+  }
+
+  @Override
+  public boolean indexExists(String indexName) {
+    try {
+      return client.indices().exists(new GetIndexRequest(indexName), RequestOptions.DEFAULT);
+    } catch (IOException e) {
+      throw new IllegalStateException("Failed to get indices", e);
+    }
   }
 
   @Override

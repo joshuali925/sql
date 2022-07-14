@@ -23,6 +23,7 @@ import org.opensearch.sql.opensearch.planner.logical.OpenSearchLogicalIndexAgg;
 import org.opensearch.sql.opensearch.planner.logical.OpenSearchLogicalIndexScan;
 import org.opensearch.sql.opensearch.planner.logical.OpenSearchLogicalPlanOptimizerFactory;
 import org.opensearch.sql.opensearch.planner.physical.ADOperator;
+import org.opensearch.sql.opensearch.planner.physical.CreateTableOperator;
 import org.opensearch.sql.opensearch.planner.physical.MLCommonsOperator;
 import org.opensearch.sql.opensearch.request.OpenSearchRequest;
 import org.opensearch.sql.opensearch.request.system.OpenSearchDescribeIndexRequest;
@@ -34,6 +35,7 @@ import org.opensearch.sql.opensearch.storage.serialization.DefaultExpressionSeri
 import org.opensearch.sql.planner.DefaultImplementor;
 import org.opensearch.sql.planner.logical.LogicalAD;
 import org.opensearch.sql.planner.logical.LogicalHighlight;
+import org.opensearch.sql.planner.logical.LogicalCreateTable;
 import org.opensearch.sql.planner.logical.LogicalMLCommons;
 import org.opensearch.sql.planner.logical.LogicalPlan;
 import org.opensearch.sql.planner.logical.LogicalRelation;
@@ -101,8 +103,18 @@ public class OpenSearchIndex implements Table {
    */
   @Override
   public PhysicalPlan implement(LogicalPlan plan) {
-    OpenSearchIndexScan indexScan = new OpenSearchIndexScan(client, settings, indexName,
-        getMaxResultWindow(), new OpenSearchExprValueFactory(getFieldTypes()));
+    OpenSearchIndexScan indexScan;
+    if (plan instanceof LogicalCreateTable) {
+      return plan.accept(new OpenSearchDefaultImplementor(null, client), null);
+    }
+    if (Arrays.stream(indexName.getIndexNames())
+        .anyMatch(name -> name.startsWith("s3-") && name.endsWith("-metadata"))) {
+      indexScan = new S3IndexScan(client, settings, indexName,
+          new OpenSearchExprValueFactory(getFieldTypes()));
+    } else {
+      indexScan = new OpenSearchIndexScan(client, settings, indexName,
+          getMaxResultWindow(), new OpenSearchExprValueFactory(getFieldTypes()));
+    }
 
     /*
      * Visit logical plan with index scan as context so logical operators visited, such as
@@ -209,6 +221,11 @@ public class OpenSearchIndex implements Table {
     public PhysicalPlan visitHighlight(LogicalHighlight node, OpenSearchIndexScan context) {
       context.getRequestBuilder().pushDownHighlight(node.getHighlightField().toString());
       return visitChild(node, context);
+    }
+
+    @Override
+    public PhysicalPlan visitCreateTable(LogicalCreateTable node, OpenSearchIndexScan context) {
+      return new CreateTableOperator(node.getTableName(), node.getColumns(), client);
     }
   }
 }

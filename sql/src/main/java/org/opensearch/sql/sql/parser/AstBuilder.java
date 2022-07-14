@@ -20,6 +20,7 @@ import static org.opensearch.sql.utils.SystemIndexUtils.TABLE_INFO;
 import static org.opensearch.sql.utils.SystemIndexUtils.mappingTable;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import java.util.Collections;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
@@ -27,7 +28,9 @@ import org.antlr.v4.runtime.tree.ParseTree;
 import org.opensearch.sql.ast.expression.Alias;
 import org.opensearch.sql.ast.expression.AllFields;
 import org.opensearch.sql.ast.expression.Function;
+import org.opensearch.sql.ast.expression.Literal;
 import org.opensearch.sql.ast.expression.UnresolvedExpression;
+import org.opensearch.sql.ast.tree.CreateTable;
 import org.opensearch.sql.ast.tree.Filter;
 import org.opensearch.sql.ast.tree.Limit;
 import org.opensearch.sql.ast.tree.Project;
@@ -60,6 +63,19 @@ public class AstBuilder extends OpenSearchSQLParserBaseVisitor<UnresolvedPlan> {
    * text without whitespaces or other characters discarded by lexer.
    */
   private final String query;
+
+  @Override
+  public UnresolvedPlan visitCreateTable(OpenSearchSQLParser.CreateTableContext ctx) {
+    String tableName = StringUtils.unquoteIdentifier(getTextInQuery(ctx.tableName(), query));
+    ImmutableMap.Builder<String, Literal> builder = ImmutableMap.builder();
+    ctx.createDefinitions().columnDefinition().forEach(column -> {
+      String name = StringUtils.unquoteIdentifier(getTextInQuery(column.expression(), query));
+      Literal type = (Literal) visitAstExpression(column.convertedDataType());
+      builder.put(name, type);
+    });
+    var x = new CreateTable(tableName, builder.build());
+    return x;
+  }
 
   @Override
   public UnresolvedPlan visitShowStatement(OpenSearchSQLParser.ShowStatementContext ctx) {

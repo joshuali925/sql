@@ -42,9 +42,35 @@ root
     : sqlStatement? SEMI? EOF
     ;
 
-//    Only SELECT
 sqlStatement
-    : dmlStatement | adminStatement
+    : ddlStatement | dmlStatement | adminStatement
+    ;
+
+ddlStatement
+    : createTable
+    ;
+
+ifNotExists
+    : IF NOT EXISTS
+    ;
+
+createDefinitions
+    : LR_BRACKET columnDefinition (COMMA columnDefinition)* RR_BRACKET
+    ;
+
+columnDefinition
+    : expression convertedDataType
+    ;
+
+// TODO
+partitionDefinitions
+    : expression
+    ;
+
+createTable
+    : CREATE EXTERNAL? TABLE ifNotExists?
+      tableName createDefinitions
+      partitionDefinitions?
     ;
 
 dmlStatement
