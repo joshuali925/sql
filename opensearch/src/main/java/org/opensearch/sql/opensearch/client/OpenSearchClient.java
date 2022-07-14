@@ -66,5 +66,7 @@ public interface OpenSearchClient {
    */
   void schedule(Runnable task);
 
+  boolean indexExists(String indexName);
+
   NodeClient getNodeClient();
 }

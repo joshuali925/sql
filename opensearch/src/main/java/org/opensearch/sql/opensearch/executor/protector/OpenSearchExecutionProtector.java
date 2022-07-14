@@ -9,6 +9,7 @@ package org.opensearch.sql.opensearch.executor.protector;
 import lombok.RequiredArgsConstructor;
 import org.opensearch.sql.monitor.ResourceMonitor;
 import org.opensearch.sql.opensearch.planner.physical.ADOperator;
+import org.opensearch.sql.opensearch.planner.physical.CreateTableOperator;
 import org.opensearch.sql.opensearch.planner.physical.MLCommonsOperator;
 import org.opensearch.sql.planner.physical.AggregationOperator;
 import org.opensearch.sql.planner.physical.DedupeOperator;
@@ -132,10 +133,10 @@ public class OpenSearchExecutionProtector extends ExecutionProtector {
   public PhysicalPlan visitMLCommons(PhysicalPlan node, Object context) {
     MLCommonsOperator mlCommonsOperator = (MLCommonsOperator) node;
     return doProtect(
-            new MLCommonsOperator(visitInput(mlCommonsOperator.getInput(), context),
-                    mlCommonsOperator.getAlgorithm(),
-                    mlCommonsOperator.getArguments(),
-                    mlCommonsOperator.getNodeClient())
+        new MLCommonsOperator(visitInput(mlCommonsOperator.getInput(), context),
+            mlCommonsOperator.getAlgorithm(),
+            mlCommonsOperator.getArguments(),
+            mlCommonsOperator.getNodeClient())
     );
   }
 
@@ -143,10 +144,21 @@ public class OpenSearchExecutionProtector extends ExecutionProtector {
   public PhysicalPlan visitAD(PhysicalPlan node, Object context) {
     ADOperator adOperator = (ADOperator) node;
     return doProtect(
-            new ADOperator(visitInput(adOperator.getInput(), context),
-                    adOperator.getArguments(),
-                    adOperator.getNodeClient()
-                    )
+        new ADOperator(visitInput(adOperator.getInput(), context),
+            adOperator.getArguments(),
+            adOperator.getNodeClient()
+        )
+    );
+  }
+
+  @Override
+  public PhysicalPlan visitCreateTable(PhysicalPlan node, Object context) {
+    CreateTableOperator createTableOperator = (CreateTableOperator) node;
+    return doProtect(
+        new CreateTableOperator(createTableOperator.getTableName(),
+            createTableOperator.getColumns(),
+            createTableOperator.getClient()
+        )
     );
   }
 

@@ -144,6 +144,11 @@ public class OpenSearchNodeClient implements OpenSearchClient {
   }
 
   @Override
+  public boolean indexExists(String indexName) {
+    return clusterService.state().routingTable().hasIndex(indexName);
+  }
+
+  @Override
   public NodeClient getNodeClient() {
     return client;
   }

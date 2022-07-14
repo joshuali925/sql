@@ -130,6 +130,14 @@ public class AstExpressionBuilder extends OpenSearchSQLParserBaseVisitor<Unresol
     return visitFunction(ctx.scalarFunctionName().getText(), ctx.functionArgs());
   }
 
+  // @Override
+  // public UnresolvedExpression visitCreateDefinitions(
+  //     OpenSearchSQLParser.CreateDefinitionsContext ctx) {
+  //   return new Function(
+  //       LIKE.getName().getFunctionName(),
+  //       Arrays.asList(qualifiedName("TABLE_NAME"), visit(ctx.showDescribePattern())));
+  // }
+
   @Override
   public UnresolvedExpression visitTableFilter(TableFilterContext ctx) {
     return new Function(
