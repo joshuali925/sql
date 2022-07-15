@@ -67,14 +67,13 @@ public class AstBuilder extends OpenSearchSQLParserBaseVisitor<UnresolvedPlan> {
   @Override
   public UnresolvedPlan visitCreateTable(OpenSearchSQLParser.CreateTableContext ctx) {
     String tableName = StringUtils.unquoteIdentifier(getTextInQuery(ctx.tableName(), query));
-    ImmutableMap.Builder<String, Literal> builder = ImmutableMap.builder();
+    ImmutableMap.Builder<String, String> builder = ImmutableMap.builder();
     ctx.createDefinitions().columnDefinition().forEach(column -> {
       String name = StringUtils.unquoteIdentifier(getTextInQuery(column.expression(), query));
-      Literal type = (Literal) visitAstExpression(column.convertedDataType());
+      String type = StringUtils.unquoteIdentifier(getTextInQuery(column.convertedDataType(), query));
       builder.put(name, type);
     });
-    var x = new CreateTable(tableName, builder.build());
-    return x;
+    return new CreateTable(tableName, builder.build());
   }
 
   @Override

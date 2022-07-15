@@ -18,12 +18,12 @@ import org.opensearch.sql.expression.Expression;
 public class LogicalCreateTable extends LogicalPlan {
   private final String tableName;
 
-  private final Map<String, Literal> columns;
+  private final Map<String, String> columns;
 
   /**
    * Constructor of LogicalMLCommons.
    */
-  public LogicalCreateTable(String tableName, Map<String, Literal> columns) {
+  public LogicalCreateTable(String tableName, Map<String, String> columns) {
     // super(Collections.singletonList(child));
     super(ImmutableList.of());
     this.tableName = tableName;

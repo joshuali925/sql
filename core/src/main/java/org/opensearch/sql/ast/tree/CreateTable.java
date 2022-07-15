@@ -27,7 +27,7 @@ import org.opensearch.sql.ast.expression.UnresolvedExpression;
 public class CreateTable extends UnresolvedPlan {
   private final String tableName;
 
-  private final Map<String, Literal> columns;
+  private final Map<String, String> columns;
 
   @Override
   public UnresolvedPlan attach(UnresolvedPlan child) {

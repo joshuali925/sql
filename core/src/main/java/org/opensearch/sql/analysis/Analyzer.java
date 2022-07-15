@@ -429,9 +429,7 @@ public class Analyzer extends AbstractNodeVisitor<LogicalPlan, AnalysisContext> 
 
   @Override
   public LogicalPlan visitCreateTable(CreateTable node, AnalysisContext context) {
-    var name = node.getTableName();
-    var x = node.getColumns();
-    return new LogicalCreateTable(name, x);
+    return new LogicalCreateTable(node.getTableName(), node.getColumns());
   }
 
   /**
