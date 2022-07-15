@@ -9,6 +9,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import lombok.EqualsAndHashCode;
@@ -19,6 +20,9 @@ import org.apache.logging.log4j.Logger;
 import org.opensearch.action.ActionFuture;
 import org.opensearch.action.admin.indices.create.CreateIndexRequest;
 import org.opensearch.action.admin.indices.create.CreateIndexResponse;
+import org.opensearch.action.index.IndexRequest;
+import org.opensearch.action.index.IndexResponse;
+import org.opensearch.rest.RestStatus;
 import org.opensearch.sql.ast.expression.Literal;
 import org.opensearch.sql.data.model.ExprStringValue;
 import org.opensearch.sql.data.model.ExprTupleValue;
@@ -42,7 +46,7 @@ public class CreateTableOperator extends PhysicalPlan {
   private final String tableName;
 
   @Getter
-  private final Map<String, Literal> columns;
+  private final Map<String, String> columns;
 
   @Getter
   private final OpenSearchClient client;
@@ -55,7 +59,7 @@ public class CreateTableOperator extends PhysicalPlan {
   @Override
   public void open() {
     super.open();
-    createIndex(".opensearch-sql");
+    putTableMetadata();
     iterator = responses.iterator();
   }
 
@@ -88,11 +92,27 @@ public class CreateTableOperator extends PhysicalPlan {
       if (response.isAcknowledged()) {
         log.info("Acknowledged " + indexName + " creation.");
         responses.add(ExprTupleValue.fromExprValueMap(
-            ImmutableMap.of("response", new ExprStringValue("Created " + indexName + " index"))));
+            ImmutableMap.of("response", new ExprStringValue("Created index " + indexName))));
       } else {
         throw new IllegalStateException("Failed to create index " + indexName);
       }
     }
+  }
+
+  private void putTableMetadata() {
+    createIndex(".opensearch-sql");
+    Map<String, Object> valueMap = new LinkedHashMap<>();
+    valueMap.put("type", "s3");
+    valueMap.put("name", tableName);
+    valueMap.put("columns", columns);
+    IndexRequest request = new IndexRequest(".opensearch-sql").source(valueMap).create(true);
+    ActionFuture<IndexResponse> actionFuture = client.getNodeClient().index(request);
+    IndexResponse response = actionFuture.actionGet();
+    if (response.status() != RestStatus.CREATED) {
+      throw new IllegalStateException("Failed to create table " + tableName);
+    }
+    responses.add(ExprTupleValue.fromExprValueMap(
+        ImmutableMap.of("response", new ExprStringValue("Created table " + tableName))));
   }
 
   @Override
