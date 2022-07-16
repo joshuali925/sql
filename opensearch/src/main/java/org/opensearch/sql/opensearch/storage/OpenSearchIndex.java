@@ -238,7 +238,9 @@ public class OpenSearchIndex implements Table {
 
     @Override
     public PhysicalPlan visitCreateTable(LogicalCreateTable node, OpenSearchIndexScan context) {
-      return new CreateTableOperator(node.getTableName(), node.getColumns(), client);
+      return new CreateTableOperator(node.getTableName(), node.getColumns(),
+          node.getRowFormatSerDe(), node.getRowFormatSerDeProperties(), node.getPartitionBy(),
+          node.getLocation(), client);
     }
   }
 }

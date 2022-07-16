@@ -70,6 +70,7 @@ import org.opensearch.sql.ast.expression.Not;
 import org.opensearch.sql.ast.expression.Or;
 import org.opensearch.sql.ast.expression.QualifiedName;
 import org.opensearch.sql.ast.expression.RelevanceFieldList;
+import org.opensearch.sql.ast.expression.RowFormatSerDe;
 import org.opensearch.sql.ast.expression.UnresolvedArgument;
 import org.opensearch.sql.ast.expression.UnresolvedExpression;
 import org.opensearch.sql.ast.expression.When;
@@ -176,20 +177,20 @@ public class AstExpressionBuilder extends OpenSearchSQLParserBaseVisitor<Unresol
     List<UnresolvedExpression> partitionByList = Collections.emptyList();
     if (overClause.partitionByClause() != null) {
       partitionByList = overClause.partitionByClause()
-                                  .expression()
-                                  .stream()
-                                  .map(this::visit)
-                                  .collect(Collectors.toList());
+          .expression()
+          .stream()
+          .map(this::visit)
+          .collect(Collectors.toList());
     }
 
     List<Pair<SortOption, UnresolvedExpression>> sortList = Collections.emptyList();
     if (overClause.orderByClause() != null) {
       sortList = overClause.orderByClause()
-                           .orderByElement()
-                           .stream()
-                           .map(item -> ImmutablePair.of(
-                               createSortOption(item), visit(item.expression())))
-                           .collect(Collectors.toList());
+          .orderByElement()
+          .stream()
+          .map(item -> ImmutablePair.of(
+              createSortOption(item), visit(item.expression())))
+          .collect(Collectors.toList());
     }
     return new WindowFunction(visit(ctx.function), partitionByList, sortList);
   }
@@ -244,7 +245,7 @@ public class AstExpressionBuilder extends OpenSearchSQLParserBaseVisitor<Unresol
   @Override
   public UnresolvedExpression visitRegexpPredicate(RegexpPredicateContext ctx) {
     return new Function(REGEXP.getName().getFunctionName(),
-            Arrays.asList(visit(ctx.left), visit(ctx.right)));
+        Arrays.asList(visit(ctx.left), visit(ctx.right)));
   }
 
   @Override
@@ -345,9 +346,9 @@ public class AstExpressionBuilder extends OpenSearchSQLParserBaseVisitor<Unresol
   public UnresolvedExpression visitCaseFunctionCall(CaseFunctionCallContext ctx) {
     UnresolvedExpression caseValue = (ctx.expression() == null) ? null : visit(ctx.expression());
     List<When> whenStatements = ctx.caseFuncAlternative()
-                                   .stream()
-                                   .map(when -> (When) visit(when))
-                                   .collect(Collectors.toList());
+        .stream()
+        .map(when -> (When) visit(when))
+        .collect(Collectors.toList());
     UnresolvedExpression elseStatement = (ctx.elseArg == null) ? null : visit(ctx.elseArg);
 
     return new Case(caseValue, whenStatements, elseStatement);
@@ -386,6 +387,11 @@ public class AstExpressionBuilder extends OpenSearchSQLParserBaseVisitor<Unresol
         multiFieldRelevanceArguments(ctx));
   }
 
+  @Override
+  public UnresolvedExpression visitRowFormatSerDe(OpenSearchSQLParser.RowFormatSerDeContext ctx) {
+    return new RowFormatSerDe(ctx.getText());
+  }
+
   private Function visitFunction(String functionName, FunctionArgsContext args) {
     if (args == null) {
       return new Function(functionName, Collections.emptyList());
@@ -402,14 +408,14 @@ public class AstExpressionBuilder extends OpenSearchSQLParserBaseVisitor<Unresol
   private QualifiedName visitIdentifiers(List<IdentContext> identifiers) {
     return new QualifiedName(
         identifiers.stream()
-                   .map(RuleContext::getText)
-                   .map(StringUtils::unquoteIdentifier)
-                   .collect(Collectors.toList())
+            .map(RuleContext::getText)
+            .map(StringUtils::unquoteIdentifier)
+            .collect(Collectors.toList())
     );
   }
 
   private List<UnresolvedExpression> singleFieldRelevanceArguments(
-        OpenSearchSQLParser.SingleFieldRelevanceFunctionContext ctx) {
+      OpenSearchSQLParser.SingleFieldRelevanceFunctionContext ctx) {
     // all the arguments are defaulted to string values
     // to skip environment resolving and function signature resolving
     ImmutableList.Builder<UnresolvedExpression> builder = ImmutableList.builder();
@@ -419,7 +425,7 @@ public class AstExpressionBuilder extends OpenSearchSQLParserBaseVisitor<Unresol
         new Literal(StringUtils.unquoteText(ctx.query.getText()), DataType.STRING)));
     ctx.relevanceArg().forEach(v -> builder.add(new UnresolvedArgument(
         v.relevanceArgName().getText().toLowerCase(), new Literal(StringUtils.unquoteText(
-            v.relevanceArgValue().getText()), DataType.STRING))));
+        v.relevanceArgValue().getText()), DataType.STRING))));
     return builder.build();
   }
 
@@ -439,7 +445,7 @@ public class AstExpressionBuilder extends OpenSearchSQLParserBaseVisitor<Unresol
         new Literal(StringUtils.unquoteText(ctx.query.getText()), DataType.STRING)));
     ctx.relevanceArg().forEach(v -> builder.add(new UnresolvedArgument(
         v.relevanceArgName().getText().toLowerCase(), new Literal(StringUtils.unquoteText(
-            v.relevanceArgValue().getText()), DataType.STRING))));
+        v.relevanceArgValue().getText()), DataType.STRING))));
     return builder.build();
   }
 }

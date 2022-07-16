@@ -29,6 +29,7 @@ import org.opensearch.sql.ast.expression.Alias;
 import org.opensearch.sql.ast.expression.AllFields;
 import org.opensearch.sql.ast.expression.Function;
 import org.opensearch.sql.ast.expression.Literal;
+import org.opensearch.sql.ast.expression.RowFormatSerDe;
 import org.opensearch.sql.ast.expression.UnresolvedExpression;
 import org.opensearch.sql.ast.tree.CreateTable;
 import org.opensearch.sql.ast.tree.Filter;
@@ -67,13 +68,31 @@ public class AstBuilder extends OpenSearchSQLParserBaseVisitor<UnresolvedPlan> {
   @Override
   public UnresolvedPlan visitCreateTable(OpenSearchSQLParser.CreateTableContext ctx) {
     String tableName = StringUtils.unquoteIdentifier(getTextInQuery(ctx.tableName(), query));
-    ImmutableMap.Builder<String, String> builder = ImmutableMap.builder();
-    ctx.createDefinitions().columnDefinition().forEach(column -> {
+    ImmutableMap.Builder<String, String> columnMap = ImmutableMap.builder();
+    ctx.columnDefinitions().columnDefinition().forEach(column -> {
       String name = StringUtils.unquoteIdentifier(getTextInQuery(column.expression(), query));
-      String type = StringUtils.unquoteIdentifier(getTextInQuery(column.convertedDataType(), query));
-      builder.put(name, type);
+      String type =
+          StringUtils.unquoteIdentifier(getTextInQuery(column.convertedDataType(), query));
+      columnMap.put(name, type);
     });
-    return new CreateTable(tableName, builder.build());
+
+    RowFormatSerDe rowFormatSerDe = (RowFormatSerDe) visitAstExpression(ctx.rowFormatSerDe());
+    ImmutableMap.Builder<String, String> propertyMap = ImmutableMap.builder();
+    if (ctx.withSerDeProperties() != null) {
+      ctx.withSerDeProperties().rowFormatSerDeProperties().forEach(property -> {
+        String key = visitAstExpression(property.rowFormatSerDePropertiesKey).toString();
+        String value = visitAstExpression(property.rowFormatSerDePropertiesValue).toString();
+        propertyMap.put(key, value);
+      });
+    }
+
+    Literal partitionBy = null;
+    if (ctx.partitionDefinition() != null) {
+      partitionBy = (Literal) visitAstExpression(ctx.partitionDefinition());
+    }
+    Literal location = (Literal) visitAstExpression(ctx.location());
+    return new CreateTable(tableName, columnMap.build(), rowFormatSerDe, propertyMap.build(),
+        partitionBy, location);
   }
 
   @Override

@@ -423,7 +423,9 @@ public class Analyzer extends AbstractNodeVisitor<LogicalPlan, AnalysisContext> 
 
   @Override
   public LogicalPlan visitCreateTable(CreateTable node, AnalysisContext context) {
-    return new LogicalCreateTable(node.getTableName(), node.getColumns());
+    return new LogicalCreateTable(node.getTableName(), node.getColumns(), node.getRowFormatSerDe(),
+        node.getRowFormatSerDeProperties(), (String) node.getPartitionBy().getValue(),
+        (String) node.getLocation().getValue());
   }
 
   /**

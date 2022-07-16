@@ -50,11 +50,7 @@ ddlStatement
     : createTable
     ;
 
-ifNotExists
-    : IF NOT EXISTS
-    ;
-
-createDefinitions
+columnDefinitions
     : LR_BRACKET columnDefinition (COMMA columnDefinition)* RR_BRACKET
     ;
 
@@ -62,15 +58,33 @@ columnDefinition
     : expression convertedDataType
     ;
 
-// TODO
-partitionDefinitions
-    : expression
+rowFormatSerDe
+    : JSON | REGEX
+    ;
+
+withSerDeProperties
+    : WITH SERDEPROPERTIES LR_BRACKET rowFormatSerDeProperties (COMMA rowFormatSerDeProperties)* RR_BRACKET
+    ;
+
+rowFormatSerDeProperties
+    : (rowFormatSerDePropertiesKey=stringLiteral) EQUAL_SYMBOL (rowFormatSerDePropertiesValue=stringLiteral)
+    ;
+
+partitionDefinition
+    : PARTITION BY stringLiteral
+    ;
+
+location
+    : LOCATION stringLiteral
     ;
 
 createTable
-    : CREATE EXTERNAL? TABLE ifNotExists?
-      tableName createDefinitions
-      partitionDefinitions?
+    : CREATE EXTERNAL? TABLE (IF NOT EXISTS)?
+      tableName columnDefinitions
+      ROW FORMAT SERDE rowFormatSerDe
+      withSerDeProperties?
+      partitionDefinition?
+      location
     ;
 
 dmlStatement

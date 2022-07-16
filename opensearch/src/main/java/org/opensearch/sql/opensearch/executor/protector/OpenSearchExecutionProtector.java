@@ -156,8 +156,9 @@ public class OpenSearchExecutionProtector extends ExecutionProtector {
     CreateTableOperator createTableOperator = (CreateTableOperator) node;
     return doProtect(
         new CreateTableOperator(createTableOperator.getTableName(),
-            createTableOperator.getColumns(),
-            createTableOperator.getClient()
+            createTableOperator.getColumns(), createTableOperator.getRowFormatSerDe(),
+            createTableOperator.getRowFormatSerDeProperties(), createTableOperator.getPartitionBy(),
+            createTableOperator.getLocation(), createTableOperator.getClient()
         )
     );
   }
