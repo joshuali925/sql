@@ -9,7 +9,6 @@ package org.opensearch.sql.ast.tree;
 import com.google.common.collect.ImmutableList;
 import java.util.List;
 import java.util.Map;
-import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -17,7 +16,7 @@ import lombok.Setter;
 import lombok.ToString;
 import org.opensearch.sql.ast.AbstractNodeVisitor;
 import org.opensearch.sql.ast.expression.Literal;
-import org.opensearch.sql.ast.expression.UnresolvedExpression;
+import org.opensearch.sql.ast.expression.RowFormatSerDe;
 
 @Getter
 @Setter
@@ -26,8 +25,11 @@ import org.opensearch.sql.ast.expression.UnresolvedExpression;
 @RequiredArgsConstructor
 public class CreateTable extends UnresolvedPlan {
   private final String tableName;
-
   private final Map<String, String> columns;
+  private final RowFormatSerDe rowFormatSerDe;
+  private final Map<String, String> rowFormatSerDeProperties;
+  private final Literal partitionBy;
+  private final Literal location;
 
   @Override
   public UnresolvedPlan attach(UnresolvedPlan child) {

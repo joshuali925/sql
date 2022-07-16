@@ -109,6 +109,14 @@ UNION:                              'UNION';
 USING:                              'USING';
 WHEN:                               'WHEN';
 WHERE:                              'WHERE';
+ROW:                                'ROW';
+FORMAT:                             'FORMAT';
+SERDE:                              'SERDE';
+JSON:                               'JSON';
+REGEX:                              'REGEX';
+WITH:                               'WITH';
+SERDEPROPERTIES:                    'SERDEPROPERTIES';
+LOCATION:                           'LOCATION';
 
 
 // OD SQL special keyword
