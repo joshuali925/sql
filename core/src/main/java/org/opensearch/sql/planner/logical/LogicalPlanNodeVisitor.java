@@ -85,4 +85,8 @@ public abstract class LogicalPlanNodeVisitor<R, C> {
   public R visitCreateTable(LogicalCreateTable plan, C context) {
     return visitNode(plan, context);
   }
+
+  public R visitDropTable(LogicalDropTable plan, C context) {
+    return visitNode(plan, context);
+  }
 }

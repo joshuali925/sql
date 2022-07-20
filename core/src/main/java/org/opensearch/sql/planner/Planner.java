@@ -11,6 +11,7 @@ import static com.google.common.base.Strings.isNullOrEmpty;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.opensearch.sql.planner.logical.LogicalCreateTable;
+import org.opensearch.sql.planner.logical.LogicalDropTable;
 import org.opensearch.sql.planner.logical.LogicalPlan;
 import org.opensearch.sql.planner.logical.LogicalPlanNodeVisitor;
 import org.opensearch.sql.planner.logical.LogicalRelation;
@@ -70,6 +71,11 @@ public class Planner {
 
       @Override
       public String visitCreateTable(LogicalCreateTable node, Object context) {
+        return node.getTableName();
+      }
+
+      @Override
+      public String visitDropTable(LogicalDropTable node, Object context) {
         return node.getTableName();
       }
     }, null);

@@ -47,7 +47,7 @@ sqlStatement
     ;
 
 ddlStatement
-    : createTable
+    : createTable | dropTable
     ;
 
 columnDefinitions
@@ -85,6 +85,10 @@ createTable
       withSerDeProperties?
       partitionDefinition?
       location
+    ;
+
+dropTable
+    : DROP TABLE (IF EXISTS)? tableName
     ;
 
 dmlStatement
