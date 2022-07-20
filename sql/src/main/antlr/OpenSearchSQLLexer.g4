@@ -117,6 +117,7 @@ REGEX:                              'REGEX';
 WITH:                               'WITH';
 SERDEPROPERTIES:                    'SERDEPROPERTIES';
 LOCATION:                           'LOCATION';
+DROP:                               'DROP';
 
 
 // OD SQL special keyword

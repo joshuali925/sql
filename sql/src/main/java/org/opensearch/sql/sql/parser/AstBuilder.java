@@ -32,6 +32,7 @@ import org.opensearch.sql.ast.expression.Literal;
 import org.opensearch.sql.ast.expression.RowFormatSerDe;
 import org.opensearch.sql.ast.expression.UnresolvedExpression;
 import org.opensearch.sql.ast.tree.CreateTable;
+import org.opensearch.sql.ast.tree.DropTable;
 import org.opensearch.sql.ast.tree.Filter;
 import org.opensearch.sql.ast.tree.Limit;
 import org.opensearch.sql.ast.tree.Project;
@@ -93,6 +94,11 @@ public class AstBuilder extends OpenSearchSQLParserBaseVisitor<UnresolvedPlan> {
     Literal location = (Literal) visitAstExpression(ctx.location());
     return new CreateTable(tableName, columnMap.build(), rowFormatSerDe, propertyMap.build(),
         partitionBy, location);
+  }
+
+  @Override
+  public UnresolvedPlan visitDropTable(OpenSearchSQLParser.DropTableContext ctx) {
+      return new DropTable(StringUtils.unquoteIdentifier(getTextInQuery(ctx.tableName(), query)));
   }
 
   @Override

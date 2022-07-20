@@ -29,6 +29,7 @@ import org.opensearch.sql.opensearch.planner.logical.OpenSearchLogicalIndexScan;
 import org.opensearch.sql.opensearch.planner.logical.OpenSearchLogicalPlanOptimizerFactory;
 import org.opensearch.sql.opensearch.planner.physical.ADOperator;
 import org.opensearch.sql.opensearch.planner.physical.CreateTableOperator;
+import org.opensearch.sql.opensearch.planner.physical.DropTableOperator;
 import org.opensearch.sql.opensearch.planner.physical.MLCommonsOperator;
 import org.opensearch.sql.opensearch.request.OpenSearchRequest;
 import org.opensearch.sql.opensearch.request.system.OpenSearchDescribeIndexRequest;
@@ -41,6 +42,7 @@ import org.opensearch.sql.opensearch.storage.serialization.DefaultExpressionSeri
 import org.opensearch.sql.planner.DefaultImplementor;
 import org.opensearch.sql.planner.logical.LogicalAD;
 import org.opensearch.sql.planner.logical.LogicalCreateTable;
+import org.opensearch.sql.planner.logical.LogicalDropTable;
 import org.opensearch.sql.planner.logical.LogicalMLCommons;
 import org.opensearch.sql.planner.logical.LogicalPlan;
 import org.opensearch.sql.planner.logical.LogicalRelation;
@@ -97,7 +99,7 @@ public class OpenSearchIndex implements Table {
   @Override
   public PhysicalPlan implement(LogicalPlan plan) {
     OpenSearchIndexScan indexScan;
-    if (plan instanceof LogicalCreateTable) {
+    if (plan instanceof LogicalCreateTable || plan instanceof LogicalDropTable) {
       return plan.accept(new OpenSearchDefaultImplementor(null, client), null);
     }
     if (Arrays.stream(indexName.getIndexNames())
@@ -242,5 +244,11 @@ public class OpenSearchIndex implements Table {
           node.getRowFormatSerDe(), node.getRowFormatSerDeProperties(), node.getPartitionBy(),
           node.getLocation(), client);
     }
+
+    @Override
+    public PhysicalPlan visitDropTable(LogicalDropTable node, OpenSearchIndexScan context) {
+      return new DropTableOperator(node.getTableName(), client);
+    }
+
   }
 }

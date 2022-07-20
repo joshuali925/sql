@@ -101,9 +101,9 @@ public class RestSQLQueryAction extends BaseRestHandler {
     try {
       // For now analyzing and planning stage may throw syntax exception as well
       // which hints the fallback to legacy code is necessary here.
-      plan = sqlService.plan(
-                sqlService.analyze(
-                    sqlService.parse(request.getQuery())));
+      var parse = sqlService.parse(request.getQuery());
+      var analyze = sqlService.analyze(parse);
+      plan = sqlService.plan(analyze);
     } catch (SyntaxCheckException e) {
       // When explain, print info log for what unsupported syntax is causing fallback to old engine
       if (request.isExplainRequest()) {

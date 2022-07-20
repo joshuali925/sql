@@ -41,6 +41,7 @@ import org.opensearch.sql.ast.tree.AD;
 import org.opensearch.sql.ast.tree.Aggregation;
 import org.opensearch.sql.ast.tree.CreateTable;
 import org.opensearch.sql.ast.tree.Dedupe;
+import org.opensearch.sql.ast.tree.DropTable;
 import org.opensearch.sql.ast.tree.Eval;
 import org.opensearch.sql.ast.tree.Filter;
 import org.opensearch.sql.ast.tree.Head;
@@ -71,6 +72,7 @@ import org.opensearch.sql.planner.logical.LogicalAD;
 import org.opensearch.sql.planner.logical.LogicalAggregation;
 import org.opensearch.sql.planner.logical.LogicalCreateTable;
 import org.opensearch.sql.planner.logical.LogicalDedupe;
+import org.opensearch.sql.planner.logical.LogicalDropTable;
 import org.opensearch.sql.planner.logical.LogicalEval;
 import org.opensearch.sql.planner.logical.LogicalFilter;
 import org.opensearch.sql.planner.logical.LogicalLimit;
@@ -426,6 +428,11 @@ public class Analyzer extends AbstractNodeVisitor<LogicalPlan, AnalysisContext> 
     return new LogicalCreateTable(node.getTableName(), node.getColumns(), node.getRowFormatSerDe(),
         node.getRowFormatSerDeProperties(), (String) node.getPartitionBy().getValue(),
         (String) node.getLocation().getValue());
+  }
+
+  @Override
+  public LogicalPlan visitDropTable(DropTable node, AnalysisContext context) {
+    return new LogicalDropTable(node.getTableName());
   }
 
   /**

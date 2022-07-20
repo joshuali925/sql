@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.opensearch.sql.monitor.ResourceMonitor;
 import org.opensearch.sql.opensearch.planner.physical.ADOperator;
 import org.opensearch.sql.opensearch.planner.physical.CreateTableOperator;
+import org.opensearch.sql.opensearch.planner.physical.DropTableOperator;
 import org.opensearch.sql.opensearch.planner.physical.MLCommonsOperator;
 import org.opensearch.sql.planner.physical.AggregationOperator;
 import org.opensearch.sql.planner.physical.DedupeOperator;
@@ -160,6 +161,14 @@ public class OpenSearchExecutionProtector extends ExecutionProtector {
             createTableOperator.getRowFormatSerDeProperties(), createTableOperator.getPartitionBy(),
             createTableOperator.getLocation(), createTableOperator.getClient()
         )
+    );
+  }
+
+  @Override
+  public PhysicalPlan visitDropTable(PhysicalPlan node, Object context) {
+    DropTableOperator dropTableOperator = (DropTableOperator) node;
+    return doProtect(
+        new DropTableOperator(dropTableOperator.getTableName(), dropTableOperator.getClient())
     );
   }
 

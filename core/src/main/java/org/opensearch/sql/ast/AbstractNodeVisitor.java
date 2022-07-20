@@ -38,6 +38,7 @@ import org.opensearch.sql.ast.tree.AD;
 import org.opensearch.sql.ast.tree.Aggregation;
 import org.opensearch.sql.ast.tree.CreateTable;
 import org.opensearch.sql.ast.tree.Dedupe;
+import org.opensearch.sql.ast.tree.DropTable;
 import org.opensearch.sql.ast.tree.Eval;
 import org.opensearch.sql.ast.tree.Filter;
 import org.opensearch.sql.ast.tree.Head;
@@ -238,6 +239,10 @@ public abstract class AbstractNodeVisitor<T, C> {
   }
 
   public T visitCreateTable(CreateTable node, C context) {
+    return visitChildren(node, context);
+  }
+
+  public T visitDropTable(DropTable node, C context) {
     return visitChildren(node, context);
   }
 
