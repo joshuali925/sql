@@ -9,8 +9,8 @@ package org.opensearch.sql.opensearch.executor.protector;
 import lombok.RequiredArgsConstructor;
 import org.opensearch.sql.monitor.ResourceMonitor;
 import org.opensearch.sql.opensearch.planner.physical.ADOperator;
-import org.opensearch.sql.opensearch.planner.physical.CreateTableOperator;
-import org.opensearch.sql.opensearch.planner.physical.DropTableOperator;
+import org.opensearch.sql.opensearch.planner.physical.CreateOperator;
+import org.opensearch.sql.opensearch.planner.physical.DropOperator;
 import org.opensearch.sql.opensearch.planner.physical.MLCommonsOperator;
 import org.opensearch.sql.planner.physical.AggregationOperator;
 import org.opensearch.sql.planner.physical.DedupeOperator;
@@ -153,22 +153,22 @@ public class OpenSearchExecutionProtector extends ExecutionProtector {
   }
 
   @Override
-  public PhysicalPlan visitCreateTable(PhysicalPlan node, Object context) {
-    CreateTableOperator createTableOperator = (CreateTableOperator) node;
+  public PhysicalPlan visitCreate(PhysicalPlan node, Object context) {
+    CreateOperator createOperator = (CreateOperator) node;
     return doProtect(
-        new CreateTableOperator(createTableOperator.getTableName(),
-            createTableOperator.getColumns(), createTableOperator.getRowFormatSerDe(),
-            createTableOperator.getRowFormatSerDeProperties(), createTableOperator.getPartitionBy(),
-            createTableOperator.getLocation(), createTableOperator.getClient()
+        new CreateOperator(createOperator.getTableName(),
+            createOperator.getColumns(), createOperator.getRowFormatSerDe(),
+            createOperator.getRowFormatSerDeProperties(), createOperator.getPartitionBy(),
+            createOperator.getLocation(), createOperator.getClient()
         )
     );
   }
 
   @Override
-  public PhysicalPlan visitDropTable(PhysicalPlan node, Object context) {
-    DropTableOperator dropTableOperator = (DropTableOperator) node;
+  public PhysicalPlan visitDrop(PhysicalPlan node, Object context) {
+    DropOperator dropOperator = (DropOperator) node;
     return doProtect(
-        new DropTableOperator(dropTableOperator.getTableName(), dropTableOperator.getClient())
+        new DropOperator(dropOperator.getTableName(), dropOperator.getClient())
     );
   }
 

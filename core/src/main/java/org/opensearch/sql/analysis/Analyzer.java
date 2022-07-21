@@ -39,9 +39,9 @@ import org.opensearch.sql.ast.expression.Map;
 import org.opensearch.sql.ast.expression.UnresolvedExpression;
 import org.opensearch.sql.ast.tree.AD;
 import org.opensearch.sql.ast.tree.Aggregation;
-import org.opensearch.sql.ast.tree.CreateTable;
+import org.opensearch.sql.ast.tree.Create;
 import org.opensearch.sql.ast.tree.Dedupe;
-import org.opensearch.sql.ast.tree.DropTable;
+import org.opensearch.sql.ast.tree.Drop;
 import org.opensearch.sql.ast.tree.Eval;
 import org.opensearch.sql.ast.tree.Filter;
 import org.opensearch.sql.ast.tree.Head;
@@ -70,9 +70,9 @@ import org.opensearch.sql.expression.aggregation.Aggregator;
 import org.opensearch.sql.expression.aggregation.NamedAggregator;
 import org.opensearch.sql.planner.logical.LogicalAD;
 import org.opensearch.sql.planner.logical.LogicalAggregation;
-import org.opensearch.sql.planner.logical.LogicalCreateTable;
+import org.opensearch.sql.planner.logical.LogicalCreate;
 import org.opensearch.sql.planner.logical.LogicalDedupe;
-import org.opensearch.sql.planner.logical.LogicalDropTable;
+import org.opensearch.sql.planner.logical.LogicalDrop;
 import org.opensearch.sql.planner.logical.LogicalEval;
 import org.opensearch.sql.planner.logical.LogicalFilter;
 import org.opensearch.sql.planner.logical.LogicalLimit;
@@ -430,15 +430,15 @@ public class Analyzer extends AbstractNodeVisitor<LogicalPlan, AnalysisContext> 
   }
 
   @Override
-  public LogicalPlan visitCreateTable(CreateTable node, AnalysisContext context) {
-    return new LogicalCreateTable(node.getTableName(), node.getColumns(), node.getRowFormatSerDe(),
+  public LogicalPlan visitCreate(Create node, AnalysisContext context) {
+    return new LogicalCreate(node.getTableName(), node.getColumns(), node.getRowFormatSerDe(),
         node.getRowFormatSerDeProperties(), (String) node.getPartitionBy().getValue(),
         (String) node.getLocation().getValue());
   }
 
   @Override
-  public LogicalPlan visitDropTable(DropTable node, AnalysisContext context) {
-    return new LogicalDropTable(node.getTableName());
+  public LogicalPlan visitDrop(Drop node, AnalysisContext context) {
+    return new LogicalDrop(node.getTableName());
   }
 
   /**

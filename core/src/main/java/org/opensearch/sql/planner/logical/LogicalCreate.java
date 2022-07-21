@@ -5,7 +5,6 @@ import java.util.Map;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
-import org.opensearch.sql.ast.expression.Literal;
 import org.opensearch.sql.ast.expression.RowFormatSerDe;
 
 /**
@@ -14,7 +13,7 @@ import org.opensearch.sql.ast.expression.RowFormatSerDe;
 @Getter
 @ToString
 @EqualsAndHashCode(callSuper = true)
-public class LogicalCreateTable extends LogicalPlan {
+public class LogicalCreate extends LogicalPlan {
   private final String tableName;
 
   private final Map<String, String> columns;
@@ -26,10 +25,10 @@ public class LogicalCreateTable extends LogicalPlan {
   /**
    * Constructor of LogicalMLCommons.
    */
-  public LogicalCreateTable(String tableName, Map<String, String> columns,
-                            RowFormatSerDe rowFormatSerDe,
-                            Map<String, String> rowFormatSerDeProperties, String partitionBy,
-                            String location) {
+  public LogicalCreate(String tableName, Map<String, String> columns,
+                       RowFormatSerDe rowFormatSerDe,
+                       Map<String, String> rowFormatSerDeProperties, String partitionBy,
+                       String location) {
     super(ImmutableList.of());
     this.tableName = tableName;
     this.columns = columns;
@@ -41,6 +40,6 @@ public class LogicalCreateTable extends LogicalPlan {
 
   @Override
   public <R, C> R accept(LogicalPlanNodeVisitor<R, C> visitor, C context) {
-    return visitor.visitCreateTable(this, context);
+    return visitor.visitCreate(this, context);
   }
 }

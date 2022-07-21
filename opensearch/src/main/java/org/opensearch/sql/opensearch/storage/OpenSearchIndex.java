@@ -23,8 +23,8 @@ import org.opensearch.sql.opensearch.planner.logical.OpenSearchLogicalIndexAgg;
 import org.opensearch.sql.opensearch.planner.logical.OpenSearchLogicalIndexScan;
 import org.opensearch.sql.opensearch.planner.logical.OpenSearchLogicalPlanOptimizerFactory;
 import org.opensearch.sql.opensearch.planner.physical.ADOperator;
-import org.opensearch.sql.opensearch.planner.physical.CreateTableOperator;
-import org.opensearch.sql.opensearch.planner.physical.DropTableOperator;
+import org.opensearch.sql.opensearch.planner.physical.CreateOperator;
+import org.opensearch.sql.opensearch.planner.physical.DropOperator;
 import org.opensearch.sql.opensearch.planner.physical.MLCommonsOperator;
 import org.opensearch.sql.opensearch.request.OpenSearchRequest;
 import org.opensearch.sql.opensearch.request.system.OpenSearchDescribeIndexRequest;
@@ -36,8 +36,8 @@ import org.opensearch.sql.opensearch.storage.serialization.DefaultExpressionSeri
 import org.opensearch.sql.planner.DefaultImplementor;
 import org.opensearch.sql.planner.logical.LogicalAD;
 import org.opensearch.sql.planner.logical.LogicalHighlight;
-import org.opensearch.sql.planner.logical.LogicalCreateTable;
-import org.opensearch.sql.planner.logical.LogicalDropTable;
+import org.opensearch.sql.planner.logical.LogicalCreate;
+import org.opensearch.sql.planner.logical.LogicalDrop;
 import org.opensearch.sql.planner.logical.LogicalMLCommons;
 import org.opensearch.sql.planner.logical.LogicalPlan;
 import org.opensearch.sql.planner.logical.LogicalRelation;
@@ -105,7 +105,7 @@ public class OpenSearchIndex implements Table {
    */
   @Override
   public PhysicalPlan implement(LogicalPlan plan) {
-    if (plan instanceof LogicalCreateTable || plan instanceof LogicalDropTable) {
+    if (plan instanceof LogicalCreate || plan instanceof LogicalDrop) {
       return plan.accept(new OpenSearchDefaultImplementor(null, client), null);
     }
     OpenSearchIndexScan indexScan = new OpenSearchIndexScan(client, settings, indexName,
@@ -218,16 +218,15 @@ public class OpenSearchIndex implements Table {
       return visitChild(node, context);
     }
 
-    @Override
-    public PhysicalPlan visitCreateTable(LogicalCreateTable node, OpenSearchIndexScan context) {
-      return new CreateTableOperator(node.getTableName(), node.getColumns(),
+    public PhysicalPlan visitCreate(LogicalCreate node, OpenSearchIndexScan context) {
+      return new CreateOperator(node.getTableName(), node.getColumns(),
           node.getRowFormatSerDe(), node.getRowFormatSerDeProperties(), node.getPartitionBy(),
           node.getLocation(), client);
     }
 
     @Override
-    public PhysicalPlan visitDropTable(LogicalDropTable node, OpenSearchIndexScan context) {
-      return new DropTableOperator(node.getTableName(), client);
+    public PhysicalPlan visitDrop(LogicalDrop node, OpenSearchIndexScan context) {
+      return new DropOperator(node.getTableName(), client);
     }
 
   }

@@ -23,8 +23,13 @@ import org.opensearch.sql.ast.expression.RowFormatSerDe;
 @ToString
 @EqualsAndHashCode(callSuper = true)
 @RequiredArgsConstructor
-public class DropTable extends UnresolvedPlan {
+public class Create extends UnresolvedPlan {
   private final String tableName;
+  private final Map<String, String> columns;
+  private final RowFormatSerDe rowFormatSerDe;
+  private final Map<String, String> rowFormatSerDeProperties;
+  private final Literal partitionBy;
+  private final Literal location;
 
   @Override
   public UnresolvedPlan attach(UnresolvedPlan child) {
@@ -33,7 +38,7 @@ public class DropTable extends UnresolvedPlan {
 
   @Override
   public <T, C> T accept(AbstractNodeVisitor<T, C> nodeVisitor, C context) {
-    return nodeVisitor.visitDropTable(this, context);
+    return nodeVisitor.visitCreate(this, context);
   }
 
   @Override

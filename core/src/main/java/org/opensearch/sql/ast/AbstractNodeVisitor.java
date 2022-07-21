@@ -37,9 +37,9 @@ import org.opensearch.sql.ast.expression.WindowFunction;
 import org.opensearch.sql.ast.expression.Xor;
 import org.opensearch.sql.ast.tree.AD;
 import org.opensearch.sql.ast.tree.Aggregation;
-import org.opensearch.sql.ast.tree.CreateTable;
+import org.opensearch.sql.ast.tree.Create;
 import org.opensearch.sql.ast.tree.Dedupe;
-import org.opensearch.sql.ast.tree.DropTable;
+import org.opensearch.sql.ast.tree.Drop;
 import org.opensearch.sql.ast.tree.Eval;
 import org.opensearch.sql.ast.tree.Filter;
 import org.opensearch.sql.ast.tree.Head;
@@ -239,11 +239,11 @@ public abstract class AbstractNodeVisitor<T, C> {
     return visitChildren(node, context);
   }
 
-  public T visitCreateTable(CreateTable node, C context) {
+  public T visitCreate(Create node, C context) {
     return visitChildren(node, context);
   }
 
-  public T visitDropTable(DropTable node, C context) {
+  public T visitDrop(Drop node, C context) {
     return visitChildren(node, context);
   }
 

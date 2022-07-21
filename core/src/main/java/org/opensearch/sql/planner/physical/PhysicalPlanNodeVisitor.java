@@ -80,11 +80,11 @@ public abstract class PhysicalPlanNodeVisitor<R, C> {
     return visitNode(node, context);
   }
 
-  public R visitCreateTable(PhysicalPlan node, C context) {
+  public R visitCreate(PhysicalPlan node, C context) {
     return visitNode(node, context);
   }
 
-  public R visitDropTable(PhysicalPlan node, C context) {
+  public R visitDrop(PhysicalPlan node, C context) {
     return visitNode(node, context);
   }
 

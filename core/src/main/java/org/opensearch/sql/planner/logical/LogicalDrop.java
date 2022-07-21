@@ -1,11 +1,9 @@
 package org.opensearch.sql.planner.logical;
 
 import com.google.common.collect.ImmutableList;
-import java.util.Map;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
-import org.opensearch.sql.ast.expression.RowFormatSerDe;
 
 /**
  * ml-commons logical plan.
@@ -13,19 +11,19 @@ import org.opensearch.sql.ast.expression.RowFormatSerDe;
 @Getter
 @ToString
 @EqualsAndHashCode(callSuper = true)
-public class LogicalDropTable extends LogicalPlan {
+public class LogicalDrop extends LogicalPlan {
   private final String tableName;
 
   /**
    * Constructor of LogicalMLCommons.
    */
-  public LogicalDropTable(String tableName) {
+  public LogicalDrop(String tableName) {
     super(ImmutableList.of());
     this.tableName = tableName;
   }
 
   @Override
   public <R, C> R accept(LogicalPlanNodeVisitor<R, C> visitor, C context) {
-    return visitor.visitDropTable(this, context);
+    return visitor.visitDrop(this, context);
   }
 }
