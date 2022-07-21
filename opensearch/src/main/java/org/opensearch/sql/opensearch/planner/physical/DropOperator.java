@@ -26,8 +26,7 @@ import org.opensearch.sql.planner.physical.PhysicalPlan;
 import org.opensearch.sql.planner.physical.PhysicalPlanNodeVisitor;
 
 /**
- * ml-commons Physical operator to call machine learning interface to get results for
- * algorithm execution.
+ * Drop table Physical operator to delete table metadata documents.
  */
 @Getter
 @RequiredArgsConstructor

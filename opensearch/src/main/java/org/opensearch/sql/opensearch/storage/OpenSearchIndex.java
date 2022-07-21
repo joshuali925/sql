@@ -105,6 +105,7 @@ public class OpenSearchIndex implements Table {
    */
   @Override
   public PhysicalPlan implement(LogicalPlan plan) {
+    // no indexScan for create and drop queries
     if (plan instanceof LogicalCreate || plan instanceof LogicalDrop) {
       return plan.accept(new OpenSearchDefaultImplementor(null, client), null);
     }

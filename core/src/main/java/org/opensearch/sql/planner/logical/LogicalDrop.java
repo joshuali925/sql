@@ -1,3 +1,8 @@
+/*
+ * Copyright OpenSearch Contributors
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.opensearch.sql.planner.logical;
 
 import com.google.common.collect.ImmutableList;
@@ -6,7 +11,7 @@ import lombok.Getter;
 import lombok.ToString;
 
 /**
- * ml-commons logical plan.
+ * Drop table logical plan.
  */
 @Getter
 @ToString
@@ -15,7 +20,7 @@ public class LogicalDrop extends LogicalPlan {
   private final String tableName;
 
   /**
-   * Constructor of LogicalMLCommons.
+   * Constructor of LogicalDrop.
    */
   public LogicalDrop(String tableName) {
     super(ImmutableList.of());

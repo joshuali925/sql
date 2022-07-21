@@ -1,3 +1,8 @@
+/*
+ * Copyright OpenSearch Contributors
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.opensearch.sql.planner.logical;
 
 import com.google.common.collect.ImmutableList;
@@ -8,7 +13,7 @@ import lombok.ToString;
 import org.opensearch.sql.ast.expression.RowFormatSerDe;
 
 /**
- * ml-commons logical plan.
+ * Create table logical plan.
  */
 @Getter
 @ToString
@@ -23,7 +28,7 @@ public class LogicalCreate extends LogicalPlan {
   private final String location;
 
   /**
-   * Constructor of LogicalMLCommons.
+   * Constructor of LogicalCreate.
    */
   public LogicalCreate(String tableName, Map<String, String> columns,
                        RowFormatSerDe rowFormatSerDe,

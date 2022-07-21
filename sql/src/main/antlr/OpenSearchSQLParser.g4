@@ -50,6 +50,25 @@ ddlStatement
     : createTable | dropTable
     ;
 
+dmlStatement
+    : selectStatement
+    ;
+
+// Data Definition Language
+
+createTable
+    : CREATE EXTERNAL? TABLE (IF NOT EXISTS)?
+      tableName columnDefinitions
+      ROW FORMAT SERDE rowFormatSerDe
+      withSerDeProperties?
+      partitionDefinition?
+      location
+    ;
+
+dropTable
+    : DROP TABLE (IF EXISTS)? tableName
+    ;
+
 columnDefinitions
     : LR_BRACKET columnDefinition (COMMA columnDefinition)* RR_BRACKET
     ;
@@ -77,24 +96,6 @@ partitionDefinition
 location
     : LOCATION stringLiteral
     ;
-
-createTable
-    : CREATE EXTERNAL? TABLE (IF NOT EXISTS)?
-      tableName columnDefinitions
-      ROW FORMAT SERDE rowFormatSerDe
-      withSerDeProperties?
-      partitionDefinition?
-      location
-    ;
-
-dropTable
-    : DROP TABLE (IF EXISTS)? tableName
-    ;
-
-dmlStatement
-    : selectStatement
-    ;
-
 
 // Data Manipulation Language
 

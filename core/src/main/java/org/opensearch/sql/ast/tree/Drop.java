@@ -15,6 +15,9 @@ import lombok.Setter;
 import lombok.ToString;
 import org.opensearch.sql.ast.AbstractNodeVisitor;
 
+/**
+ * AST node represent Drop table operation.
+ */
 @Getter
 @Setter
 @ToString

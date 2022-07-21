@@ -29,8 +29,7 @@ import org.opensearch.sql.planner.physical.PhysicalPlan;
 import org.opensearch.sql.planner.physical.PhysicalPlanNodeVisitor;
 
 /**
- * ml-commons Physical operator to call machine learning interface to get results for
- * algorithm execution.
+ * Create table Physical operator to create sql metadata index and document for table metadata.
  */
 @Getter
 @RequiredArgsConstructor
