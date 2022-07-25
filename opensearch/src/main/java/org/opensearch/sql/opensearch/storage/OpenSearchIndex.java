@@ -19,6 +19,7 @@ import org.opensearch.sql.common.utils.StringUtils;
 import org.opensearch.sql.data.type.ExprType;
 import org.opensearch.sql.opensearch.client.OpenSearchClient;
 import org.opensearch.sql.opensearch.data.value.OpenSearchExprValueFactory;
+import org.opensearch.sql.opensearch.index.model.S3MetadataDoc;
 import org.opensearch.sql.opensearch.planner.logical.OpenSearchLogicalIndexAgg;
 import org.opensearch.sql.opensearch.planner.logical.OpenSearchLogicalIndexScan;
 import org.opensearch.sql.opensearch.planner.logical.OpenSearchLogicalPlanOptimizerFactory;
@@ -220,9 +221,9 @@ public class OpenSearchIndex implements Table {
     }
 
     public PhysicalPlan visitCreate(LogicalCreate node, OpenSearchIndexScan context) {
-      return new CreateOperator(node.getTableName(), node.getColumns(),
+      return new CreateOperator(new S3MetadataDoc(node.getTableName(), node.getColumns(),
           node.getRowFormatSerDe(), node.getRowFormatSerDeProperties(), node.getPartitionBy(),
-          node.getLocation(), client);
+          node.getLocation()), client);
     }
 
     @Override

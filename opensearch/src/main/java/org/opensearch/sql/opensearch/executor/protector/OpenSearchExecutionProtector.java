@@ -156,12 +156,7 @@ public class OpenSearchExecutionProtector extends ExecutionProtector {
   public PhysicalPlan visitCreate(PhysicalPlan node, Object context) {
     CreateOperator createOperator = (CreateOperator) node;
     return doProtect(
-        new CreateOperator(createOperator.getTableName(),
-            createOperator.getColumns(), createOperator.getRowFormatSerDe(),
-            createOperator.getRowFormatSerDeProperties(), createOperator.getPartitionBy(),
-            createOperator.getLocation(), createOperator.getClient()
-        )
-    );
+        new CreateOperator(createOperator.getS3MetadataDoc(), createOperator.getClient()));
   }
 
   @Override

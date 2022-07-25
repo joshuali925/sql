@@ -54,7 +54,8 @@ public class DropOperator extends PhysicalPlan {
     if (sqlMetadataIndex.dropTable(tableName)) {
       addResponse(String.format("Deleted table `%s`.", tableName));
     } else {
-      addResponse(String.format("Failed to delete table `%s`, the table might not exist.", tableName));
+      addResponse(
+          String.format("Failed to delete table `%s`, the table might not exist.", tableName));
     }
     iterator = responses.iterator();
   }

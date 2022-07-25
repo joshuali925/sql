@@ -10,14 +10,12 @@ import com.google.common.collect.ImmutableMap;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.opensearch.sql.ast.expression.RowFormatSerDe;
 import org.opensearch.sql.data.model.ExprStringValue;
 import org.opensearch.sql.data.model.ExprTupleValue;
 import org.opensearch.sql.data.model.ExprValue;
@@ -25,6 +23,7 @@ import org.opensearch.sql.data.type.ExprCoreType;
 import org.opensearch.sql.executor.ExecutionEngine;
 import org.opensearch.sql.opensearch.client.OpenSearchClient;
 import org.opensearch.sql.opensearch.index.SqlMetadataIndex;
+import org.opensearch.sql.opensearch.index.model.S3MetadataDoc;
 import org.opensearch.sql.planner.physical.PhysicalPlan;
 import org.opensearch.sql.planner.physical.PhysicalPlanNodeVisitor;
 
@@ -38,14 +37,7 @@ public class CreateOperator extends PhysicalPlan {
   private static final Logger log = LogManager.getLogger(CreateOperator.class);
 
   @Getter
-  private final String tableName;
-
-  @Getter
-  private final Map<String, String> columns;
-  private final RowFormatSerDe rowFormatSerDe;
-  private final Map<String, String> rowFormatSerDeProperties;
-  private final String partitionBy;
-  private final String location;
+  private final S3MetadataDoc s3MetadataDoc;
   private SqlMetadataIndex sqlMetadataIndex;
 
   @Getter
@@ -93,18 +85,20 @@ public class CreateOperator extends PhysicalPlan {
   private void putTableMetadata() {
     ImmutableMap.Builder<String, Object> builder = ImmutableMap.builder();
     builder.put("type", "s3")
-        .put("name", tableName)
-        .put("columns", columns)
-        .put("rowFormatSerde", rowFormatSerDe.getRowFormat().toString());
-    Optional.ofNullable(rowFormatSerDeProperties)
+        .put("name", s3MetadataDoc.getTableName())
+        .put("columns", s3MetadataDoc.getColumns())
+        .put("rowFormatSerde", s3MetadataDoc.getRowFormatSerDe().getRowFormat().toString());
+    Optional.ofNullable(s3MetadataDoc.getRowFormatSerDeProperties())
         .ifPresent(v -> builder.put("rowFormatSerdeProperties", v));
-    Optional.ofNullable(partitionBy).ifPresent(v -> builder.put("partitionBy", v));
-    builder.put("location", location);
+    Optional.ofNullable(s3MetadataDoc.getPartitionBy())
+        .ifPresent(v -> builder.put("partitionBy", v));
+    builder.put("location", s3MetadataDoc.getLocation());
 
-    if (sqlMetadataIndex.createTable(tableName, builder.build())) {
-      addResponse(String.format("Created table `%s`.", tableName));
+    if (sqlMetadataIndex.createTable(s3MetadataDoc.getTableName(), builder.build())) {
+      addResponse(String.format("Created table `%s`.", s3MetadataDoc.getTableName()));
     } else {
-      addResponse(String.format("Failed to create table `%s`, the table might already exist.", tableName));
+      addResponse(String.format("Failed to create table `%s`, the table might already exist.",
+          s3MetadataDoc.getTableName()));
     }
   }
 
