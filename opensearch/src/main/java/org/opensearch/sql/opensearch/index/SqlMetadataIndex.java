@@ -30,29 +30,21 @@ public class SqlMetadataIndex {
   protected static final String INDEX_NAME = ".opensearch-sql";
   private final OpenSearchClient client;
 
-  public void createTable(String tableName, Map<String, Object> source) {
+  public boolean createTable(String tableName, Map<String, Object> source) {
     createIndex();
-    IndexRequest request = new IndexRequest(INDEX_NAME).source(source).create(true);
+    IndexRequest request = new IndexRequest(INDEX_NAME).source(source).create(true).id(tableName);
     ActionFuture<IndexResponse> indexResponseActionFuture = client.getNodeClient().index(request);
     IndexResponse response = indexResponseActionFuture.actionGet();
-    if (response.getResult() != DocWriteResponse.Result.CREATED) {
-      throw new IllegalStateException("Failed to create table " + tableName);
-    }
+    return response.getResult() == DocWriteResponse.Result.CREATED;
   }
 
-  public void dropTable(String tableName) {
+  public boolean dropTable(String tableName) {
     createIndex();
-    SearchHit table = getTable(tableName).orElse(null);
-    if (table == null) {
-      throw new IllegalStateException("Table " + tableName + " does not exist");
-    }
-    DeleteRequest request = new DeleteRequest(INDEX_NAME, table.getId());
+    DeleteRequest request = new DeleteRequest(INDEX_NAME, tableName);
     ActionFuture<DeleteResponse> deleteResponseActionFuture =
         client.getNodeClient().delete(request);
     DeleteResponse deleteResponse = deleteResponseActionFuture.actionGet();
-    if (deleteResponse.getResult() != DocWriteResponse.Result.DELETED) {
-      throw new IllegalStateException("Failed to delete table " + tableName);
-    }
+    return deleteResponse.getResult() == DocWriteResponse.Result.DELETED;
   }
 
   public Optional<SearchHit> getTable(String tableName) {
@@ -73,10 +65,6 @@ public class SqlMetadataIndex {
       return Optional.of(hits[0]);
     }
     return Optional.empty();
-  }
-
-  public boolean tableExists(String tableName) {
-    return getTable(tableName).isPresent();
   }
 
   private void createIndex() {

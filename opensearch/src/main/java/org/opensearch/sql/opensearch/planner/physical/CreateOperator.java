@@ -91,11 +91,6 @@ public class CreateOperator extends PhysicalPlan {
   }
 
   private void putTableMetadata() {
-    if (sqlMetadataIndex.tableExists(tableName)) {
-      addResponse(String.format("Table `%s` already exists.", tableName));
-      return;
-    }
-
     ImmutableMap.Builder<String, Object> builder = ImmutableMap.builder();
     builder.put("type", "s3")
         .put("name", tableName)
@@ -106,8 +101,11 @@ public class CreateOperator extends PhysicalPlan {
     Optional.ofNullable(partitionBy).ifPresent(v -> builder.put("partitionBy", v));
     builder.put("location", location);
 
-    sqlMetadataIndex.createTable(tableName, builder.build());
-    addResponse(String.format("Created table `%s`.", tableName));
+    if (sqlMetadataIndex.createTable(tableName, builder.build())) {
+      addResponse(String.format("Created table `%s`.", tableName));
+    } else {
+      addResponse(String.format("Failed to create table `%s`, the table might already exist.", tableName));
+    }
   }
 
   private void addResponse(String message) {

@@ -21,6 +21,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.opensearch.sql.ast.expression.DataType;
 import org.opensearch.sql.ast.expression.Literal;
+import org.opensearch.sql.ast.expression.RowFormatSerDe;
 import org.opensearch.sql.ast.tree.RareTopN.CommandType;
 import org.opensearch.sql.ast.tree.Sort.SortOption;
 import org.opensearch.sql.data.model.ExprValueUtils;
@@ -120,24 +121,37 @@ class LogicalPlanNodeVisitorTest {
     }, null));
 
     LogicalPlan mlCommons = new LogicalMLCommons(LogicalPlanDSL.relation("schema"),
-            "kmeans",
-            ImmutableMap.<String, Literal>builder()
-                    .put("centroids", new Literal(3, DataType.INTEGER))
-                    .put("iterations", new Literal(3, DataType.DOUBLE))
-                    .put("distance_type", new Literal(null, DataType.STRING))
-                    .build());
+        "kmeans",
+        ImmutableMap.<String, Literal>builder()
+            .put("centroids", new Literal(3, DataType.INTEGER))
+            .put("iterations", new Literal(3, DataType.DOUBLE))
+            .put("distance_type", new Literal(null, DataType.STRING))
+            .build());
     assertNull(mlCommons.accept(new LogicalPlanNodeVisitor<Integer, Object>() {
     }, null));
 
     LogicalPlan ad = new LogicalAD(LogicalPlanDSL.relation("schema"),
-            new HashMap<String, Literal>() {{
-              put("shingle_size", new Literal(8, DataType.INTEGER));
-              put("time_decay", new Literal(0.0001, DataType.DOUBLE));
-              put("time_field", new Literal(null, DataType.STRING));
-        }
-      });
+        new HashMap<String, Literal>() {
+          {
+            put("shingle_size", new Literal(8, DataType.INTEGER));
+            put("time_decay", new Literal(0.0001, DataType.DOUBLE));
+            put("time_field", new Literal(null, DataType.STRING));
+          }
+        });
     assertNull(ad.accept(new LogicalPlanNodeVisitor<Integer, Object>() {
     }, null));
+
+    LogicalPlan create =
+        new LogicalCreate("test-table", ImmutableMap.of("name", "string"),
+            new RowFormatSerDe("regex"), ImmutableMap.of("pattern", "regex-pattern"),
+            "${year}/${month}/${day}", "s3://bucket/path");
+    assertNull(create.accept(new LogicalPlanNodeVisitor<Integer, Object>() {
+    }, null));
+
+    LogicalPlan drop = new LogicalDrop("test-table");
+    assertNull(drop.accept(new LogicalPlanNodeVisitor<Integer, Object>() {
+    }, null));
+
   }
 
   private static class NodesCount extends LogicalPlanNodeVisitor<Integer, Object> {

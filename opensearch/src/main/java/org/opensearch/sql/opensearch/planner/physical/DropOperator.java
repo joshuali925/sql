@@ -51,11 +51,10 @@ public class DropOperator extends PhysicalPlan {
   public void open() {
     super.open();
     sqlMetadataIndex = new SqlMetadataIndex(client);
-    try {
-      sqlMetadataIndex.dropTable(tableName);
+    if (sqlMetadataIndex.dropTable(tableName)) {
       addResponse(String.format("Deleted table `%s`.", tableName));
-    } catch (IllegalStateException e) {
-      addResponse(e.getMessage());
+    } else {
+      addResponse(String.format("Failed to delete table `%s`, the table might not exist.", tableName));
     }
     iterator = responses.iterator();
   }

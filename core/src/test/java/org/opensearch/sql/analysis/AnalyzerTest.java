@@ -48,8 +48,11 @@ import org.opensearch.sql.ast.expression.Argument;
 import org.opensearch.sql.ast.expression.DataType;
 import org.opensearch.sql.ast.expression.HighlightFunction;
 import org.opensearch.sql.ast.expression.Literal;
+import org.opensearch.sql.ast.expression.RowFormatSerDe;
 import org.opensearch.sql.ast.expression.SpanUnit;
 import org.opensearch.sql.ast.tree.AD;
+import org.opensearch.sql.ast.tree.Create;
+import org.opensearch.sql.ast.tree.Drop;
 import org.opensearch.sql.ast.tree.Kmeans;
 import org.opensearch.sql.ast.tree.RareTopN.CommandType;
 import org.opensearch.sql.exception.SemanticCheckException;
@@ -58,6 +61,8 @@ import org.opensearch.sql.expression.HighlightExpression;
 import org.opensearch.sql.expression.config.ExpressionConfig;
 import org.opensearch.sql.expression.window.WindowDefinition;
 import org.opensearch.sql.planner.logical.LogicalAD;
+import org.opensearch.sql.planner.logical.LogicalCreate;
+import org.opensearch.sql.planner.logical.LogicalDrop;
 import org.opensearch.sql.planner.logical.LogicalMLCommons;
 import org.opensearch.sql.planner.logical.LogicalPlanDSL;
 import org.springframework.context.annotation.Configuration;
@@ -85,7 +90,7 @@ class AnalyzerTest extends AnalyzerTestBase {
   @Test
   public void head_relation() {
     assertAnalyzeEqual(
-        LogicalPlanDSL.limit(LogicalPlanDSL.relation("schema"),10, 0),
+        LogicalPlanDSL.limit(LogicalPlanDSL.relation("schema"), 10, 0),
         AstDSL.head(AstDSL.relation("schema"), 10, 0));
   }
 
@@ -107,7 +112,7 @@ class AnalyzerTest extends AnalyzerTestBase {
                 ImmutableList.of(
                     DSL.named("AVG(integer_value)", dsl.avg(DSL.ref("integer_value", INTEGER))),
                     DSL.named("MIN(integer_value)", dsl.min(DSL.ref("integer_value", INTEGER)))),
-            ImmutableList.of(DSL.named("string_value", DSL.ref("string_value", STRING)))),
+                ImmutableList.of(DSL.named("string_value", DSL.ref("string_value", STRING)))),
             dsl.greater(// Expect to be replaced with reference by expression optimizer
                 DSL.ref("MIN(integer_value)", INTEGER), DSL.literal(integerValue(10)))),
         AstDSL.filter(
@@ -116,7 +121,7 @@ class AnalyzerTest extends AnalyzerTestBase {
                 ImmutableList.of(
                     alias("AVG(integer_value)", aggregate("AVG", qualifiedName("integer_value"))),
                     alias("MIN(integer_value)", aggregate("MIN", qualifiedName("integer_value")))),
-            emptyList(),
+                emptyList(),
                 ImmutableList.of(alias("string_value", qualifiedName("string_value"))),
                 emptyList()),
             compare(">",
@@ -338,25 +343,25 @@ class AnalyzerTest extends AnalyzerTestBase {
   public void sort_with_options() {
     ImmutableMap<Argument[], SortOption> argOptions =
         ImmutableMap.<Argument[], SortOption>builder()
-            .put(new Argument[]{argument("asc", booleanLiteral(true))},
+            .put(new Argument[] {argument("asc", booleanLiteral(true))},
                 new SortOption(SortOrder.ASC, NullOrder.NULL_FIRST))
-            .put(new Argument[]{argument("asc", booleanLiteral(false))},
+            .put(new Argument[] {argument("asc", booleanLiteral(false))},
                 new SortOption(SortOrder.DESC, NullOrder.NULL_LAST))
-            .put(new Argument[]{
-                argument("asc", booleanLiteral(true)),
-                argument("nullFirst", booleanLiteral(true))},
+            .put(new Argument[] {
+                    argument("asc", booleanLiteral(true)),
+                    argument("nullFirst", booleanLiteral(true))},
                 new SortOption(SortOrder.ASC, NullOrder.NULL_FIRST))
-            .put(new Argument[]{
-                argument("asc", booleanLiteral(true)),
-                argument("nullFirst", booleanLiteral(false))},
+            .put(new Argument[] {
+                    argument("asc", booleanLiteral(true)),
+                    argument("nullFirst", booleanLiteral(false))},
                 new SortOption(SortOrder.ASC, NullOrder.NULL_LAST))
-            .put(new Argument[]{
-                argument("asc", booleanLiteral(false)),
-                argument("nullFirst", booleanLiteral(true))},
+            .put(new Argument[] {
+                    argument("asc", booleanLiteral(false)),
+                    argument("nullFirst", booleanLiteral(true))},
                 new SortOption(SortOrder.DESC, NullOrder.NULL_FIRST))
-            .put(new Argument[]{
-                argument("asc", booleanLiteral(false)),
-                argument("nullFirst", booleanLiteral(false))},
+            .put(new Argument[] {
+                    argument("asc", booleanLiteral(false)),
+                    argument("nullFirst", booleanLiteral(false))},
                 new SortOption(SortOrder.DESC, NullOrder.NULL_LAST))
             .build();
 
@@ -406,7 +411,7 @@ class AnalyzerTest extends AnalyzerTestBase {
 
   /**
    * SELECT name FROM (
-   *   SELECT name, age FROM test
+   * SELECT name, age FROM test
    * ) AS schema.
    */
   @Test
@@ -436,7 +441,7 @@ class AnalyzerTest extends AnalyzerTestBase {
 
   /**
    * SELECT * FROM (
-   *   SELECT name FROM test
+   * SELECT name FROM test
    * ) AS schema.
    */
   @Test
@@ -591,7 +596,7 @@ class AnalyzerTest extends AnalyzerTestBase {
                 LogicalPlanDSL.relation("schema"),
                 ImmutableList
                     .of(DSL.named("sum(integer_value)",
-                        dsl.sum(DSL.ref("integer_value", INTEGER))),
+                            dsl.sum(DSL.ref("integer_value", INTEGER))),
                         DSL.named("avg(integer_value)",
                             dsl.avg(DSL.ref("integer_value", INTEGER)))),
                 ImmutableList.of(DSL.named("abs(long_value)",
@@ -717,7 +722,7 @@ class AnalyzerTest extends AnalyzerTestBase {
             AstDSL.alias("string_value", qualifiedName("string_value"))
         ));
   }
-  
+
   @Test
   public void kmeanns_relation() {
     Map<String, Literal> argumentMap = new HashMap<String, Literal>() {{
@@ -735,12 +740,12 @@ class AnalyzerTest extends AnalyzerTestBase {
   @Test
   public void ad_batchRCF_relation() {
     Map<String, Literal> argumentMap =
-            new HashMap<String, Literal>() {{
-        put("shingle_size", new Literal(8, DataType.INTEGER));
-      }};
+        new HashMap<String, Literal>() {{
+          put("shingle_size", new Literal(8, DataType.INTEGER));
+        }};
     assertAnalyzeEqual(
-            new LogicalAD(LogicalPlanDSL.relation("schema"), argumentMap),
-            new AD(AstDSL.relation("schema"), argumentMap)
+        new LogicalAD(LogicalPlanDSL.relation("schema"), argumentMap),
+        new AD(AstDSL.relation("schema"), argumentMap)
     );
   }
 
@@ -752,8 +757,30 @@ class AnalyzerTest extends AnalyzerTestBase {
         put("time_field", new Literal("timestamp", DataType.STRING));
       }};
     assertAnalyzeEqual(
-            new LogicalAD(LogicalPlanDSL.relation("schema"), argumentMap),
-            new AD(AstDSL.relation("schema"), argumentMap)
+        new LogicalAD(LogicalPlanDSL.relation("schema"), argumentMap),
+        new AD(AstDSL.relation("schema"), argumentMap)
     );
   }
+
+  @Test
+  public void create_table() {
+    assertAnalyzeEqual(
+        new LogicalCreate("test-table", ImmutableMap.of("name", "string"),
+            new RowFormatSerDe("regex"), ImmutableMap.of("pattern", "regex-pattern"),
+            "${year}/${month}/${day}", "s3://bucket/path"),
+        new Create("test-table", ImmutableMap.of("name", "string"),
+            new RowFormatSerDe("regex"), ImmutableMap.of("pattern", "regex-pattern"),
+            new Literal("${year}/${month}/${day}", DataType.STRING),
+            new Literal("s3://bucket/path", DataType.STRING))
+    );
+  }
+
+  @Test
+  public void drop_table() {
+    assertAnalyzeEqual(
+        new LogicalDrop("test-table"),
+        new Drop("test-table")
+    );
+  }
+
 }

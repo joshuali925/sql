@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 import lombok.experimental.UtilityClass;
 import org.apache.commons.lang3.tuple.Pair;
+import org.opensearch.sql.ast.expression.RowFormatSerDe;
 import org.opensearch.sql.ast.tree.RareTopN.CommandType;
 import org.opensearch.sql.ast.tree.Sort.SortOption;
 import org.opensearch.sql.expression.Expression;
