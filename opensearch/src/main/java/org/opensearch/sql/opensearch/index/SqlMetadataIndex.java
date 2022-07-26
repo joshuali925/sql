@@ -20,7 +20,7 @@ import org.opensearch.sql.opensearch.client.OpenSearchClient;
 @RequiredArgsConstructor
 public class SqlMetadataIndex {
   private static final Logger log = LogManager.getLogger(SqlMetadataIndex.class);
-  protected static final String INDEX_NAME = ".opensearch-sql";
+  private static final String INDEX_NAME = ".opensearch-sql";
   private final OpenSearchClient client;
 
   public boolean createTable(String tableName, Map<String, Object> source) {

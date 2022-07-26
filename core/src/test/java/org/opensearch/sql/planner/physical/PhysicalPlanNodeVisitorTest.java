@@ -150,6 +150,22 @@ class PhysicalPlanNodeVisitorTest extends PhysicalPlanTestBase {
     assertNull(physicalPlanNodeVisitor.visitAD(plan, null));
   }
 
+  @Test
+  public void test_visitCreate() {
+    PhysicalPlanNodeVisitor physicalPlanNodeVisitor =
+            new PhysicalPlanNodeVisitor<Integer, Object>() {};
+
+    assertNull(physicalPlanNodeVisitor.visitCreate(plan, null));
+  }
+
+  @Test
+  public void test_visitDrop() {
+    PhysicalPlanNodeVisitor physicalPlanNodeVisitor =
+            new PhysicalPlanNodeVisitor<Integer, Object>() {};
+
+    assertNull(physicalPlanNodeVisitor.visitDrop(plan, null));
+  }
+
   public static class PhysicalPlanPrinter extends PhysicalPlanNodeVisitor<String, Integer> {
 
     public String print(PhysicalPlan node) {
