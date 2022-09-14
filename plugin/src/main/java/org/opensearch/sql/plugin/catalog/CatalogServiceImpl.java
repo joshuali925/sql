@@ -111,6 +111,20 @@ public class CatalogServiceImpl implements CatalogService {
       case PROMETHEUS:
         storageEngine = null;
         break;
+      case S3:
+        // PrometheusClient
+        //     prometheusClient =
+        //     new PrometheusClientImpl(new OkHttpClient(),
+        //         new URI(catalog.get(CatalogConstants.URI).asText()));
+        // PrometheusConfig prometheusConfig = new PrometheusConfig();
+        // if (catalog.has(CatalogConstants.DEFAULT_TIME_RANGE)) {
+        //   prometheusConfig.setDefaultTimeRange(
+        //       catalog.get(CatalogConstants.DEFAULT_TIME_RANGE).asLong());
+        //
+        // }
+        // storageEngine = new PrometheusStorageEngine(prometheusClient, prometheusConfig);
+        storageEngine = null;
+        break;
       default:
         LOG.info(
             "Unknown connector \"{}\". "

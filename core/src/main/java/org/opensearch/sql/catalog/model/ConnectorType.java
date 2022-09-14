@@ -6,5 +6,7 @@
 package org.opensearch.sql.catalog.model;
 
 public enum ConnectorType {
-  PROMETHEUS,OPENSEARCH
+  OPENSEARCH,
+  PROMETHEUS,
+  S3
 }
