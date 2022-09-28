@@ -21,6 +21,7 @@ import lombok.Setter;
     visible = true)
 @JsonSubTypes({
     @JsonSubTypes.Type(value = BasicAuthenticationData.class, name = "basicauth"),
+    @JsonSubTypes.Type(value = AwsAuthenticationData.class, name = "awsauth"),
 })
 @Getter
 @Setter

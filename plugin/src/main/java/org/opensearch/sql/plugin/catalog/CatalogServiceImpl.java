@@ -25,6 +25,8 @@ import org.opensearch.sql.catalog.CatalogService;
 import org.opensearch.sql.catalog.model.CatalogMetadata;
 import org.opensearch.sql.catalog.model.ConnectorType;
 import org.opensearch.sql.opensearch.security.SecurityAccess;
+import org.opensearch.sql.s3.client.S3ClientImpl;
+import org.opensearch.sql.s3.storage.S3StorageEngine;
 import org.opensearch.sql.storage.StorageEngine;
 
 /**
@@ -112,18 +114,17 @@ public class CatalogServiceImpl implements CatalogService {
         storageEngine = null;
         break;
       case S3:
+        // PrometheusCatalogMetadata prometheusCatalogMetadata = (PrometheusCatalogMetadata) catalog;
         // PrometheusClient
         //     prometheusClient =
         //     new PrometheusClientImpl(new OkHttpClient(),
-        //         new URI(catalog.get(CatalogConstants.URI).asText()));
+        //         new URI(prometheusCatalogMetadata.getUri()));
         // PrometheusConfig prometheusConfig = new PrometheusConfig();
-        // if (catalog.has(CatalogConstants.DEFAULT_TIME_RANGE)) {
-        //   prometheusConfig.setDefaultTimeRange(
-        //       catalog.get(CatalogConstants.DEFAULT_TIME_RANGE).asLong());
-        //
+        // if (prometheusCatalogMetadata.getDefaultTimeRange() != null) {
+        //   prometheusConfig.setDefaultTimeRange(prometheusCatalogMetadata.getDefaultTimeRange());
         // }
         // storageEngine = new PrometheusStorageEngine(prometheusClient, prometheusConfig);
-        storageEngine = null;
+        storageEngine = new S3StorageEngine(new S3ClientImpl(catalog));
         break;
       default:
         LOG.info(

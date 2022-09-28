@@ -6,5 +6,5 @@
 package org.opensearch.sql.catalog.model;
 
 public enum AuthenticationType {
-  BASICAUTH,NO
+  BASICAUTH,AWSAUTH,NO
 }
