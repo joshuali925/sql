@@ -16,14 +16,14 @@ package org.opensearch.sql.opensearch.response.agg;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Map;
+import java.util.stream.Collectors;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.opensearch.search.aggregations.Aggregation;
 import org.opensearch.search.aggregations.metrics.InternalTopHits;
-import org.opensearch.search.aggregations.metrics.NumericMetricsAggregation;
 
 /**
- * {@link NumericMetricsAggregation.SingleValue} metric parser.
+ * {@link InternalTopHits} metric parser.
  */
 @RequiredArgsConstructor
 public class TopHitsParser implements MetricParser {
@@ -36,6 +36,6 @@ public class TopHitsParser implements MetricParser {
     return Collections.singletonMap(
         agg.getName(),
         Arrays.stream(((InternalTopHits) agg).getHits().getHits())
-            .flatMap(h -> h.getSourceAsMap().values().stream()));
+            .flatMap(h -> h.getSourceAsMap().values().stream()).collect(Collectors.toList()));
   }
 }

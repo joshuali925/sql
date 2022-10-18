@@ -7,12 +7,17 @@
 package org.opensearch.sql.opensearch.planner.physical;
 
 import com.google.common.collect.ImmutableMap;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 import org.opensearch.client.node.NodeClient;
 import org.opensearch.ml.client.MachineLearningNodeClient;
 import org.opensearch.ml.common.FunctionName;
@@ -58,6 +63,66 @@ public abstract class MLCommonsOperatorActions extends PhysicalPlan {
     }
 
     return DataFrameBuilder.load(inputData);
+  }
+
+  /**
+   * generate ml-commons request input dataset.
+   *
+   * @param input physical input
+   * @return ml-commons dataframe
+   */
+  protected List<Pair<DataFrame, DataFrame>> generateAggregatedInputDataset(PhysicalPlan input,
+                                                                      String aggField) {
+    if (aggField == null) {
+      DataFrame dataFrame = generateInputDataset(input);
+      return Collections.singletonList(new ImmutablePair<>(dataFrame, dataFrame));
+    }
+
+    MLAggregatedInput MLAggregatedInput = new MLAggregatedInput(aggField);
+    while (input.hasNext()) {
+      Map<String, ExprValue> tupleValue = input.next().tupleValue();
+      MLAggregatedInput.add(tupleValue);
+    }
+    return MLAggregatedInput.toDataFrames();
+  }
+
+  private static class MLAggregatedInput {
+    private final String aggField;
+    private final Map<ExprValue, Pair<List<Map<String, Object>>, List<Map<String, Object>>>>
+        inputMap;
+
+    public MLAggregatedInput(String aggField) {
+      this.aggField = aggField;
+      this.inputMap = new HashMap<>();
+    }
+
+    public void add(Map<String, ExprValue> tupleValue) {
+      ExprValue aggValue = tupleValue.get(aggField);
+      Pair<List<Map<String, Object>>, List<Map<String, Object>>> inputDataPair =
+          inputMap.computeIfAbsent(aggValue,
+              k -> new ImmutablePair<>(new LinkedList<>(), new LinkedList<>()));
+      List<Map<String, Object>> inputData = inputDataPair.getLeft();
+      List<Map<String, Object>> filteredInputData = inputDataPair.getRight();
+
+      ImmutableMap.Builder<String, Object> inputDataBuilder = ImmutableMap.builder();
+      ImmutableMap.Builder<String, Object> filteredInputDataBuilder = ImmutableMap.builder();
+      tupleValue.forEach((key, value) -> {
+        inputDataBuilder.put(key, value.value());
+        if (!Objects.equals(aggField, key)) {
+          filteredInputDataBuilder.put(key, value.value());
+        }
+      });
+
+      inputData.add(inputDataBuilder.build());
+      filteredInputData.add(filteredInputDataBuilder.build());
+    }
+
+    public List<Pair<DataFrame, DataFrame>> toDataFrames() {
+      return inputMap.values().stream()
+          .map(inputDataPair -> new ImmutablePair<>(DataFrameBuilder.load(inputDataPair.getLeft()),
+              DataFrameBuilder.load(inputDataPair.getRight())))
+          .collect(Collectors.toList());
+    }
   }
 
   /**
