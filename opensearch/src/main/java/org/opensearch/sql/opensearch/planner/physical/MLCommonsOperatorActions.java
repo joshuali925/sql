@@ -66,10 +66,14 @@ public abstract class MLCommonsOperatorActions extends PhysicalPlan {
   }
 
   /**
-   * generate ml-commons request input dataset.
+   * Generate ml-commons request input dataset per each aggregated field. Each
+   * aggregated field will be a {@link DataFrame} pair, where the left one
+   * contains all fields for building response, and the right one contains all
+   * fields except the aggregated field for ml prediction. This is a temporary
+   * solution before ml-commons supports 2 dimensional input.
    *
    * @param input physical input
-   * @return ml-commons dataframe
+   * @return list of ml-commons dataframe pairs
    */
   protected List<Pair<DataFrame, DataFrame>> generateAggregatedInputDataset(PhysicalPlan input,
                                                                       String aggField) {
@@ -78,26 +82,11 @@ public abstract class MLCommonsOperatorActions extends PhysicalPlan {
       return Collections.singletonList(new ImmutablePair<>(dataFrame, dataFrame));
     }
 
-    MLAggregatedInput MLAggregatedInput = new MLAggregatedInput(aggField);
+    Map<ExprValue, Pair<List<Map<String, Object>>, List<Map<String, Object>>>> inputMap =
+        new HashMap<>();
     while (input.hasNext()) {
       Map<String, ExprValue> tupleValue = input.next().tupleValue();
-      MLAggregatedInput.add(tupleValue);
-    }
-    return MLAggregatedInput.toDataFrames();
-  }
-
-  private static class MLAggregatedInput {
-    private final String aggField;
-    private final Map<ExprValue, Pair<List<Map<String, Object>>, List<Map<String, Object>>>>
-        inputMap;
-
-    public MLAggregatedInput(String aggField) {
-      this.aggField = aggField;
-      this.inputMap = new HashMap<>();
-    }
-
-    public void add(Map<String, ExprValue> tupleValue) {
-      ExprValue aggValue = tupleValue.get(aggField);
+       ExprValue aggValue = tupleValue.get(aggField);
       Pair<List<Map<String, Object>>, List<Map<String, Object>>> inputDataPair =
           inputMap.computeIfAbsent(aggValue,
               k -> new ImmutablePair<>(new LinkedList<>(), new LinkedList<>()));
@@ -117,12 +106,10 @@ public abstract class MLCommonsOperatorActions extends PhysicalPlan {
       filteredInputData.add(filteredInputDataBuilder.build());
     }
 
-    public List<Pair<DataFrame, DataFrame>> toDataFrames() {
-      return inputMap.values().stream()
-          .map(inputDataPair -> new ImmutablePair<>(DataFrameBuilder.load(inputDataPair.getLeft()),
-              DataFrameBuilder.load(inputDataPair.getRight())))
-          .collect(Collectors.toList());
-    }
+    return inputMap.values().stream()
+        .map(inputDataPair -> new ImmutablePair<>(DataFrameBuilder.load(inputDataPair.getLeft()),
+            DataFrameBuilder.load(inputDataPair.getRight())))
+        .collect(Collectors.toList());
   }
 
   /**
