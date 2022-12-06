@@ -76,7 +76,7 @@ public class MicroBatchTask {
 
       // Restore stream context from what's stored by previous batch
       StreamContextLookup streamContextLookup = new StreamContextLookup();
-      newPlan.accept(streamContextLookup, null).copyFrom(streamContext);
+      // newPlan.accept(streamContextLookup, null).copyFrom(streamContext);
       log.info("Restored stream context: {}", streamContext);
 
       queryService.executePlan(newPlan, new ResponseListener<>() {
@@ -85,12 +85,12 @@ public class MicroBatchTask {
           final long finalBatchId = currentBatchId.get();
           final Offset finalAvailableOffsets = availableOffsets.get();
           committedLog.add(finalBatchId, finalAvailableOffsets);
-          streamContext.copyFrom(newPlan.accept(streamContextLookup, null));
+          // streamContext.copyFrom(newPlan.accept(streamContextLookup, null));
         }
 
         @Override
         public void onFailure(Exception e) {
-          log.error("");
+          log.error("Query execution failure", e);
         }
       });
     }

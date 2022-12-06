@@ -49,6 +49,7 @@ public class S3Table implements Table, StreamTable {
           .put("text", OpenSearchDataType.OPENSEARCH_TEXT)
           .put("text_keyword", OpenSearchDataType.OPENSEARCH_TEXT_KEYWORD)
           .put("keyword", ExprCoreType.STRING)
+          .put("string", ExprCoreType.STRING)
           .put("byte", ExprCoreType.BYTE)
           .put("short", ExprCoreType.SHORT)
           .put("integer", ExprCoreType.INTEGER)

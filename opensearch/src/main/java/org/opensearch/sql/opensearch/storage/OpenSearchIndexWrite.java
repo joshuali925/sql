@@ -15,6 +15,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.opensearch.sql.data.model.ExprValue;
 import org.opensearch.sql.data.type.ExprCoreType;
 import org.opensearch.sql.executor.ExecutionEngine;
@@ -28,6 +30,7 @@ import org.opensearch.sql.planner.physical.WriteOperator;
 public class OpenSearchIndexWrite extends WriteOperator {
 
   private final OpenSearchClient client;
+  private static final Logger log = LogManager.getLogger(OpenSearchIndexWrite.class);
 
   private int count;
 
@@ -61,7 +64,7 @@ public class OpenSearchIndexWrite extends WriteOperator {
         }
         data.add(colValues);
       } else { // from normal ProjectOperator
-        data.add(row.tupleValue().entrySet().stream()
+        data.add(row.tupleValue().entrySet().stream().filter(e -> e.getValue().value() != null)
             .collect(Collectors.toMap(
                 Map.Entry::getKey,
                 e -> e.getValue().value())));
@@ -69,6 +72,7 @@ public class OpenSearchIndexWrite extends WriteOperator {
     }
 
     client.bulk(tableName, data);
+    log.error("Bulk written " + data.size() + " documents.");
   }
 
   @Override
