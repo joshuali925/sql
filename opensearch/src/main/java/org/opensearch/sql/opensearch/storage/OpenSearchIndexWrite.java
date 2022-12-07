@@ -72,7 +72,7 @@ public class OpenSearchIndexWrite extends WriteOperator {
     }
 
     client.bulk(tableName, data);
-    log.error("Bulk written " + data.size() + " documents.");
+    log.info("Bulk written " + data.size() + " documents.");
   }
 
   @Override

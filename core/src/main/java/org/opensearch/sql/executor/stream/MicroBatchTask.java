@@ -51,6 +51,7 @@ public class MicroBatchTask {
 
 
   public void execute() {
+    long startTime = System.nanoTime();
     Long latestBatchId = offsetLog.getLatest().map(Pair::getKey).orElse(-1L);
 
     Optional<Offset> availableOffset = offsetLog.get(latestBatchId);
@@ -86,6 +87,7 @@ public class MicroBatchTask {
           final Offset finalAvailableOffsets = availableOffsets.get();
           committedLog.add(finalBatchId, finalAvailableOffsets);
           // streamContext.copyFrom(newPlan.accept(streamContextLookup, null));
+          log.info("MicroBatchTask took " + ((System.nanoTime() - startTime) / 1000000.0) + "ms");
         }
 
         @Override
