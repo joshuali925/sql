@@ -51,6 +51,7 @@ public class OpenSearchIndexWrite extends WriteOperator {
     super.open();
 
     List<Map<String, Object>> data = new ArrayList<>();
+    long elapsedTime = 0;
 
     while (input.hasNext()) {
       count++;
@@ -64,15 +65,27 @@ public class OpenSearchIndexWrite extends WriteOperator {
         }
         data.add(colValues);
       } else { // from normal ProjectOperator
-        data.add(row.tupleValue().entrySet().stream().filter(e -> e.getValue().value() != null)
+        data.add(row.tupleValue().entrySet().stream()
+            .filter(e -> e.getValue().value() != null)
             .collect(Collectors.toMap(
                 Map.Entry::getKey,
                 e -> e.getValue().value())));
       }
+
+      if (count % 50000 == 0) {
+        long startTime = System.nanoTime();
+        client.bulk(tableName, data);
+        elapsedTime += System.nanoTime() - startTime;
+        data.clear();
+      }
     }
 
-    client.bulk(tableName, data);
-    log.info("Bulk written " + data.size() + " documents.");
+    if (data.size() > 0) {
+      long startTime = System.nanoTime();
+      client.bulk(tableName, data);
+      elapsedTime += System.nanoTime() - startTime;
+    }
+    log.info("Bulk written " + count + " documents, took " + (elapsedTime / 1000000.0) + "ms");
   }
 
   @Override
