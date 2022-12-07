@@ -29,6 +29,8 @@ import org.opensearch.sql.planner.physical.WriteOperator;
  */
 public class OpenSearchIndexWrite extends WriteOperator {
 
+  private static long totalCount = 0;
+  private static long totalElapsedTime = 0;
   private final OpenSearchClient client;
   private static final Logger log = LogManager.getLogger(OpenSearchIndexWrite.class);
 
@@ -85,7 +87,11 @@ public class OpenSearchIndexWrite extends WriteOperator {
       client.bulk(tableName, data);
       elapsedTime += System.nanoTime() - startTime;
     }
-    log.info("Bulk written " + count + " documents, took " + (elapsedTime / 1000000.0) + "ms");
+    totalCount += count;
+    totalElapsedTime += elapsedTime;
+    log.info("Bulk written " + count + " documents, took " + (elapsedTime / 1000000.0) + "ms" +
+        ". Total written " + totalCount + " documents,  took " + (totalElapsedTime / 1000000.0) +
+        "ms");
   }
 
   @Override

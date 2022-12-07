@@ -27,6 +27,7 @@ import org.opensearch.sql.planner.streaming.event.StreamContext;
 public class MicroBatchTask {
 
   private static final Logger log = LogManager.getLogger(MicroBatchTask.class);
+  private static long totalElapsedTime = 0;
 
   private final StreamSource source;
 
@@ -87,7 +88,10 @@ public class MicroBatchTask {
           final Offset finalAvailableOffsets = availableOffsets.get();
           committedLog.add(finalBatchId, finalAvailableOffsets);
           // streamContext.copyFrom(newPlan.accept(streamContextLookup, null));
-          log.info("MicroBatchTask took " + ((System.nanoTime() - startTime) / 1000000.0) + "ms");
+          long elapsedTime = System.nanoTime() - startTime;
+          totalElapsedTime += elapsedTime;
+          log.info("MicroBatchTask took " + (elapsedTime / 1000000.0) + "ms, total " +
+              (totalElapsedTime / 1000000.0) + "ms");
         }
 
         @Override
