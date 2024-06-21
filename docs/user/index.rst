@@ -7,61 +7,61 @@ OpenSearch SQL enables you to extract insights out of OpenSearch using the famil
 
 * **Interfaces**
 
-  - `Endpoint <interfaces/endpoint.rst>`_
+  - `Endpoint <interfaces/endpoint>`_
 
-  - `Protocol <interfaces/protocol.rst>`_
+  - `Protocol <interfaces/protocol>`_
 
 * **Administration**
 
-  - `Monitoring <admin/monitoring.rst>`_
+  - `Monitoring <admin/monitoring>`_
 
-  - `Plugin Settings <admin/settings.rst>`_
+  - `Plugin Settings <admin/settings>`_
 
 * **Language Structure**
 
-  - `Identifiers <general/identifiers.rst>`_
+  - `Identifiers <general/identifiers>`_
 
-  - `Data Types <general/datatypes.rst>`_
+  - `Data Types <general/datatypes>`_
 
-  - `Values <general/values.rst>`_
+  - `Values <general/values>`_
 
-  - `Comments <general/comments.rst>`_
+  - `Comments <general/comments>`_
 
 * **Data Query Language**
 
-  - `Expressions <dql/expressions.rst>`_
+  - `Expressions <dql/expressions>`_
 
-  - `Basic Queries <dql/basics.rst>`_
+  - `Basic Queries <dql/basics>`_
 
-  - `Complex Queries <dql/complex.rst>`_
+  - `Complex Queries <dql/complex>`_
 
-  - `Metadata Queries <dql/metadata.rst>`_
+  - `Metadata Queries <dql/metadata>`_
 
-  - `SQL Functions <dql/functions.rst>`_
+  - `SQL Functions <dql/functions>`_
 
-  - `SQL Aggregations <dql/aggregations.rst>`_
+  - `SQL Aggregations <dql/aggregations>`_
 
-  - `Window Functions <dql/window.rst>`_
+  - `Window Functions <dql/window>`_
 
 * **Data Manipulation Language**
 
-  - `DELETE Statement <dml/delete.rst>`_
+  - `DELETE Statement <dml/delete>`_
 
 * **Beyond SQL**
 
-  - `PartiQL (JSON) Support <beyond/partiql.rst>`_
+  - `PartiQL (JSON) Support <beyond/partiql>`_
 
-  - `Full-text Search <beyond/fulltext.rst>`_
+  - `Full-text Search <beyond/fulltext>`_
 
 * **Optimization**
 
-  - `Optimization <optimization/optimization.rst>`_
+  - `Optimization <optimization/optimization>`_
 
 * **Troubleshooting**
 
-  - `Troubleshooting <dql/troubleshooting.rst>`_
+  - `Troubleshooting <dql/troubleshooting>`_
 
 * **Limitations**
 
-  - `Limitations <limitations/limitations.rst>`_
+  - `Limitations <limitations/limitations>`_
 
