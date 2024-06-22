@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>SubQuery &#8212; sql-docs  documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=d1102ebc" />
+    <link rel="stylesheet" type="text/css" href="../../_static/alabaster.css?v=12dfc556" />
+    <script src="../../_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="../../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="subquery">
+<h1>SubQuery<a class="headerlink" href="#subquery" title="Link to this heading">¶</a></h1>
+</section>
+<section id="rewrite-exists-in-nested-query">
+<h1>Rewrite EXISTS in Nested Query<a class="headerlink" href="#rewrite-exists-in-nested-query" title="Link to this heading">¶</a></h1>
+<p>OpenSearch SQL uses OpenSearch nested query to query the nested field. In OpenSearch domain, the nested query can filter the nested field based the query logic which is correspond to the <a class="reference external" href="https://partiql.org/tutorial.html#use-case-checking-whether-a-nested-collection-satisfies-a-condition">EXISTS in PartiQL</a>. It means, there could be a way to translate the EXISTS query based on the nested query.
+Let’s go though the use cases find out how to translate the SQL to DSL.</p>
+<section id="use-cases">
+<h2>Use cases<a class="headerlink" href="#use-cases" title="Link to this heading">¶</a></h2>
+<section id="exists">
+<h3><strong>1.  EXISTS</strong><a class="headerlink" href="#exists" title="Link to this heading">¶</a></h3>
+<p>If the SQL doesn’t have condition in the subquery, the <a class="reference external" href="https://www.elastic.co/guide/en/elasticsearch/reference/7.3/query-dsl-exists-query.html">OpenSearch exists</a> could be used to translate the SQL to DSL.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">SELECT</span> <span class="n">e</span><span class="o">.</span><span class="n">name</span> <span class="n">AS</span> <span class="n">employeeName</span>
+<span class="n">FROM</span> <span class="n">web_in</span> <span class="n">AS</span> <span class="n">s</span><span class="p">,</span> <span class="n">s</span><span class="o">.</span><span class="n">employeesNest</span> <span class="k">as</span> <span class="n">e</span>
+<span class="n">WHERE</span> <span class="n">EXISTS</span> <span class="p">(</span><span class="n">SELECT</span> <span class="o">*</span> <span class="n">FROM</span> <span class="n">e</span><span class="o">.</span><span class="n">projects</span> <span class="n">AS</span> <span class="n">p</span><span class="p">)</span>
+
+<span class="o">//</span> <span class="n">DSL</span>
+<span class="n">GET</span> <span class="o">/</span><span class="n">employee_nested</span><span class="o">/</span><span class="n">_search</span>
+<span class="p">{</span>
+  <span class="s2">&quot;from&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+  <span class="s2">&quot;size&quot;</span><span class="p">:</span> <span class="mi">200</span><span class="p">,</span>
+  <span class="s2">&quot;query&quot;</span><span class="p">:</span> <span class="p">{</span>
+    <span class="s2">&quot;bool&quot;</span><span class="p">:</span> <span class="p">{</span>
+      <span class="s2">&quot;filter&quot;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="p">{</span>
+          <span class="s2">&quot;bool&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;must&quot;</span><span class="p">:</span> <span class="p">[</span>
+              <span class="p">{</span>
+                <span class="s2">&quot;nested&quot;</span><span class="p">:</span> <span class="p">{</span>
+                  <span class="s2">&quot;query&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">&quot;exists&quot;</span><span class="p">:</span> <span class="p">{</span>
+                      <span class="s2">&quot;field&quot;</span><span class="p">:</span> <span class="s2">&quot;projects&quot;</span>
+                    <span class="p">}</span>
+                  <span class="p">},</span>
+                  <span class="s2">&quot;path&quot;</span><span class="p">:</span> <span class="s2">&quot;projects&quot;</span><span class="p">,</span>
+                  <span class="s2">&quot;ignore_unmapped&quot;</span><span class="p">:</span> <span class="n">false</span><span class="p">,</span>
+                  <span class="s2">&quot;score_mode&quot;</span><span class="p">:</span> <span class="s2">&quot;none&quot;</span><span class="p">,</span>
+                  <span class="s2">&quot;boost&quot;</span><span class="p">:</span> <span class="mi">1</span>
+                <span class="p">}</span>
+              <span class="p">}</span>
+            <span class="p">],</span>
+            <span class="s2">&quot;adjust_pure_negative&quot;</span><span class="p">:</span> <span class="n">true</span><span class="p">,</span>
+            <span class="s2">&quot;boost&quot;</span><span class="p">:</span> <span class="mi">1</span>
+          <span class="p">}</span>
+        <span class="p">}</span>
+      <span class="p">],</span>
+      <span class="s2">&quot;adjust_pure_negative&quot;</span><span class="p">:</span> <span class="n">true</span><span class="p">,</span>
+      <span class="s2">&quot;boost&quot;</span><span class="p">:</span> <span class="mi">1</span>
+    <span class="p">}</span>
+  <span class="p">},</span>
+  <span class="s2">&quot;_source&quot;</span><span class="p">:</span> <span class="p">{</span>
+    <span class="s2">&quot;includes&quot;</span><span class="p">:</span> <span class="p">[</span>
+      <span class="s2">&quot;name&quot;</span>
+    <span class="p">],</span>
+    <span class="s2">&quot;excludes&quot;</span><span class="p">:</span> <span class="p">[]</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+
+</pre></div>
+</div>
+</section>
+<section id="exists-with-where-condition">
+<h3><strong>2.  EXISTS with WHERE condition</strong><a class="headerlink" href="#exists-with-where-condition" title="Link to this heading">¶</a></h3>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">//</span> <span class="n">SQL</span>
+<span class="n">SELECT</span> <span class="n">e</span><span class="o">.</span><span class="n">name</span> <span class="n">AS</span> <span class="n">employeeName</span>
+<span class="n">FROM</span> <span class="n">web_in</span> <span class="n">AS</span> <span class="n">s</span><span class="p">,</span> <span class="n">s</span><span class="o">.</span><span class="n">employeesNest</span> <span class="k">as</span> <span class="n">e</span>
+<span class="n">WHERE</span> <span class="n">EXISTS</span><span class="p">(</span><span class="n">SELECT</span> <span class="o">*</span> 
+             <span class="n">FROM</span> <span class="n">e</span><span class="o">.</span><span class="n">projects</span> <span class="n">AS</span> <span class="n">p</span> 
+             <span class="n">WHERE</span> <span class="n">p</span><span class="o">.</span><span class="n">name</span> <span class="n">LIKE</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">ecurity%&#39;</span><span class="p">)</span>
+<span class="o">//</span> <span class="n">DSL</span>
+<span class="p">{</span>
+  <span class="s2">&quot;from&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+  <span class="s2">&quot;size&quot;</span><span class="p">:</span> <span class="mi">200</span><span class="p">,</span>
+  <span class="s2">&quot;query&quot;</span><span class="p">:</span> <span class="p">{</span>
+    <span class="s2">&quot;bool&quot;</span><span class="p">:</span> <span class="p">{</span>
+      <span class="s2">&quot;filter&quot;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="p">{</span>
+          <span class="s2">&quot;bool&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;must&quot;</span><span class="p">:</span> <span class="p">[</span>
+              <span class="p">{</span>
+                <span class="s2">&quot;nested&quot;</span><span class="p">:</span> <span class="p">{</span>
+                  <span class="s2">&quot;query&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">&quot;wildcard&quot;</span><span class="p">:</span> <span class="p">{</span>
+                      <span class="s2">&quot;projects.name&quot;</span><span class="p">:</span> <span class="p">{</span>
+                        <span class="s2">&quot;wildcard&quot;</span><span class="p">:</span> <span class="s2">&quot;security&quot;</span><span class="p">,</span>
+                        <span class="s2">&quot;boost&quot;</span><span class="p">:</span> <span class="mi">1</span>
+                      <span class="p">}</span>
+                    <span class="p">}</span>
+                  <span class="p">},</span>
+                  <span class="s2">&quot;path&quot;</span><span class="p">:</span> <span class="s2">&quot;projects&quot;</span><span class="p">,</span>
+                  <span class="s2">&quot;ignore_unmapped&quot;</span><span class="p">:</span> <span class="n">false</span><span class="p">,</span>
+                  <span class="s2">&quot;score_mode&quot;</span><span class="p">:</span> <span class="s2">&quot;none&quot;</span><span class="p">,</span>
+                  <span class="s2">&quot;boost&quot;</span><span class="p">:</span> <span class="mi">1</span>
+                <span class="p">}</span>
+              <span class="p">}</span>
+            <span class="p">],</span>
+            <span class="s2">&quot;adjust_pure_negative&quot;</span><span class="p">:</span> <span class="n">true</span><span class="p">,</span>
+            <span class="s2">&quot;boost&quot;</span><span class="p">:</span> <span class="mi">1</span>
+          <span class="p">}</span>
+        <span class="p">}</span>
+      <span class="p">],</span>
+      <span class="s2">&quot;adjust_pure_negative&quot;</span><span class="p">:</span> <span class="n">true</span><span class="p">,</span>
+      <span class="s2">&quot;boost&quot;</span><span class="p">:</span> <span class="mi">1</span>
+    <span class="p">}</span>
+  <span class="p">},</span>
+  <span class="s2">&quot;_source&quot;</span><span class="p">:</span> <span class="p">{</span>
+    <span class="s2">&quot;includes&quot;</span><span class="p">:</span> <span class="p">[</span>
+      <span class="s2">&quot;name&quot;</span>
+    <span class="p">],</span>
+    <span class="s2">&quot;excludes&quot;</span><span class="p">:</span> <span class="p">[]</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="o">//</span> <span class="n">OpenSearch</span> <span class="n">SQL</span>
+<span class="n">SELECT</span> <span class="n">e</span><span class="o">.</span><span class="n">name</span> 
+<span class="n">FROM</span> <span class="n">employee_nested</span> <span class="k">as</span> <span class="n">e</span><span class="p">,</span> <span class="n">e</span><span class="o">.</span><span class="n">projects</span> <span class="k">as</span> <span class="n">p</span> 
+<span class="n">WHERE</span> <span class="n">p</span><span class="o">.</span><span class="n">name</span> <span class="n">LIKE</span> <span class="s1">&#39;security&#39;</span>
+
+<span class="o">//</span> <span class="n">Result</span>
+<span class="p">{</span><span class="n">employeeName</span><span class="p">:</span><span class="s2">&quot;Bob Smith&quot;</span><span class="p">}</span>
+<span class="p">{</span><span class="n">employeeName</span><span class="p">:</span><span class="s2">&quot;Jane Smith&quot;</span><span class="p">}</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="implementation">
+<h2>Implementation<a class="headerlink" href="#implementation" title="Link to this heading">¶</a></h2>
+<p>//Todo</p>
+</section>
+</section>
+<section id="appendix-i-test-data">
+<h1>Appendix I - Test Data<a class="headerlink" href="#appendix-i-test-data" title="Link to this heading">¶</a></h1>
+<section id="employeename">
+<h2>EmployeeName<a class="headerlink" href="#employeename" title="Link to this heading">¶</a></h2>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+  <span class="s2">&quot;employeesNest&quot;</span><span class="p">:</span> <span class="p">[</span>
+    <span class="p">{</span>
+      <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
+      <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Bob Smith&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="n">null</span><span class="p">,</span>
+      <span class="s2">&quot;projects&quot;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="p">{</span>
+          <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;AWS Redshift Spectrum querying&quot;</span><span class="p">,</span>
+          <span class="s2">&quot;started_year&quot;</span><span class="p">:</span> <span class="mi">1990</span><span class="p">,</span>
+          <span class="s2">&quot;address&quot;</span><span class="p">:</span> <span class="p">[</span>
+            <span class="p">{</span>
+              <span class="s2">&quot;city&quot;</span><span class="p">:</span> <span class="s2">&quot;Seattle&quot;</span><span class="p">,</span>
+              <span class="s2">&quot;state&quot;</span><span class="p">:</span> <span class="s2">&quot;WA&quot;</span>
+            <span class="p">},</span>
+            <span class="p">{</span>
+              <span class="s2">&quot;city&quot;</span><span class="p">:</span> <span class="s2">&quot;Boston&quot;</span><span class="p">,</span>
+              <span class="s2">&quot;state&quot;</span><span class="p">:</span> <span class="s2">&quot;MA&quot;</span>
+            <span class="p">}</span>
+          <span class="p">]</span>
+        <span class="p">},</span>
+        <span class="p">{</span>
+          <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;AWS Redshift security&quot;</span><span class="p">,</span>
+          <span class="s2">&quot;started_year&quot;</span><span class="p">:</span> <span class="mi">1999</span><span class="p">,</span>
+          <span class="s2">&quot;address&quot;</span><span class="p">:</span> <span class="p">[</span>
+            <span class="p">{</span>
+              <span class="s2">&quot;city&quot;</span><span class="p">:</span> <span class="s2">&quot;Chicago&quot;</span><span class="p">,</span>
+              <span class="s2">&quot;state&quot;</span><span class="p">:</span> <span class="s2">&quot;IL&quot;</span>
+            <span class="p">}</span>
+          <span class="p">]</span>
+        <span class="p">},</span>
+        <span class="p">{</span>
+          <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;AWS Aurora security&quot;</span><span class="p">,</span>
+          <span class="s2">&quot;started_year&quot;</span><span class="p">:</span> <span class="mi">2015</span>
+        <span class="p">}</span>
+      <span class="p">],</span>
+      <span class="s2">&quot;comments&quot;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="p">{</span>
+          <span class="s2">&quot;date&quot;</span><span class="p">:</span> <span class="s2">&quot;2018-06-23&quot;</span><span class="p">,</span>
+          <span class="s2">&quot;message&quot;</span><span class="p">:</span> <span class="s2">&quot;I love New york&quot;</span><span class="p">,</span>
+          <span class="s2">&quot;likes&quot;</span><span class="p">:</span> <span class="mi">56</span>
+        <span class="p">},</span>
+        <span class="p">{</span>
+          <span class="s2">&quot;date&quot;</span><span class="p">:</span> <span class="s2">&quot;2017-10-25&quot;</span><span class="p">,</span>
+          <span class="s2">&quot;message&quot;</span><span class="p">:</span> <span class="s2">&quot;Today is good weather&quot;</span><span class="p">,</span>
+          <span class="s2">&quot;likes&quot;</span><span class="p">:</span> <span class="mi">22</span>
+        <span class="p">}</span>
+      <span class="p">]</span>
+    <span class="p">},</span>
+    <span class="p">{</span>
+      <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span>
+      <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Susan Smith&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;Dev Mgr&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;projects&quot;</span><span class="p">:</span> <span class="p">[],</span>
+      <span class="s2">&quot;comments&quot;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="p">{</span>
+          <span class="s2">&quot;date&quot;</span><span class="p">:</span> <span class="s2">&quot;2018-06-23&quot;</span><span class="p">,</span>
+          <span class="s2">&quot;message&quot;</span><span class="p">:</span> <span class="s2">&quot;comment_2_1&quot;</span><span class="p">,</span>
+          <span class="s2">&quot;likes&quot;</span><span class="p">:</span> <span class="mi">56</span>
+        <span class="p">},</span>
+        <span class="p">{</span>
+          <span class="s2">&quot;date&quot;</span><span class="p">:</span> <span class="s2">&quot;2017-10-25&quot;</span><span class="p">,</span>
+          <span class="s2">&quot;message&quot;</span><span class="p">:</span> <span class="s2">&quot;comment_2_2&quot;</span><span class="p">,</span>
+          <span class="s2">&quot;likes&quot;</span><span class="p">:</span> <span class="mi">22</span>
+        <span class="p">}</span>
+      <span class="p">]</span>
+    <span class="p">},</span>
+    <span class="p">{</span>
+      <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="mi">6</span><span class="p">,</span>
+      <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Jane Smith&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;Software Eng 2&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;projects&quot;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="p">{</span>
+          <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;AWS Redshift security&quot;</span><span class="p">,</span>
+          <span class="s2">&quot;started_year&quot;</span><span class="p">:</span> <span class="mi">1998</span>
+        <span class="p">},</span>
+        <span class="p">{</span>
+          <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;AWS Hello security&quot;</span><span class="p">,</span>
+          <span class="s2">&quot;started_year&quot;</span><span class="p">:</span> <span class="mi">2015</span><span class="p">,</span>
+          <span class="s2">&quot;address&quot;</span><span class="p">:</span> <span class="p">[</span>
+            <span class="p">{</span>
+              <span class="s2">&quot;city&quot;</span><span class="p">:</span> <span class="s2">&quot;Dallas&quot;</span><span class="p">,</span>
+              <span class="s2">&quot;state&quot;</span><span class="p">:</span> <span class="s2">&quot;TX&quot;</span>
+            <span class="p">}</span>
+          <span class="p">]</span>
+        <span class="p">}</span>
+      <span class="p">],</span>
+      <span class="s2">&quot;comments&quot;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="p">{</span>
+          <span class="s2">&quot;date&quot;</span><span class="p">:</span> <span class="s2">&quot;2018-06-23&quot;</span><span class="p">,</span>
+          <span class="s2">&quot;message&quot;</span><span class="p">:</span> <span class="s2">&quot;comment_3_1&quot;</span><span class="p">,</span>
+          <span class="s2">&quot;likes&quot;</span><span class="p">:</span> <span class="mi">24</span>
+        <span class="p">},</span>
+        <span class="p">{</span>
+          <span class="s2">&quot;date&quot;</span><span class="p">:</span> <span class="s2">&quot;2017-10-25&quot;</span><span class="p">,</span>
+          <span class="s2">&quot;message&quot;</span><span class="p">:</span> <span class="s2">&quot;comment_3_2&quot;</span><span class="p">,</span>
+          <span class="s2">&quot;likes&quot;</span><span class="p">:</span> <span class="mi">42</span>
+        <span class="p">}</span>
+      <span class="p">]</span>
+    <span class="p">}</span>
+  <span class="p">]</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../index.html">sql-docs</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2024, josh.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 7.3.7</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 0.7.16</a>
+      
+      |
+      <a href="../../_sources/docs/dev/opensearch-nested-field-subquery.md.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

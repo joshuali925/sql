@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Description &#8212; sql-docs  documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=d1102ebc" />
+    <link rel="stylesheet" type="text/css" href="../../_static/alabaster.css?v=12dfc556" />
+    <script src="../../_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="../../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="description">
+<h1>Description<a class="headerlink" href="#description" title="Link to this heading">¶</a></h1>
+<p>The <code class="docutils literal notranslate"><span class="pre">nested</span></code> function when used in the <code class="docutils literal notranslate"><span class="pre">SELECT</span></code> clause of an SQL statement specifies the output columns from inner fields of a nested object type in OpenSearch. After a <code class="docutils literal notranslate"><span class="pre">SELECT</span></code> clause is pushed down to OpenSearch the response objects are flattened as illustrated in <a class="reference internal" href="#24-select-clause-nested-query-class-diagram"><span class="xref myst">Section 2.3</span></a>. If multiple <code class="docutils literal notranslate"><span class="pre">nested</span></code> function calls are used in a <code class="docutils literal notranslate"><span class="pre">SELECT</span></code> clause on multiple nested fields with differing paths, a cross-join is returned of the rows in both nested fields.</p>
+</section>
+<section id="table-of-contents">
+<h1>Table of Contents<a class="headerlink" href="#table-of-contents" title="Link to this heading">¶</a></h1>
+<ol class="arabic simple">
+<li><p><a class="reference internal" href="#1-overview"><span class="xref myst">Overview</span></a></p></li>
+<li><p><a class="reference internal" href="#11-syntax"><span class="xref myst">Syntax</span></a></p></li>
+<li><p><a class="reference internal" href="#12-changes-to-core"><span class="xref myst">Changes To Core</span></a></p></li>
+<li><p><a class="reference internal" href="#13-example-queries"><span class="xref myst">Example Queries</span></a></p></li>
+<li><p><a class="reference internal" href="#2-architecture-diagrams"><span class="xref myst">Architecture Diagrams</span></a></p></li>
+<li><p><a class="reference internal" href="#21-composite-states-for-nested-query-execution"><span class="xref myst">Composite States for Nested Query</span></a></p></li>
+<li><p><a class="reference internal" href="#22-sequence-diagram-for-nested-select-clause-query-push-down"><span class="xref myst">Sequence Diagram for Nested Select Clause Query Push Down</span></a></p></li>
+<li><p><a class="reference internal" href="#23-sequence-diagram-for-nested-select-clause-post-processing"><span class="xref myst">Sequence Diagram for Nested Select Clause Post-processing</span></a></p></li>
+<li><p><a class="reference internal" href="#24-select-clause-nested-query-class-diagram"><span class="xref myst">Select Clause Nested Query Class Diagram</span></a></p></li>
+<li><p><a class="reference internal" href="#additional-info"><span class="xref myst">Additional Info</span></a></p></li>
+<li><p><a class="reference internal" href="#demo-video"><span class="xref myst">Demo Video</span></a></p></li>
+<li><p><a class="reference internal" href="#release-schedule"><span class="xref myst">Release Schedule</span></a></p></li>
+</ol>
+</section>
+<section id="overview">
+<h1>1 Overview<a class="headerlink" href="#overview" title="Link to this heading">¶</a></h1>
+<section id="syntax">
+<h2>1.1 Syntax<a class="headerlink" href="#syntax" title="Link to this heading">¶</a></h2>
+<p>Dot notation is used to show nesting level for fields and paths. For example <code class="docutils literal notranslate"><span class="pre">nestedObj.innerFieldName</span></code> denotes a field nested one level. If the user does not provide the <code class="docutils literal notranslate"><span class="pre">path</span></code> parameter it will be generated dynamically. For example the <code class="docutils literal notranslate"><span class="pre">field</span></code> <code class="docutils literal notranslate"><span class="pre">user.office.cubicle</span></code> would dynamically generate the path <code class="docutils literal notranslate"><span class="pre">user.office</span></code>.</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">nested(field</span> <span class="pre">|</span> <span class="pre">field,</span> <span class="pre">path)</span></code></p></li>
+</ul>
+</section>
+<section id="changes-to-core">
+<h2>1.2 Changes To Core<a class="headerlink" href="#changes-to-core" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><p><strong>NestedOperator:</strong> Responsible for post-processing and flattening of OpenSearch response.</p></li>
+<li><p><strong>LogicalNested:</strong> Stores data required for OpenSearch DSL push down.</p></li>
+<li><p><strong>NestedAnalyzer:</strong> Identifies nested functions used in <code class="docutils literal notranslate"><span class="pre">SELECT</span></code> clause for <code class="docutils literal notranslate"><span class="pre">LogicalNested</span></code> creation.</p></li>
+<li><p><strong>Analyzer:</strong> Added ownership of NestedAnalyzer.</p></li>
+</ul>
+</section>
+<section id="example-queries">
+<h2>1.3 Example Queries<a class="headerlink" href="#example-queries" title="Link to this heading">¶</a></h2>
+<p>Most basic example from mapping to response from SQL plugin.</p>
+<p><strong>Mapping:</strong></p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;mappings&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;properties&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;message&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;nested&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;properties&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">          </span><span class="nt">&quot;info&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;keyword&quot;</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">&quot;index&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;true&quot;</span>
+<span class="w">          </span><span class="p">}</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">      </span><span class="p">}</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p><strong>Dataset:</strong></p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="nt">&quot;index&quot;</span><span class="p">:{</span><span class="nt">&quot;_id&quot;</span><span class="p">:</span><span class="s2">&quot;1&quot;</span><span class="p">}}</span>
+<span class="p">{</span><span class="nt">&quot;message&quot;</span><span class="p">:{</span><span class="nt">&quot;info&quot;</span><span class="p">:</span><span class="s2">&quot;a&quot;</span><span class="p">}}</span>
+</pre></div>
+</div>
+<p><strong>Query:</strong>
+<code class="docutils literal notranslate"><span class="pre">SELECT</span> <span class="pre">nested(message.info)</span> <span class="pre">FROM</span> <span class="pre">nested_objects;</span></code></p>
+<p><strong>Response:</strong></p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;schema&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">        </span><span class="p">{</span>
+<span class="w">            </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;nested(message.info)&quot;</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;keyword&quot;</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">    </span><span class="p">],</span>
+<span class="w">    </span><span class="nt">&quot;datarows&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">        </span><span class="p">[</span>
+<span class="w">            </span><span class="s2">&quot;a&quot;</span>
+<span class="w">        </span><span class="p">]</span>
+<span class="w">    </span><span class="p">],</span>
+<span class="w">    </span><span class="nt">&quot;total&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;size&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;status&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">200</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>A basic nested function in the SELECT clause and output DSL pushed to OpenSearch. This example queries the <code class="docutils literal notranslate"><span class="pre">nested</span></code> object <code class="docutils literal notranslate"><span class="pre">message</span></code> and the inner field <code class="docutils literal notranslate"><span class="pre">info</span></code> to return all matching inner fields values.</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">SELECT</span> <span class="pre">nested(message.info,</span> <span class="pre">message)</span> <span class="pre">FROM</span> <span class="pre">nested_objects;</span></code></p></li>
+</ul>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;query&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">&quot;bool&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="nt">&quot;filter&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">                </span><span class="p">{</span>
+<span class="w">                    </span><span class="nt">&quot;bool&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                        </span><span class="nt">&quot;must&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">                            </span><span class="p">{</span>
+<span class="w">                                </span><span class="nt">&quot;nested&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                                    </span><span class="nt">&quot;query&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                                        </span><span class="nt">&quot;match_all&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                                            </span><span class="nt">&quot;boost&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">1.0</span>
+<span class="w">                                        </span><span class="p">}</span>
+<span class="w">                                    </span><span class="p">},</span>
+<span class="w">                                    </span><span class="nt">&quot;path&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;message&quot;</span><span class="p">,</span>
+<span class="w">                                    </span><span class="err">...</span>
+<span class="w">                                    </span><span class="nt">&quot;boost&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">1.0</span><span class="p">,</span>
+<span class="w">                                    </span><span class="nt">&quot;inner_hits&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                                        </span><span class="err">...</span>
+<span class="w">                                        </span><span class="nt">&quot;_source&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                                            </span><span class="nt">&quot;includes&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">                                                </span><span class="s2">&quot;message.info&quot;</span>
+<span class="w">                                            </span><span class="p">],</span>
+<span class="w">                                            </span><span class="nt">&quot;excludes&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[]</span>
+<span class="w">                                        </span><span class="p">}</span>
+<span class="w">                                    </span><span class="p">}</span>
+<span class="w">                                </span><span class="p">}</span>
+<span class="w">                            </span><span class="p">}</span>
+<span class="w">                        </span><span class="p">]</span>
+<span class="w">                    </span><span class="p">}</span>
+<span class="w">                </span><span class="p">}</span>
+<span class="w">            </span><span class="p">]</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="err">...</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Example with multiple SELECT clause function calls sharing same path. These two queries share the same path and will be added to the same inner hits query for pushing DSL to OpenSearch.</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">SELECT</span> <span class="pre">nested(message.info,</span> <span class="pre">message),</span> <span class="pre">nested(message.author,</span> <span class="pre">message)</span> <span class="pre">FROM</span> <span class="pre">nested_objects;</span></code></p></li>
+</ul>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;query&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">&quot;bool&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="nt">&quot;filter&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">                </span><span class="p">{</span>
+<span class="w">                    </span><span class="nt">&quot;bool&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                        </span><span class="nt">&quot;must&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">                            </span><span class="p">{</span>
+<span class="w">                                </span><span class="nt">&quot;nested&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                                    </span><span class="nt">&quot;query&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                                        </span><span class="nt">&quot;match_all&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                                            </span><span class="nt">&quot;boost&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">1.0</span>
+<span class="w">                                        </span><span class="p">}</span>
+<span class="w">                                    </span><span class="p">},</span>
+<span class="w">                                    </span><span class="nt">&quot;path&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;message&quot;</span><span class="p">,</span>
+<span class="w">                                    </span><span class="err">...</span>
+<span class="w">                                    </span><span class="nt">&quot;inner_hits&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                                        </span><span class="err">...</span>
+<span class="w">                                        </span><span class="nt">&quot;_source&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                                            </span><span class="nt">&quot;includes&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">                                                </span><span class="s2">&quot;message.info&quot;</span><span class="p">,</span>
+<span class="w">                                                </span><span class="s2">&quot;message.author&quot;</span>
+<span class="w">                                            </span><span class="p">],</span>
+<span class="w">                                            </span><span class="nt">&quot;excludes&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[]</span>
+<span class="w">                                        </span><span class="p">}</span>
+<span class="w">                                    </span><span class="p">}</span>
+<span class="w">                                </span><span class="p">}</span>
+<span class="w">                            </span><span class="p">}</span>
+<span class="w">                        </span><span class="p">],</span>
+<span class="w">                    </span><span class="p">}</span>
+<span class="w">                </span><span class="p">}</span>
+<span class="w">            </span><span class="p">],</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="err">...</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>An example with multiple nested function calls in the SELECT clause having differing path values. This shows the separate nested query being created for each path used within the SQL query.</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">SELECT</span> <span class="pre">nested(message.info,</span> <span class="pre">message),</span> <span class="pre">nested(comment.data,</span> <span class="pre">comment)</span> <span class="pre">FROM</span> <span class="pre">nested_objects;</span></code></p></li>
+</ul>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;query&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">&quot;bool&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="nt">&quot;filter&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">                </span><span class="p">{</span>
+<span class="w">                    </span><span class="nt">&quot;bool&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                        </span><span class="nt">&quot;must&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">                            </span><span class="p">{</span>
+<span class="w">                                </span><span class="nt">&quot;nested&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                                    </span><span class="nt">&quot;query&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                                        </span><span class="nt">&quot;match_all&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                                            </span><span class="nt">&quot;boost&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">1.0</span>
+<span class="w">                                        </span><span class="p">}</span>
+<span class="w">                                    </span><span class="p">},</span>
+<span class="w">                                    </span><span class="nt">&quot;path&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;comment&quot;</span><span class="p">,</span>
+<span class="w">                                    </span><span class="err">...</span>
+<span class="w">                                    </span><span class="nt">&quot;inner_hits&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                                        </span><span class="err">...</span>
+<span class="w">                                        </span><span class="nt">&quot;_source&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                                            </span><span class="nt">&quot;includes&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">                                                </span><span class="s2">&quot;comment.data&quot;</span>
+<span class="w">                                            </span><span class="p">],</span>
+<span class="w">                                            </span><span class="nt">&quot;excludes&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[]</span>
+<span class="w">                                        </span><span class="p">}</span>
+<span class="w">                                    </span><span class="p">}</span>
+<span class="w">                                </span><span class="p">}</span>
+<span class="w">                            </span><span class="p">},</span>
+<span class="w">                            </span><span class="p">{</span>
+<span class="w">                                </span><span class="nt">&quot;nested&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                                    </span><span class="nt">&quot;query&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                                        </span><span class="nt">&quot;match_all&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                                            </span><span class="nt">&quot;boost&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">1.0</span>
+<span class="w">                                        </span><span class="p">}</span>
+<span class="w">                                    </span><span class="p">},</span>
+<span class="w">                                    </span><span class="nt">&quot;path&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;message&quot;</span><span class="p">,</span>
+<span class="w">                                    </span><span class="err">...</span>
+<span class="w">                                    </span><span class="nt">&quot;inner_hits&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                                        </span><span class="err">...</span>
+<span class="w">                                        </span><span class="nt">&quot;_source&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                                            </span><span class="nt">&quot;includes&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">                                                </span><span class="s2">&quot;message.info&quot;</span>
+<span class="w">                                            </span><span class="p">],</span>
+<span class="w">                                            </span><span class="nt">&quot;excludes&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[]</span>
+<span class="w">                                        </span><span class="p">}</span>
+<span class="w">                                    </span><span class="p">}</span>
+<span class="w">                                </span><span class="p">}</span>
+<span class="w">                            </span><span class="p">}</span>
+<span class="w">                        </span><span class="p">],</span>
+<span class="w">                    </span><span class="p">}</span>
+<span class="w">                </span><span class="p">}</span>
+<span class="w">            </span><span class="p">],</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="err">...</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="architecture-diagrams">
+<h1>2 Architecture Diagrams<a class="headerlink" href="#architecture-diagrams" title="Link to this heading">¶</a></h1>
+<section id="composite-states-for-nested-query-execution">
+<h2>2.1 Composite States for Nested Query Execution<a class="headerlink" href="#composite-states-for-nested-query-execution" title="Link to this heading">¶</a></h2>
+<p>Nested function state diagram illustrating states in SQL plugin for push down execution. The nested operator stays in the <code class="docutils literal notranslate"><span class="pre">Physical</span> <span class="pre">Plan</span> <span class="pre">Tree</span></code> after push down for flattening operation in post-processing. See section <a class="reference internal" href="#24-select-clause-nested-query-class-diagram"><span class="xref myst">2.3</span></a> for flattening sequence and description.</p>
+<div class="highlight-mermaid notranslate"><div class="highlight"><pre><span></span>stateDiagram-v2
+direction LR
+    LogicalPlan --&gt; OptimizedLogicalPlan: Optimize
+    OptimizedLogicalPlan --&gt; PhysicalPlan:push down
+
+    state &quot;Logical Plan Tree&quot; as LogicalPlan
+    state LogicalPlan {
+        logState1: LogicalProject
+        logState2: LogicalNested
+        logState3: ...
+
+        logState1 --&gt; logState2
+        logState2 --&gt; logState3
+        logState3 --&gt; LogicalRelation
+    }
+
+    state &quot;Optimized Logical Plan Tree&quot; as OptimizedLogicalPlan
+    state OptimizedLogicalPlan {
+        optState1: LogicalProject
+        optState2: LogicalNested
+
+        optState1 --&gt; optState2
+        optState2 --&gt; OpenSearchIndexScanBuilder
+    }
+
+    state &quot;Physical Plan Tree&quot; as PhysicalPlan
+    state PhysicalPlan {
+        phyState1: ProjectOperator
+        phyState2: NestedOperator
+
+        phyState1 --&gt; phyState2
+        phyState2 --&gt; OpenSearchIndexScan
+    }
+</pre></div>
+</div>
+</section>
+<section id="sequence-diagram-for-nested-select-clause-query-push-down">
+<h2>2.2 Sequence Diagram for Nested SELECT Clause Query Push Down<a class="headerlink" href="#sequence-diagram-for-nested-select-clause-query-push-down" title="Link to this heading">¶</a></h2>
+<p>Nested function sequence diagram illustrating query execution from parsing to OpenSearch DSL push down.</p>
+<div class="highlight-mermaid notranslate"><div class="highlight"><pre><span></span>sequenceDiagram
+    participant SQLService
+    participant ParserBaseRoot
+    participant AstExpressionBuilder
+
+    participant QueryService
+    participant Analyzer
+    participant NestedAnalyzer
+    participant Planner
+    participant TableScanPushDown
+    participant OpenSearchRequestBuilder
+    participant DefaultImplementor
+
+%% Parsing
+SQLService-&gt;&gt;+ParserBaseRoot:visitRoot
+  ParserBaseRoot-&gt;&gt;+AstExpressionBuilder:visitScalarFunction
+  AstExpressionBuilder--&gt;&gt;-ParserBaseRoot:Function
+ParserBaseRoot--&gt;&gt;-SQLService:UnresolvedPlan
+%% Analysis
+SQLService-&gt;&gt;+QueryService:analyze
+  QueryService-&gt;&gt;+Analyzer:visitProject
+    Analyzer-&gt;&gt;+NestedAnalyzer:visitFunction
+    NestedAnalyzer--&gt;&gt;-Analyzer:LogicalNested
+  Analyzer--&gt;&gt;-QueryService:UnresolvedPlan
+    
+  %% planner optimization
+  QueryService-&gt;&gt;+Planner:plan
+    Planner-&gt;&gt;+TableScanPushDown:apply
+      TableScanPushDown-&gt;&gt;+OpenSearchRequestBuilder:pushDownNested
+
+      Note over TableScanPushDown, OpenSearchRequestBuilder: returns false keeping&lt;br&gt;LogicalNested in plan tree
+
+      OpenSearchRequestBuilder--&gt;&gt;-TableScanPushDown:boolean
+    TableScanPushDown--&gt;&gt;-Planner:LogicalPlan
+    %% planner implementation
+    Planner-&gt;&gt;+DefaultImplementor:visitNested
+    DefaultImplementor--&gt;&gt;-Planner:NestedOperator
+  Planner--&gt;&gt;-QueryService:PhysicalPlan
+QueryService--&gt;&gt;-SQLService:PhysicalPlan
+</pre></div>
+</div>
+</section>
+<section id="sequence-diagram-for-nested-select-clause-post-processing">
+<h2>2.3 Sequence Diagram for Nested SELECT Clause Post-processing<a class="headerlink" href="#sequence-diagram-for-nested-select-clause-post-processing" title="Link to this heading">¶</a></h2>
+<p>Nested function sequence diagram illustrating the flattening of the OpenSearch response. Flattening the response from OpenSearch changes the nested types structure by making the full path of an object the key, and the object it refers to the value. As well when a user selects multiple nested fields with differing path values, a cross join is done on the result. These examples show the flattening output keys and cross join.</p>
+<p><strong>Sample input:</strong></p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;comments&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;data&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;abc&quot;</span>
+<span class="w">  </span><span class="p">},</span>
+<span class="w">  </span><span class="nt">&quot;message&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">    </span><span class="p">{</span><span class="w"> </span><span class="nt">&quot;info&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;letter1&quot;</span><span class="w"> </span><span class="p">},</span>
+<span class="w">    </span><span class="p">{</span><span class="w"> </span><span class="nt">&quot;info&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;letter2&quot;</span><span class="w"> </span><span class="p">}</span>
+<span class="w">  </span><span class="p">]</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p><strong>Sample Output:</strong></p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">[</span>
+<span class="w">  </span><span class="p">[</span>
+<span class="w">    </span><span class="p">{</span><span class="w"> </span><span class="nt">&quot;comment.data&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;abc&quot;</span><span class="w"> </span><span class="p">},</span>
+<span class="w">    </span><span class="p">{</span><span class="w"> </span><span class="nt">&quot;message.info&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;letter1&quot;</span><span class="w"> </span><span class="p">}</span>
+<span class="w">  </span><span class="p">],</span>
+<span class="w">  </span><span class="p">[</span>
+<span class="w">    </span><span class="p">{</span><span class="w"> </span><span class="nt">&quot;comment.data&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;abc&quot;</span><span class="w"> </span><span class="p">},</span>
+<span class="w">    </span><span class="p">{</span><span class="w"> </span><span class="nt">&quot;message.info&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;letter2&quot;</span><span class="w"> </span><span class="p">}</span>
+<span class="w">  </span><span class="p">]</span>
+<span class="p">]</span>
+</pre></div>
+</div>
+<div class="highlight-mermaid notranslate"><div class="highlight"><pre><span></span>sequenceDiagram
+
+%% Flattening
+OpenSearchExecutionEngine-&gt;&gt;+ProjectOperator:next
+  ProjectOperator-&gt;&gt;+ResourceMonitorPlan:next
+    ResourceMonitorPlan-&gt;&gt;+NestedOperator:next
+      loop unnesting
+        NestedOperator-&gt;&gt;NestedOperator:flatten
+      end
+    NestedOperator--&gt;&gt;-ResourceMonitorPlan:ExprValue
+  ResourceMonitorPlan--&gt;&gt;-ProjectOperator:ExprValue
+ProjectOperator--&gt;&gt;-OpenSearchExecutionEngine:ExprValue
+</pre></div>
+</div>
+</section>
+<section id="select-clause-nested-query-class-diagram">
+<h2>2.4 Select Clause Nested Query Class Diagram<a class="headerlink" href="#select-clause-nested-query-class-diagram" title="Link to this heading">¶</a></h2>
+<p>Nested function class diagram for additional classes required for query execution. The <code class="docutils literal notranslate"><span class="pre">NestedAnalyzer</span></code> is a visitor for nested functions used in the SELECT clause to fulfill the <code class="docutils literal notranslate"><span class="pre">LogicalNested</span></code> LogicalPlan. After push down is successful the <code class="docutils literal notranslate"><span class="pre">NestedOperator</span></code> PhysicalPlan is used for object flattening of the OpenSearch response.</p>
+<div class="highlight-mermaid notranslate"><div class="highlight"><pre><span></span>---
+title: Nested Select Clause Class Diagram
+---
+classDiagram
+direction BT
+
+    NestedAnalyzer~AbstractNodeVisitor~--&gt;LogicalNested~LogicalPlan~ : «create»
+    DefaultImplementor~C~--&gt;NestedOperator~PhysicalPlan~ : «create»
+
+    class NestedAnalyzer{
+        -ExpressionAnalyzer expressionAnalyzer
+    
+        +analyze(UnresolvedExpression projectItem, AnalysisContext context) LogicalPlan
+        +visitAlias(Alias node, AnalysisContext context) LogicalPlan
+        +visitFunction(Function node, AnalysisContext context) LogicalPlan
+        -validateArgs(List~UnresolvedExpression~ args)
+    }
+    class LogicalNested{
+        -List~Map~String_ReferenceExpression~~ fields
+        +accept(LogicalPlanNodeVisitor~R_C~ visitor, C context) ~R_C~ R
+    }
+    
+    class DefaultImplementor {
+        +visitNested(LogicalNested, C) PhysicalPlan
+    }
+
+    class NestedOperator{
+        -PhysicalPlan input
+
+        +hasNext() boolean
+        +next() ExprValue
+        -flatten(String nestedField, ExprValue row, List~Map~String_ExprValue~~ prevList) List~Map~String_ExprValue~~
+    }
+</pre></div>
+</div>
+</section>
+</section>
+<section id="additional-info">
+<h1>Additional Info<a class="headerlink" href="#additional-info" title="Link to this heading">¶</a></h1>
+<section id="demo-video">
+<h2>Demo Video<a class="headerlink" href="#demo-video" title="Link to this heading">¶</a></h2>
+<p><a class="reference external" href="https://user-images.githubusercontent.com/36905077/234634885-d28b3a9a-fc5f-41fb-938a-764b60a775a6.mp4">SELECT Clause Demo</a></p>
+</section>
+<section id="release-schedule">
+<h2>Release Schedule<a class="headerlink" href="#release-schedule" title="Link to this heading">¶</a></h2>
+<p>See Issues Tracked under <a class="reference external" href="https://github.com/opensearch-project/sql/issues/1111">Issue 1111</a> for related PR’s and information.</p>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../index.html">sql-docs</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2024, josh.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 7.3.7</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 0.7.16</a>
+      
+      |
+      <a href="../../_sources/docs/dev/sql-nested-function-select-clause.md.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

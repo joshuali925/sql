@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>1.Overview &#8212; sql-docs  documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=d1102ebc" />
+    <link rel="stylesheet" type="text/css" href="../../_static/alabaster.css?v=12dfc556" />
+    <script src="../../_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="../../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="overview">
+<h1>1.Overview<a class="headerlink" href="#overview" title="Link to this heading">¶</a></h1>
+<p>In this document, we will propose a solution in OpenSearch Observability to query log data stored in S3.</p>
+<section id="problem-statements">
+<h2>1.1.Problem Statements<a class="headerlink" href="#problem-statements" title="Link to this heading">¶</a></h2>
+<p>Currently, OpenSearch Observability is collection of plugins and applications that let you visualize data-driven events by using Piped Processing Language to explore, discover, and query data stored in OpenSearch. The major requirements we heard from customer are</p>
+<ul class="simple">
+<li><p><strong>cost</strong>, regarding to hardware cost of setup an OpenSearch cluster.</p></li>
+<li><p><strong>ingestion performance,</strong> it is not easy to supporting high throughput raw log ingestion.</p></li>
+<li><p><strong>flexibility,</strong> OpenSearch index required user know their query pattern before ingest data. Which is not flexible.</p></li>
+</ul>
+<p>Can build a new solution for OpenSearch observably uses and leverage S3 as storage. The benefits are</p>
+<ul class="simple">
+<li><p><strong>cost efficiency</strong>, comparing with OpenSearch, S3 is cheap.</p></li>
+<li><p><strong>high ingestion throughput</strong>, S3 is by design to support high throughput write.</p></li>
+<li><p><strong>flexibility</strong>, user do not need to worry about index mapping define and reindex. everything could be define at query tier.</p></li>
+<li><p><strong>scalability</strong>, user do not need to optimize their OpenSearch cluster for write. S3 is auto scale.</p></li>
+<li><p><strong>data durability</strong>, S3 provide 11s 9 of data durability.</p></li>
+</ul>
+<p>With all these benefits, are there any concerns? The <strong>ability to query S3 in OpenSearch and query performance</strong> are the major concerns. In this doc, we will provide the solution to solve these two major concerns.</p>
+</section>
+</section>
+<section id="terminology">
+<h1>2.Terminology<a class="headerlink" href="#terminology" title="Link to this heading">¶</a></h1>
+<ul class="simple">
+<li><p><strong>Catalog</strong>. OpenSearch access external data source through catalog. For example, S3 catalog. Each catalog has attributes, most important attributes is data source access credentials.</p></li>
+<li><p><strong>Table</strong>: To access external data source. User should create external table to describe the schema and location. Table is the virtual concept which does not mapping to OpenSearch index.</p></li>
+<li><p><strong>Materialized View</strong>: User could create view from existing tables. Each view is 1:1 mapping to OpenSearch index. There are two types of views</p>
+<ul>
+<li><p>(1) Permanent view (default) which is fully managed by user.</p></li>
+<li><p>(2) Transient View which is maintained by Maximus automatically. user could decide when to drop the transient view.</p></li>
+</ul>
+</li>
+</ul>
+</section>
+<section id="requirements">
+<h1>3.Requirements<a class="headerlink" href="#requirements" title="Link to this heading">¶</a></h1>
+<section id="use-cases">
+<h2>3.1.Use Cases<a class="headerlink" href="#use-cases" title="Link to this heading">¶</a></h2>
+<section id="use-case-1-pre-build-and-query-metrics-from-log-on-s3">
+<h3>Use Case - 1: pre-build and query metrics from log on s3<a class="headerlink" href="#use-case-1-pre-build-and-query-metrics-from-log-on-s3" title="Link to this heading">¶</a></h3>
+<p><strong><em>Create</em></strong></p>
+<ul class="simple">
+<li><p>User could ingest the log or events directly to s3 with existing ingestion tools (e.g. <a class="reference external" href="https://docs.fluentbit.io/manual/pipeline/outputs/s3">fluentbit</a>). The ingested log should be partitioned. e.g. <em>s3://my-raw-httplog/region/yyyy/mm/dd</em>.</p></li>
+<li><p>User configure s3 Catalog in OpenSearch. By default, s3 connector use <a class="reference external" href="https://docs.aws.amazon.com/AWSJavaSDK/latest/javadoc/com/amazonaws/auth/profile/ProfileCredentialsProvider.html">ProfileCredentialsProvider</a>.</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">settings</span><span class="o">.</span><span class="n">s3</span><span class="o">.</span><span class="n">access_key</span><span class="p">:</span> <span class="n">xxxxx</span>
+<span class="n">settings</span><span class="o">.</span><span class="n">s3</span><span class="o">.</span><span class="n">secret_key</span><span class="p">:</span> <span class="n">xxxxx</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><p>User create table in OpenSearch of their log data on s3. Maximus will create table httplog in the s3 catalog</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>CREATE EXTERNAL TABLE `s3`.`httplog`(
+   @timestamp timestamp,
+   clientip string,
+   request string,
+   state integer,
+   size long
+   )
+ROW FORMAT SERDE
+   &#39;json&#39;
+   &#39;grok&#39;, &lt;timestamp&gt; &lt;className&gt;
+PARTITION BY
+   ${region}/${year}/${month}/${day}/
+LOCATION
+   &#39;s3://my-raw-httplog/&#39;;
+</pre></div>
+</div>
+<ul class="simple">
+<li><p>User create the view <em>failEventsMetrics</em>. Note: User could only create view from schema-defined table in Maximus</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>CREATE MATERIALIZED VIEW failEventsMetrics (
+  cnt    long,
+  time   timestamp,
+  status string
+)
+AS source=`s3`.`httpLog` status != 200 | status count() as cnt by span(5mins), status
+WITH (
+    REFRESH=AUTO
+)
+</pre></div>
+</div>
+<ul class="simple">
+<li><p>Maximus will (1) create view <em>failEventsMetrics</em> in the default catalog. (2) create index <em>failEventsMetrics</em> in the OpenSearch cluster. (3) refresh <em>failEventsMetrics</em> index with logs on s3*.* <em>Notes: Create view return success when operation (1) and (2) success. Refresh view is an async task will be executed in background asynchronously.</em></p></li>
+<li><p>User could describe the view to monitor the status.</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">DESCRIBE</span><span class="o">/</span><span class="n">SHOW</span> <span class="n">MATERIALIZED</span> <span class="n">VIEW</span> <span class="n">failEventsMetrics</span>
+
+<span class="c1"># Return</span>
+<span class="n">status</span><span class="p">:</span> <span class="n">INIT</span> <span class="o">|</span> <span class="n">IN_PROGRESS</span> <span class="o">|</span> <span class="n">READY</span>
+</pre></div>
+</div>
+<p><em><strong>Query</strong></em></p>
+<ul class="simple">
+<li><p>User could query the view.</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">source</span><span class="o">=</span><span class="n">failEventsMetrics</span> <span class="n">time</span> <span class="ow">in</span> <span class="n">last</span> <span class="mi">7</span> <span class="n">days</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><p>User could query the table, Thunder will rewrite table query as view query when optimizing the query.</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>source=`s3`.`httpLog` status != 200 | status count() as cnt by span(1hour), status
+</pre></div>
+</div>
+<p><em><strong>Drop</strong></em></p>
+<ul class="simple">
+<li><p>User could drop the table. Maximus will delete httpLog metadata from catalog and associated view drop.</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>DROP TABLE `s3`.`httpLog`
+</pre></div>
+</div>
+<ul class="simple">
+<li><p>User could drop the view. Maximus will delete failEventsMetrics metadata from catalog and delete failEventsMetrics indices.</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">DROP</span> <span class="n">MATERIALIZED</span> <span class="n">VIEW</span> <span class="n">failEventsMetrics</span>
+</pre></div>
+</div>
+<p><strong>Access Control</strong></p>
+<ul class="simple">
+<li><p>User could not configure any permission on table.</p></li>
+<li><p>User could not directly configure any permission on view. But user could configure permission on index associated with the view.
+<img alt="image1" src="https://user-images.githubusercontent.com/2969395/182239505-a8541ec1-f46f-4b91-882a-8a4be36f5aea.png" /></p></li>
+</ul>
+</section>
+<section id="use-case-2-ad-hoc-s3-query-in-opensearch">
+<h3>Use Case - 2: Ad-hoc s3 query in OpenSearch<a class="headerlink" href="#use-case-2-ad-hoc-s3-query-in-opensearch" title="Link to this heading">¶</a></h3>
+<p><strong><em>Create</em></strong></p>
+<ul class="simple">
+<li><p>Similar as previous example, User could ingest the log or events directly to s3 with existing ingestion tools. create catalog and table from data on s3.</p></li>
+</ul>
+<p><em><strong>Query</strong></em></p>
+<ul class="simple">
+<li><p>User could query table without create view. At runtime, Maximus will create the transient view and populate the view with required data.</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>source=`s3`.`httpLog` status != 200 | status count() as cnt by span(5mins), status
+</pre></div>
+</div>
+<p><em><strong>List</strong></em></p>
+<ul class="simple">
+<li><p>User could list all the view of a table no matter how the view is created. User could query/drop/describe the temp view create by Maximus, as same as user created view.</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>LIST VIEW on `s3`.`httpLog`
+
+# return
+httplog-tempView-xxxx
+</pre></div>
+</div>
+<p><strong>Access Control</strong></p>
+<ul class="simple">
+<li><p>User could not configure any permission on table. During query time, Maximus will use the credentials to access s3 data. It is user’s ownership to configure the permission on s3 data.</p></li>
+<li><p>User could not directly configure any permission on view. But user could configure permission on index associated with the view.
+<img alt="image2" src="https://user-images.githubusercontent.com/2969395/182239672-72b2cfc6-c22e-4279-b33e-67a85ee6a778.png" /></p></li>
+</ul>
+</section>
+</section>
+<section id="function-requirements">
+<h2>3.2.Function Requirements<a class="headerlink" href="#function-requirements" title="Link to this heading">¶</a></h2>
+<section id="query-s3">
+<h3>Query S3<a class="headerlink" href="#query-s3" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>User could query time series data on S3 by using PPL in OpenSearch.</p></li>
+<li><p>For querying time series data in S3, user must create a <strong>Catalog</strong> for S3 with required setting.</p>
+<ul>
+<li><p>access key and secret key</p></li>
+<li><p>endpoint</p></li>
+</ul>
+</li>
+<li><p>For querying time series data in S3, user must create a <strong>Table</strong> of time series data on S3.</p></li>
+</ul>
+</section>
+<section id="view">
+<h3>View<a class="headerlink" href="#view" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>Support create materialized view from time series data on S3.</p></li>
+<li><p>Support fully materialized view refresh</p></li>
+<li><p>Support manually materialized view incrementally refresh</p></li>
+<li><p>Support automatically materialized view incrementally refresh</p></li>
+<li><p>Support hybrid scan</p></li>
+<li><p>Support drop materialized view</p></li>
+<li><p>Support show materialized view</p></li>
+</ul>
+</section>
+<section id="query-optimization">
+<h3>Query Optimization<a class="headerlink" href="#query-optimization" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>Inject optimizer rule to rewrite the query with MV to avoid S3 scan</p></li>
+</ul>
+</section>
+<section id="automatic-query-acceleration">
+<h3>Automatic query acceleration<a class="headerlink" href="#automatic-query-acceleration" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>Automatically select view candidate based on OpenSearch - S3 query execution metrics</p></li>
+<li><p>Store workload and selected view info for visualization and user intervention</p></li>
+<li><p>Automatically create/refresh/drop view.</p></li>
+</ul>
+</section>
+<section id="s3-data-format">
+<h3>S3 data format<a class="headerlink" href="#s3-data-format" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>The time series data could be compressed with gzip.</p></li>
+<li><p>The time series data file format could be.</p>
+<ul>
+<li><p>JSON</p></li>
+<li><p>TSV</p></li>
+</ul>
+</li>
+<li><p>If the time series data should be partitioned and have snapshot id. Query engine could support automatically incremental refresh and hybrid scan.</p></li>
+</ul>
+</section>
+<section id="resource-management">
+<h3>Resource Management<a class="headerlink" href="#resource-management" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>Support circuit breaker based resource control when executing a query.</p></li>
+<li><p>Support task based resource manager</p></li>
+</ul>
+</section>
+<section id="fault-tolerant">
+<h3>Fault Tolerant<a class="headerlink" href="#fault-tolerant" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>For fast query process, we scarify Fault Tolerant. Support query fast failure in case of hardware failure.</p></li>
+</ul>
+</section>
+<section id="setting">
+<h3>Setting<a class="headerlink" href="#setting" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>Support configure of x% of disk automatically create view should used.</p></li>
+</ul>
+</section>
+</section>
+<section id="non-function-requirements">
+<h2>3.3.Non Function Requirements<a class="headerlink" href="#non-function-requirements" title="Link to this heading">¶</a></h2>
+<section id="security">
+<h3>Security:<a class="headerlink" href="#security" title="Link to this heading">¶</a></h3>
+<p>There are three types of privileges that are related to materialized views</p>
+<ul class="simple">
+<li><p>Privileges directly on the materialized view itself</p></li>
+<li><p>Privileges on the objects (e.g. table) that the materialized view accesses.</p></li>
+</ul>
+<p><em><em>materialized view itself</em></em></p>
+<ul class="simple">
+<li><p>User could not directly configure any access control on view. But user could configure any access control on index associated with the view. In the other words, materialized inherits all the access control on the index associated with view.</p></li>
+<li><p>When <strong>automatically</strong> <strong>refresh view</strong>, Maximus will use the backend role. It required the backend role has permission to index data.</p></li>
+</ul>
+<p><em><em>objects (e.g. table) that the materialized view accesses</em></em></p>
+<ul class="simple">
+<li><p>As with non-materialized views, a user who wishes to access a materialized view needs privileges only on the view, not on the underlying object(s) that the view references.</p></li>
+</ul>
+<p><em><em>table</em></em></p>
+<ul class="simple">
+<li><p>User could not configure any privileges on table. <em><em>Note: because the table query could be rewrite as view query If the user do not have required permission to access the view. User could still get no permission exception.</em></em></p></li>
+</ul>
+<p><em><em>objects (e.g. table) that the table refer</em></em></p>
+<ul class="simple">
+<li><p>The s3 access control is only evaluated during s3 access. if the table access is rewrite as view access. The s3 access control will not take effect.</p></li>
+</ul>
+<p><em><em>Encryption</em></em></p>
+<ul class="simple">
+<li><p>Materialized view data will be encrypted at rest.</p></li>
+</ul>
+</section>
+<section id="others">
+<h3>Others<a class="headerlink" href="#others" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>Easy to use: the solution should be designed easy to use. It should just work out of the box and provide good performance with minimal setup.</p></li>
+<li><p><strong>Performance</strong>: Use <strong>http_log</strong> dataset to benchmark with OpenSearch cluster.</p></li>
+<li><p>Scalability: The solution should be scale horizontally.</p></li>
+<li><p><strong>Serverless</strong>: The solution should be designed easily deployed as Serverless infra.</p></li>
+<li><p><strong>Multi-tenant</strong>: The solution should support multi tenant use case.</p></li>
+<li><p><strong>Metrics</strong>: Todo</p></li>
+<li><p><strong>Log:</strong> Todo</p></li>
+</ul>
+</section>
+</section>
+</section>
+<section id="what-is-and-what-is-not">
+<h1>4.What is, and what is not<a class="headerlink" href="#what-is-and-what-is-not" title="Link to this heading">¶</a></h1>
+<ul class="simple">
+<li><p>We design and optimize for observability use cases only. Not OLTP and OLAP.</p></li>
+<li><p>We only support time series log data on S3. We do not support query arbitrary data on S3.</p></li>
+</ul>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../index.html">sql-docs</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2024, josh.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 7.3.7</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 0.7.16</a>
+      
+      |
+      <a href="../../_sources/docs/dev/datasource-query-s3.md.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>SQL Engine V2 - Release Notes &#8212; sql-docs  documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=d1102ebc" />
+    <link rel="stylesheet" type="text/css" href="../../_static/alabaster.css?v=12dfc556" />
+    <script src="../../_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="../../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="sql-engine-v2-release-notes">
+<h1>SQL Engine V2 - Release Notes<a class="headerlink" href="#sql-engine-v2-release-notes" title="Link to this heading">¶</a></h1>
+<hr class="docutils" />
+<section id="motivations">
+<h2>1.Motivations<a class="headerlink" href="#motivations" title="Link to this heading">¶</a></h2>
+<p>The current SQL query engine provides users the basic query capability for using familiar SQL rather than complex OpenSearch DSL. Based on NLPchina ES-SQL, many new features have been added additionally, such as semantic analyzer, semi-structured data query support, Hash Join etc. However, as we looked into more advanced SQL features, challenges started emerging especially in terms of correctness and extensibility (see <a class="reference internal" href="../attributions.html"><span class="std std-doc">Attributions</span></a>). After thoughtful consideration, we decided to develop a new query engine to address all the problems met so far.</p>
+</section>
+<hr class="docutils" />
+<section id="what-s-new">
+<h2>2.What’s New<a class="headerlink" href="#what-s-new" title="Link to this heading">¶</a></h2>
+<p>With the architecture and extensibility improved significantly, the following SQL features are able to be introduced in the new query engine:</p>
+<ul class="simple">
+<li><p><strong>Language Structure</strong></p>
+<ul>
+<li><p><a class="reference internal" href="../user/general/identifiers.html"><span class="std std-doc">Identifiers</span></a>: added support for identifier names with special characters</p></li>
+<li><p><a class="reference internal" href="../user/general/datatypes.html"><span class="std std-doc">Data types</span></a>: added support for date and interval types</p></li>
+<li><p><a class="reference internal" href="../user/dql/expressions.html"><span class="std std-doc">Expressions</span></a>: complex nested expression support</p></li>
+<li><p><a class="reference internal" href="../user/dql/functions.html"><span class="std std-doc">SQL functions</span></a>: more date function support, <code class="docutils literal notranslate"><span class="pre">ADDDATE</span></code>, <code class="docutils literal notranslate"><span class="pre">DATE_ADD</span></code>, <code class="docutils literal notranslate"><span class="pre">DATE_SUB</span></code>, <code class="docutils literal notranslate"><span class="pre">DAY</span></code>, <code class="docutils literal notranslate"><span class="pre">DAYNAME</span></code>, <code class="docutils literal notranslate"><span class="pre">DAYOFMONTH</span></code>, <code class="docutils literal notranslate"><span class="pre">DAYOFWEEK</span></code>, <code class="docutils literal notranslate"><span class="pre">DAYOFYEAR</span></code>, <code class="docutils literal notranslate"><span class="pre">FROM_DAYS</span></code>, <code class="docutils literal notranslate"><span class="pre">HOUR</span></code>, <code class="docutils literal notranslate"><span class="pre">MICROSECOND</span></code>, <code class="docutils literal notranslate"><span class="pre">MINUTE</span></code>, <code class="docutils literal notranslate"><span class="pre">QUARTER</span></code>, <code class="docutils literal notranslate"><span class="pre">SECOND</span></code>, <code class="docutils literal notranslate"><span class="pre">SUBDATE</span></code>, <code class="docutils literal notranslate"><span class="pre">TIME</span></code>, <code class="docutils literal notranslate"><span class="pre">TIME_TO_SEC</span></code>, <code class="docutils literal notranslate"><span class="pre">TO_DAYS</span></code>, <code class="docutils literal notranslate"><span class="pre">WEEK</span></code></p></li>
+<li><p><a class="reference internal" href="../user/general/comments.html"><span class="std std-doc">Comments</span></a>: SQL comment support</p></li>
+</ul>
+</li>
+<li><p><strong>Basic queries</strong></p>
+<ul>
+<li><p><a class="reference internal" href="../user/dql/aggregations.html#having-without-group-by"><span class="std std-ref">HAVING without GROUP BY clause</span></a></p></li>
+<li><p><a class="reference internal" href="../user/dql/aggregations.html#expression"><span class="std std-ref">Aggregate over arbitrary expression</span></a></p></li>
+<li><p><a class="reference internal" href="../user/dql/basics.html#example-2-specifying-order-for-null"><span class="std std-ref">Ordering by NULLS FIRST/LAST</span></a></p></li>
+<li><p><a class="reference internal" href="../user/dql/basics.html#example-3-ordering-by-aggregate-functions"><span class="std std-ref">Ordering by aggregate function</span></a></p></li>
+</ul>
+</li>
+<li><p><strong>Complex queries</strong></p>
+<ul>
+<li><p><a class="reference internal" href="../user/dql/complex.html#example-2-subquery-in-from-clause"><span class="std std-ref">Subqueries in FROM clause</span></a>: support arbitrary nesting level and aggregation</p></li>
+</ul>
+</li>
+<li><p><strong>Advanced Features</strong></p>
+<ul>
+<li><p><a class="reference internal" href="../user/dql/window.html"><span class="std std-doc">Window functions</span></a>: ranking and aggregate window functions</p></li>
+<li><p><a class="reference internal" href="../user/dql/aggregations.html#filter-clause"><span class="std std-ref">Selective aggregation</span></a>: by standard <code class="docutils literal notranslate"><span class="pre">FILTER</span></code> function</p></li>
+</ul>
+</li>
+<li><p><strong>Beyond SQL</strong></p>
+<ul>
+<li><p><a class="reference internal" href="../user/beyond/partiql.html#example-2-selecting-deeper-levels"><span class="std std-ref">Semi-structured data query</span></a>: support querying OpenSearch object fields on arbitrary level</p></li>
+<li><p>OpenSearch multi-field: handled automatically and users won’t have the access, ex. <code class="docutils literal notranslate"><span class="pre">text</span></code> is converted to <code class="docutils literal notranslate"><span class="pre">text.keyword</span></code> if it’s a multi-field</p></li>
+</ul>
+</li>
+</ul>
+<p>As for correctness, besides full coverage of unit and integration test, we developed a new comparison test framework to ensure correctness by comparing with other databases. Please find more details in <a class="reference internal" href="testing-comparison-test.html"><span class="std std-doc">Testing</span></a>.</p>
+</section>
+<hr class="docutils" />
+<section id="what-re-changed">
+<h2>3.What’re Changed<a class="headerlink" href="#what-re-changed" title="Link to this heading">¶</a></h2>
+<section id="breaking-changes">
+<h3>3.1 Breaking Changes<a class="headerlink" href="#breaking-changes" title="Link to this heading">¶</a></h3>
+<p>Because of implementation changed internally, you can expect Explain output in a different format. For query protocol, there are slightly changes in the default response format:</p>
+<ul class="simple">
+<li><p><strong>Total</strong>: The <code class="docutils literal notranslate"><span class="pre">total</span></code> field represented how many documents matched in total no matter how many returned (indicated by <code class="docutils literal notranslate"><span class="pre">size</span></code> field). However, this field becomes meaningless because of post processing on DSL response in the new query engine. Thus, for now the total number is always same as size field.</p></li>
+</ul>
+</section>
+<section id="fallback-mechanism">
+<h3>3.2 Fallback Mechanism<a class="headerlink" href="#fallback-mechanism" title="Link to this heading">¶</a></h3>
+<p>For these unsupported features, the query will be forwarded to the old query engine by fallback mechanism. To avoid impact on your side, normally you won’t see any difference in a query response. If you want to check if and why your query falls back to be handled by old SQL engine, please explain your query and check OpenSearch log for “Request is falling back to old SQL engine due to …”.</p>
+<p>For the following features unsupported in the new engine, the query will be forwarded to the old query engine and thus you cannot use new features listed above:</p>
+<ul class="simple">
+<li><p><strong>Cursor</strong>: request with <code class="docutils literal notranslate"><span class="pre">fetch_size</span></code> parameter</p></li>
+<li><p><strong>JSON response format</strong>: was used to return OpenSearch DSL which is not accessible now. Replaced by default format in the new engine which is also in JSON.</p></li>
+<li><p><strong>Nested field query</strong>: including supports for nested field query</p></li>
+<li><p><strong>JOINs</strong>: including all types of JOIN queries</p></li>
+<li><p><strong>OpenSearch functions</strong>: fulltext search, metric and bucket functions</p></li>
+</ul>
+</section>
+<section id="limitations">
+<h3>3.3 Limitations<a class="headerlink" href="#limitations" title="Link to this heading">¶</a></h3>
+<p>You can find all the limitations in <a class="reference internal" href="../user/limitations/limitations.html"><span class="std std-doc">Limitations</span></a>.</p>
+</section>
+</section>
+<hr class="docutils" />
+<section id="how-it-s-implemented">
+<h2>4.How it’s Implemented<a class="headerlink" href="#how-it-s-implemented" title="Link to this heading">¶</a></h2>
+<p>If you’re interested in the new query engine, please find more details in <a class="reference internal" href="#../../DEVELOPER_GUIDE.rst"><span class="xref myst">Developer Guide</span></a>, <a class="reference internal" href="intro-architecture.html"><span class="std std-doc">Architecture</span></a> and other docs in the dev folder.</p>
+</section>
+<hr class="docutils" />
+<section id="what-s-next">
+<h2>5.What’s Next<a class="headerlink" href="#what-s-next" title="Link to this heading">¶</a></h2>
+<p>As aforementioned, there are still popular SQL features unsupported in the new query engine yet. In particular, the following items are on our roadmap with high priority:</p>
+<ol class="arabic simple">
+<li><p>Nested field queries</p></li>
+<li><p>JOIN support</p></li>
+<li><p>OpenSearch functions</p></li>
+</ol>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../index.html">sql-docs</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2024, josh.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 7.3.7</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 0.7.16</a>
+      
+      |
+      <a href="../../_sources/docs/dev/intro-v2-engine.md.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

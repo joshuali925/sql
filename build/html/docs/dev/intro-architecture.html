@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>OpenSearch SQL Engine Architecture &#8212; sql-docs  documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=d1102ebc" />
+    <link rel="stylesheet" type="text/css" href="../../_static/alabaster.css?v=12dfc556" />
+    <script src="../../_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="../../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="opensearch-sql-engine-architecture">
+<h1>OpenSearch SQL Engine Architecture<a class="headerlink" href="#opensearch-sql-engine-architecture" title="Link to this heading">¶</a></h1>
+<hr class="docutils" />
+<section id="overview">
+<h2>1.Overview<a class="headerlink" href="#overview" title="Link to this heading">¶</a></h2>
+<p>The OpenSearch SQL (OD-SQL) project is developed based on NLPChina project (https://github.com/NLPchina/elasticsearch-sql) which has been deprecated now (<a class="reference external" href="https://github.com/opensearch-project/sql/blob/main/docs/attributions.md">attributions</a>). Over the one year in development, a lot of features have been added to the OD-SQL project on top of the existing older NLPChina project. The purpose of this document is to explain the OD-SQL current architecture going ahead.</p>
+</section>
+<hr class="docutils" />
+<section id="high-level-view">
+<h2>2.High Level View<a class="headerlink" href="#high-level-view" title="Link to this heading">¶</a></h2>
+<p>In the high level, the OD-SQL Engine could be divided into four major sub-module.</p>
+<ul class="simple">
+<li><p><em>Parser</em>: Currently, there are two Lex&amp;Parser coexists. The Druid Lex&amp;Parser is the original one from NLPChina. The input AST of Core Engine is from the Druid Lex&amp;Parser. The <a class="reference external" href="https://github.com/opensearch-project/sql/blob/main/legacy/src/main/antlr/OpenSearchLegacySqlLexer.g4">ANTLR</a> Lex&amp;Parser is added by us to customized the verification and exception handling.</p></li>
+<li><p><em>Analyzer</em>: The analyzer module take the output from ANTLR Lex&amp;Parser then perform syntax and semantic analyze.</p></li>
+<li><p><em>Core Engine</em>: The QueryAction take the output from Druid Lex&amp;Parser and translate to the OpenSearch DSL if possible. This is an NLPChina original module. The QueryPlanner Builder is added by us to support the JOIN and Post-processing logic. The QueryPlanner will take the take the output from Druid Lex&amp;Parser and build the PhysicalPlan</p></li>
+<li><p><em>Execution</em>: The execution module execute QueryAction or QueryPlanner and return the response to the client. Different from the Frontend, Analyzer and Core Engine which running on the Transport Thread and can’t do any blocking operation. The Execution module running on the client threadpool and can perform the blocking operation.</p></li>
+</ul>
+<p>There are also others modules include in the OD-SQL engine.</p>
+<ul class="simple">
+<li><p><em>Documentation</em>: it is used to auto-generated documentation.</p></li>
+<li><p><em>Metrics</em>: it is used to collect OD-SQL related metrics.</p></li>
+<li><p><em>Resource Manager</em>:  it is used to monitor the memory consumption when performing join operation to avoid the impact to OpenSearch availability.</p></li>
+</ul>
+<p><img alt="Architecture Overview" src="../../_images/architecture-overview.png" /></p>
+</section>
+<hr class="docutils" />
+<section id="journey-of-the-query-in-od-sql-engine">
+<h2>3.Journey of the query in OD-SQL engine.<a class="headerlink" href="#journey-of-the-query-in-od-sql-engine" title="Link to this heading">¶</a></h2>
+<p>The following diagram take a sample query and explain how the query flow within different modules.</p>
+<p><img alt="Architecture Journey" src="../../_images/architecture-journey.png" /></p>
+<ol class="arabic simple">
+<li><p>The ANTRL parser based on grammar file (https://github.com/opensearch-project/sql/blob/main/legacy/src/main/antlr/OpenSearchLegacySqlParser.g4) to auto generate the AST.</p></li>
+<li><p>The Syntax and Semantic Analyzer will walk through the AST and verify whether the query is follow the grammar and supported by the OD-SQL. e.g. *SELECT * FROM semantics WHERE LOG(age, city) = 1, <em>will throw exception with message</em> Function [LOG] cannot work with [INTEGER, KEYWORD]. <em>and sample usage message</em> Usage: LOG(NUMBER T) → DOUBLE.</p></li>
+<li><p>The Druid Lex&amp;Parser takes the input query and generate the druid AST which is different from the AST generated by the ANTRL. This module is the open source library (https://github.com/alibaba/druid) used by NLPChina originally.</p></li>
+<li><p>The QueryPlanner Builder take the AST as input and generate the LogicalPlan from it. Then it optimize the LogicalPlan to PhysicalPlan.(In current implementation, only rule-based model is implemented). The major part of PhysicalPlan generation use NLPChina’s original logic to translate the SQL expression in AST to OpenSearch DSL.</p></li>
+<li><p>The QueryPlanner executor execute the PhysicalPlan in worker thread.</p></li>
+<li><p>The formatter will reformat the response data to the required format. The default format is JDBC format.</p></li>
+</ol>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../index.html">sql-docs</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2024, josh.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 7.3.7</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 0.7.16</a>
+      
+      |
+      <a href="../../_sources/docs/dev/intro-architecture.md.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

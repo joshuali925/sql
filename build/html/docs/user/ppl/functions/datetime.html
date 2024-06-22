@@ -1,0 +1,2154 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Date and Time Functions &#8212; sql-docs  documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=d1102ebc" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/alabaster.css?v=12dfc556" />
+    <script src="../../../../_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="../../../../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="date-and-time-functions">
+<h1>Date and Time Functions<a class="headerlink" href="#date-and-time-functions" title="Link to this heading">¶</a></h1>
+<p class="rubric">Table of contents</p>
+<nav class="contents local" id="contents">
+<ul class="simple">
+<li><p><a class="reference internal" href="#adddate" id="id81">ADDDATE</a></p></li>
+<li><p><a class="reference internal" href="#addtime" id="id82">ADDTIME</a></p></li>
+<li><p><a class="reference internal" href="#convert-tz" id="id83">CONVERT_TZ</a></p></li>
+<li><p><a class="reference internal" href="#curdate" id="id84">CURDATE</a></p></li>
+<li><p><a class="reference internal" href="#current-date" id="id85">CURRENT_DATE</a></p></li>
+<li><p><a class="reference internal" href="#current-time" id="id86">CURRENT_TIME</a></p></li>
+<li><p><a class="reference internal" href="#current-timestamp" id="id87">CURRENT_TIMESTAMP</a></p></li>
+<li><p><a class="reference internal" href="#id8" id="id88">CURTIME</a></p></li>
+<li><p><a class="reference internal" href="#date" id="id89">DATE</a></p></li>
+<li><p><a class="reference internal" href="#date-add" id="id90">DATE_ADD</a></p></li>
+<li><p><a class="reference internal" href="#date-format" id="id91">DATE_FORMAT</a></p></li>
+<li><p><a class="reference internal" href="#datetime" id="id92">DATETIME</a></p></li>
+<li><p><a class="reference internal" href="#date-sub" id="id93">DATE_SUB</a></p></li>
+<li><p><a class="reference internal" href="#datediff" id="id94">DATEDIFF</a></p></li>
+<li><p><a class="reference internal" href="#day" id="id95">DAY</a></p></li>
+<li><p><a class="reference internal" href="#dayname" id="id96">DAYNAME</a></p></li>
+<li><p><a class="reference internal" href="#dayofmonth" id="id97">DAYOFMONTH</a></p></li>
+<li><p><a class="reference internal" href="#day-of-month" id="id98">DAY_OF_MONTH</a></p></li>
+<li><p><a class="reference internal" href="#dayofweek" id="id99">DAYOFWEEK</a></p></li>
+<li><p><a class="reference internal" href="#day-of-week" id="id100">DAY_OF_WEEK</a></p></li>
+<li><p><a class="reference internal" href="#dayofyear" id="id101">DAYOFYEAR</a></p></li>
+<li><p><a class="reference internal" href="#day-of-year" id="id102">DAY_OF_YEAR</a></p></li>
+<li><p><a class="reference internal" href="#extract" id="id103">EXTRACT</a></p></li>
+<li><p><a class="reference internal" href="#from-days" id="id104">FROM_DAYS</a></p></li>
+<li><p><a class="reference internal" href="#from-unixtime" id="id105">FROM_UNIXTIME</a></p></li>
+<li><p><a class="reference internal" href="#get-format" id="id106">GET_FORMAT</a></p></li>
+<li><p><a class="reference internal" href="#hour" id="id107">HOUR</a></p></li>
+<li><p><a class="reference internal" href="#hour-of-day" id="id108">HOUR_OF_DAY</a></p></li>
+<li><p><a class="reference internal" href="#last-day" id="id109">LAST_DAY</a></p></li>
+<li><p><a class="reference internal" href="#localtimestamp" id="id110">LOCALTIMESTAMP</a></p></li>
+<li><p><a class="reference internal" href="#localtime" id="id111">LOCALTIME</a></p></li>
+<li><p><a class="reference internal" href="#makedate" id="id112">MAKEDATE</a></p></li>
+<li><p><a class="reference internal" href="#maketime" id="id113">MAKETIME</a></p></li>
+<li><p><a class="reference internal" href="#microsecond" id="id114">MICROSECOND</a></p></li>
+<li><p><a class="reference internal" href="#minute" id="id115">MINUTE</a></p></li>
+<li><p><a class="reference internal" href="#minute-of-day" id="id116">MINUTE_OF_DAY</a></p></li>
+<li><p><a class="reference internal" href="#minute-of-hour" id="id117">MINUTE_OF_HOUR</a></p></li>
+<li><p><a class="reference internal" href="#month" id="id118">MONTH</a></p></li>
+<li><p><a class="reference internal" href="#month-of-year" id="id119">MONTH_OF_YEAR</a></p></li>
+<li><p><a class="reference internal" href="#monthname" id="id120">MONTHNAME</a></p></li>
+<li><p><a class="reference internal" href="#id43" id="id121">NOW</a></p></li>
+<li><p><a class="reference internal" href="#period-add" id="id122">PERIOD_ADD</a></p></li>
+<li><p><a class="reference internal" href="#period-diff" id="id123">PERIOD_DIFF</a></p></li>
+<li><p><a class="reference internal" href="#quarter" id="id124">QUARTER</a></p></li>
+<li><p><a class="reference internal" href="#sec-to-time" id="id125">SEC_TO_TIME</a></p></li>
+<li><p><a class="reference internal" href="#second" id="id126">SECOND</a></p></li>
+<li><p><a class="reference internal" href="#second-of-minute" id="id127">SECOND_OF_MINUTE</a></p></li>
+<li><p><a class="reference internal" href="#str-to-date" id="id128">STR_TO_DATE</a></p></li>
+<li><p><a class="reference internal" href="#subdate" id="id129">SUBDATE</a></p></li>
+<li><p><a class="reference internal" href="#subtime" id="id130">SUBTIME</a></p></li>
+<li><p><a class="reference internal" href="#id55" id="id131">SYSDATE</a></p></li>
+<li><p><a class="reference internal" href="#time" id="id132">TIME</a></p></li>
+<li><p><a class="reference internal" href="#time-format" id="id133">TIME_FORMAT</a></p></li>
+<li><p><a class="reference internal" href="#time-to-sec" id="id134">TIME_TO_SEC</a></p></li>
+<li><p><a class="reference internal" href="#timediff" id="id135">TIMEDIFF</a></p></li>
+<li><p><a class="reference internal" href="#timestamp" id="id136">TIMESTAMP</a></p></li>
+<li><p><a class="reference internal" href="#timestampadd" id="id137">TIMESTAMPADD</a></p></li>
+<li><p><a class="reference internal" href="#timestampdiff" id="id138">TIMESTAMPDIFF</a></p></li>
+<li><p><a class="reference internal" href="#to-days" id="id139">TO_DAYS</a></p></li>
+<li><p><a class="reference internal" href="#to-seconds" id="id140">TO_SECONDS</a></p></li>
+<li><p><a class="reference internal" href="#unix-timestamp" id="id141">UNIX_TIMESTAMP</a></p></li>
+<li><p><a class="reference internal" href="#utc-date" id="id142">UTC_DATE</a></p></li>
+<li><p><a class="reference internal" href="#utc-time" id="id143">UTC_TIME</a></p></li>
+<li><p><a class="reference internal" href="#utc-timestamp" id="id144">UTC_TIMESTAMP</a></p></li>
+<li><p><a class="reference internal" href="#week" id="id145">WEEK</a></p></li>
+<li><p><a class="reference internal" href="#weekday" id="id146">WEEKDAY</a></p></li>
+<li><p><a class="reference internal" href="#week-of-year" id="id147">WEEK_OF_YEAR</a></p></li>
+<li><p><a class="reference internal" href="#year" id="id148">YEAR</a></p></li>
+<li><p><a class="reference internal" href="#yearweek" id="id149">YEARWEEK</a></p></li>
+</ul>
+</nav>
+<section id="adddate">
+<h2><a class="toc-backref" href="#id81" role="doc-backlink">ADDDATE</a><a class="headerlink" href="#adddate" title="Link to this heading">¶</a></h2>
+<section id="description">
+<h3>Description<a class="headerlink" href="#description" title="Link to this heading">¶</a></h3>
+<p>Usage: adddate(date, INTERVAL expr unit) / adddate(date, days) adds the interval of second argument to date; adddate(date, days) adds the second argument as integer number of days to date.
+If first argument is TIME, today’s date is used; if first argument is DATE, time at midnight is used.</p>
+<p>Argument type: DATE/TIMESTAMP/TIME, INTERVAL/LONG</p>
+<p>Return type map:</p>
+<p>(DATE/TIMESTAMP/TIME, INTERVAL) -&gt; TIMESTAMP</p>
+<p>(DATE, LONG) -&gt; DATE</p>
+<p>(TIMESTAMP/TIME, LONG) -&gt; TIMESTAMP</p>
+<p>Synonyms: <a class="reference internal" href="#date-add">DATE_ADD</a> when invoked with the INTERVAL form of the second argument.</p>
+<p>Antonyms: <a class="reference internal" href="#subdate">SUBDATE</a></p>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>os&gt; source=people | eval `&#39;2020-08-26&#39; + 1h` = ADDDATE(DATE(&#39;2020-08-26&#39;), INTERVAL 1 HOUR), `&#39;2020-08-26&#39; + 1` = ADDDATE(DATE(&#39;2020-08-26&#39;), 1), `ts &#39;2020-08-26 01:01:01&#39; + 1` = ADDDATE(TIMESTAMP(&#39;2020-08-26 01:01:01&#39;), 1) | fields `&#39;2020-08-26&#39; + 1h`, `&#39;2020-08-26&#39; + 1`, `ts &#39;2020-08-26 01:01:01&#39; + 1`
+fetched rows / total rows = 1/1
++---------------------+--------------------+--------------------------------+
+| &#39;2020-08-26&#39; + 1h   | &#39;2020-08-26&#39; + 1   | ts &#39;2020-08-26 01:01:01&#39; + 1   |
+|---------------------+--------------------+--------------------------------|
+| 2020-08-26 01:00:00 | 2020-08-27         | 2020-08-27 01:01:01            |
++---------------------+--------------------+--------------------------------+
+</pre></div>
+</div>
+</section>
+</section>
+<section id="addtime">
+<h2><a class="toc-backref" href="#id82" role="doc-backlink">ADDTIME</a><a class="headerlink" href="#addtime" title="Link to this heading">¶</a></h2>
+<section id="id1">
+<h3>Description<a class="headerlink" href="#id1" title="Link to this heading">¶</a></h3>
+<p>Usage: addtime(expr1, expr2) adds expr2 to expr1 and returns the result. If argument is TIME, today’s date is used; if argument is DATE, time at midnight is used.</p>
+<p>Argument type: DATE/TIMESTAMP/TIME, DATE/TIMESTAMP/TIME</p>
+<p>Return type map:</p>
+<p>(DATE/TIMESTAMP, DATE/TIMESTAMP/TIME) -&gt; TIMESTAMP</p>
+<p>(TIME, DATE/TIMESTAMP/TIME) -&gt; TIME</p>
+<p>Antonyms: <a class="reference internal" href="#subtime">SUBTIME</a></p>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>os&gt; source=people | eval `&#39;2008-12-12&#39; + 0` = ADDTIME(DATE(&#39;2008-12-12&#39;), DATE(&#39;2008-11-15&#39;)) | fields `&#39;2008-12-12&#39; + 0`
+fetched rows / total rows = 1/1
++---------------------+
+| &#39;2008-12-12&#39; + 0    |
+|---------------------|
+| 2008-12-12 00:00:00 |
++---------------------+
+
+os&gt; source=people | eval `&#39;23:59:59&#39; + 0` = ADDTIME(TIME(&#39;23:59:59&#39;), DATE(&#39;2004-01-01&#39;)) | fields `&#39;23:59:59&#39; + 0`
+fetched rows / total rows = 1/1
++------------------+
+| &#39;23:59:59&#39; + 0   |
+|------------------|
+| 23:59:59         |
++------------------+
+
+os&gt; source=people | eval `&#39;2004-01-01&#39; + &#39;23:59:59&#39;` = ADDTIME(DATE(&#39;2004-01-01&#39;), TIME(&#39;23:59:59&#39;)) | fields `&#39;2004-01-01&#39; + &#39;23:59:59&#39;`
+fetched rows / total rows = 1/1
++-----------------------------+
+| &#39;2004-01-01&#39; + &#39;23:59:59&#39;   |
+|-----------------------------|
+| 2004-01-01 23:59:59         |
++-----------------------------+
+
+os&gt; source=people | eval `&#39;10:20:30&#39; + &#39;00:05:42&#39;` = ADDTIME(TIME(&#39;10:20:30&#39;), TIME(&#39;00:05:42&#39;)) | fields `&#39;10:20:30&#39; + &#39;00:05:42&#39;`
+fetched rows / total rows = 1/1
++---------------------------+
+| &#39;10:20:30&#39; + &#39;00:05:42&#39;   |
+|---------------------------|
+| 10:26:12                  |
++---------------------------+
+
+os&gt; source=people | eval `&#39;2007-02-28 10:20:30&#39; + &#39;20:40:50&#39;` = ADDTIME(TIMESTAMP(&#39;2007-02-28 10:20:30&#39;), TIMESTAMP(&#39;2002-03-04 20:40:50&#39;)) | fields `&#39;2007-02-28 10:20:30&#39; + &#39;20:40:50&#39;`
+fetched rows / total rows = 1/1
++--------------------------------------+
+| &#39;2007-02-28 10:20:30&#39; + &#39;20:40:50&#39;   |
+|--------------------------------------|
+| 2007-03-01 07:01:20                  |
++--------------------------------------+
+</pre></div>
+</div>
+</section>
+</section>
+<section id="convert-tz">
+<h2><a class="toc-backref" href="#id83" role="doc-backlink">CONVERT_TZ</a><a class="headerlink" href="#convert-tz" title="Link to this heading">¶</a></h2>
+<section id="id2">
+<h3>Description<a class="headerlink" href="#id2" title="Link to this heading">¶</a></h3>
+<p>Usage: convert_tz(timestamp, from_timezone, to_timezone) constructs a local timestamp converted from the from_timezone to the to_timezone. CONVERT_TZ returns null when any of the three function arguments are invalid, i.e. timestamp is not in the format yyyy-MM-dd HH:mm:ss or the timeszone is not in (+/-)HH:mm. It also is invalid for invalid dates, such as February 30th and invalid timezones, which are ones outside of -13:59 and +14:00.</p>
+<p>Argument type: TIMESTAMP, STRING, STRING</p>
+<p>Return type: TIMESTAMP</p>
+<p>Conversion from +00:00 timezone to +10:00 timezone. Returns the timestamp argument converted from +00:00 to +10:00
+Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>os&gt; source=people | eval `convert_tz(&#39;2008-05-15 12:00:00&#39;,&#39;+00:00&#39;,&#39;+10:00&#39;)` = convert_tz(&#39;2008-05-15 12:00:00&#39;,&#39;+00:00&#39;,&#39;+10:00&#39;) | fields `convert_tz(&#39;2008-05-15 12:00:00&#39;,&#39;+00:00&#39;,&#39;+10:00&#39;)`
+fetched rows / total rows = 1/1
++-------------------------------------------------------+
+| convert_tz(&#39;2008-05-15 12:00:00&#39;,&#39;+00:00&#39;,&#39;+10:00&#39;)   |
+|-------------------------------------------------------|
+| 2008-05-15 22:00:00                                   |
++-------------------------------------------------------+
+</pre></div>
+</div>
+<p>The valid timezone range for convert_tz is (-13:59, +14:00) inclusive. Timezones outside of the range, such as +15:00 in this example will return null.
+Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>os&gt; source=people | eval `convert_tz(&#39;2008-05-15 12:00:00&#39;,&#39;+00:00&#39;,&#39;+15:00&#39;)` = convert_tz(&#39;2008-05-15 12:00:00&#39;,&#39;+00:00&#39;,&#39;+15:00&#39;)| fields `convert_tz(&#39;2008-05-15 12:00:00&#39;,&#39;+00:00&#39;,&#39;+15:00&#39;)`
+fetched rows / total rows = 1/1
++-------------------------------------------------------+
+| convert_tz(&#39;2008-05-15 12:00:00&#39;,&#39;+00:00&#39;,&#39;+15:00&#39;)   |
+|-------------------------------------------------------|
+| null                                                  |
++-------------------------------------------------------+
+</pre></div>
+</div>
+<p>Conversion from a positive timezone to a negative timezone that goes over date line.
+Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>os&gt; source=people | eval `convert_tz(&#39;2008-05-15 12:00:00&#39;,&#39;+03:30&#39;,&#39;-10:00&#39;)` = convert_tz(&#39;2008-05-15 12:00:00&#39;,&#39;+03:30&#39;,&#39;-10:00&#39;) | fields `convert_tz(&#39;2008-05-15 12:00:00&#39;,&#39;+03:30&#39;,&#39;-10:00&#39;)`
+fetched rows / total rows = 1/1
++-------------------------------------------------------+
+| convert_tz(&#39;2008-05-15 12:00:00&#39;,&#39;+03:30&#39;,&#39;-10:00&#39;)   |
+|-------------------------------------------------------|
+| 2008-05-14 22:30:00                                   |
++-------------------------------------------------------+
+</pre></div>
+</div>
+<p>Valid dates are required in convert_tz, invalid dates such as April 31st (not a date in the Gregorian calendar) will result in null.
+Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>os&gt; source=people | eval `convert_tz(&#39;2008-04-31 12:00:00&#39;,&#39;+03:30&#39;,&#39;-10:00&#39;)` = convert_tz(&#39;2008-04-31 12:00:00&#39;,&#39;+03:30&#39;,&#39;-10:00&#39;) | fields `convert_tz(&#39;2008-04-31 12:00:00&#39;,&#39;+03:30&#39;,&#39;-10:00&#39;)`
+fetched rows / total rows = 1/1
++-------------------------------------------------------+
+| convert_tz(&#39;2008-04-31 12:00:00&#39;,&#39;+03:30&#39;,&#39;-10:00&#39;)   |
+|-------------------------------------------------------|
+| null                                                  |
++-------------------------------------------------------+
+</pre></div>
+</div>
+<p>Valid dates are required in convert_tz, invalid dates such as February 30th (not a date in the Gregorian calendar) will result in null.
+Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>os&gt; source=people | eval `convert_tz(&#39;2008-02-30 12:00:00&#39;,&#39;+03:30&#39;,&#39;-10:00&#39;)` = convert_tz(&#39;2008-02-30 12:00:00&#39;,&#39;+03:30&#39;,&#39;-10:00&#39;) | fields `convert_tz(&#39;2008-02-30 12:00:00&#39;,&#39;+03:30&#39;,&#39;-10:00&#39;)`
+fetched rows / total rows = 1/1
++-------------------------------------------------------+
+| convert_tz(&#39;2008-02-30 12:00:00&#39;,&#39;+03:30&#39;,&#39;-10:00&#39;)   |
+|-------------------------------------------------------|
+| null                                                  |
++-------------------------------------------------------+
+</pre></div>
+</div>
+<p>February 29th 2008 is a valid date because it is a leap year.
+Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>os&gt; source=people | eval `convert_tz(&#39;2008-02-29 12:00:00&#39;,&#39;+03:30&#39;,&#39;-10:00&#39;)` = convert_tz(&#39;2008-02-29 12:00:00&#39;,&#39;+03:30&#39;,&#39;-10:00&#39;) | fields `convert_tz(&#39;2008-02-29 12:00:00&#39;,&#39;+03:30&#39;,&#39;-10:00&#39;)`
+fetched rows / total rows = 1/1
++-------------------------------------------------------+
+| convert_tz(&#39;2008-02-29 12:00:00&#39;,&#39;+03:30&#39;,&#39;-10:00&#39;)   |
+|-------------------------------------------------------|
+| 2008-02-28 22:30:00                                   |
++-------------------------------------------------------+
+</pre></div>
+</div>
+<p>Valid dates are required in convert_tz, invalid dates such as February 29th 2007 (2007 is not a leap year) will result in null.
+Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>os&gt; source=people | eval `convert_tz(&#39;2007-02-29 12:00:00&#39;,&#39;+03:30&#39;,&#39;-10:00&#39;)` = convert_tz(&#39;2007-02-29 12:00:00&#39;,&#39;+03:30&#39;,&#39;-10:00&#39;) | fields `convert_tz(&#39;2007-02-29 12:00:00&#39;,&#39;+03:30&#39;,&#39;-10:00&#39;)`
+fetched rows / total rows = 1/1
++-------------------------------------------------------+
+| convert_tz(&#39;2007-02-29 12:00:00&#39;,&#39;+03:30&#39;,&#39;-10:00&#39;)   |
+|-------------------------------------------------------|
+| null                                                  |
++-------------------------------------------------------+
+</pre></div>
+</div>
+<p>The valid timezone range for convert_tz is (-13:59, +14:00) inclusive. Timezones outside of the range, such as +14:01 in this example will return null.
+Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>os&gt; source=people | eval `convert_tz(&#39;2008-02-01 12:00:00&#39;,&#39;+14:01&#39;,&#39;+00:00&#39;)` = convert_tz(&#39;2008-02-01 12:00:00&#39;,&#39;+14:01&#39;,&#39;+00:00&#39;) | fields `convert_tz(&#39;2008-02-01 12:00:00&#39;,&#39;+14:01&#39;,&#39;+00:00&#39;)`
+fetched rows / total rows = 1/1
++-------------------------------------------------------+
+| convert_tz(&#39;2008-02-01 12:00:00&#39;,&#39;+14:01&#39;,&#39;+00:00&#39;)   |
+|-------------------------------------------------------|
+| null                                                  |
++-------------------------------------------------------+
+</pre></div>
+</div>
+<p>The valid timezone range for convert_tz is (-13:59, +14:00) inclusive. Timezones outside of the range, such as +14:00 in this example will return a correctly converted date time object.
+Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>os&gt; source=people | eval `convert_tz(&#39;2008-02-01 12:00:00&#39;,&#39;+14:00&#39;,&#39;+00:00&#39;)` = convert_tz(&#39;2008-02-01 12:00:00&#39;,&#39;+14:00&#39;,&#39;+00:00&#39;) | fields `convert_tz(&#39;2008-02-01 12:00:00&#39;,&#39;+14:00&#39;,&#39;+00:00&#39;)`
+fetched rows / total rows = 1/1
++-------------------------------------------------------+
+| convert_tz(&#39;2008-02-01 12:00:00&#39;,&#39;+14:00&#39;,&#39;+00:00&#39;)   |
+|-------------------------------------------------------|
+| 2008-01-31 22:00:00                                   |
++-------------------------------------------------------+
+</pre></div>
+</div>
+<p>The valid timezone range for convert_tz is (-13:59, +14:00) inclusive. Timezones outside of the range, such as -14:00 will result in null
+Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>os&gt; source=people | eval `convert_tz(&#39;2008-02-01 12:00:00&#39;,&#39;-14:00&#39;,&#39;+00:00&#39;)` = convert_tz(&#39;2008-02-01 12:00:00&#39;,&#39;-14:00&#39;,&#39;+00:00&#39;) | fields `convert_tz(&#39;2008-02-01 12:00:00&#39;,&#39;-14:00&#39;,&#39;+00:00&#39;)`
+fetched rows / total rows = 1/1
++-------------------------------------------------------+
+| convert_tz(&#39;2008-02-01 12:00:00&#39;,&#39;-14:00&#39;,&#39;+00:00&#39;)   |
+|-------------------------------------------------------|
+| null                                                  |
++-------------------------------------------------------+
+</pre></div>
+</div>
+<p>The valid timezone range for convert_tz is (-13:59, +14:00) inclusive. This timezone is within range so it is valid and will convert the time.
+Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>os&gt; source=people | eval `convert_tz(&#39;2008-02-01 12:00:00&#39;,&#39;-13:59&#39;,&#39;+00:00&#39;)` = convert_tz(&#39;2008-02-01 12:00:00&#39;,&#39;-13:59&#39;,&#39;+00:00&#39;) | fields `convert_tz(&#39;2008-02-01 12:00:00&#39;,&#39;-13:59&#39;,&#39;+00:00&#39;)`
+fetched rows / total rows = 1/1
++-------------------------------------------------------+
+| convert_tz(&#39;2008-02-01 12:00:00&#39;,&#39;-13:59&#39;,&#39;+00:00&#39;)   |
+|-------------------------------------------------------|
+| 2008-02-02 01:59:00                                   |
++-------------------------------------------------------+
+</pre></div>
+</div>
+</section>
+</section>
+<section id="curdate">
+<h2><a class="toc-backref" href="#id84" role="doc-backlink">CURDATE</a><a class="headerlink" href="#curdate" title="Link to this heading">¶</a></h2>
+<section id="id3">
+<h3>Description<a class="headerlink" href="#id3" title="Link to this heading">¶</a></h3>
+<p>Returns the current time as a value in ‘YYYY-MM-DD’.
+CURDATE() returns the time at which it executes as <a class="reference external" href="#sysdate">SYSDATE()</a> does.</p>
+<p>Return type: DATE</p>
+<p>Specification: CURDATE() -&gt; DATE</p>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>&gt; source=people | eval `CURDATE()` = CURDATE() | fields `CURDATE()`
+fetched rows / total rows = 1/1
++-------------+
+| CURDATE()   |
+|-------------|
+| 2022-08-02  |
++-------------+
+</pre></div>
+</div>
+</section>
+</section>
+<section id="current-date">
+<h2><a class="toc-backref" href="#id85" role="doc-backlink">CURRENT_DATE</a><a class="headerlink" href="#current-date" title="Link to this heading">¶</a></h2>
+<section id="id4">
+<h3>Description<a class="headerlink" href="#id4" title="Link to this heading">¶</a></h3>
+<p><cite>CURRENT_DATE()</cite> are synonyms for <a class="reference external" href="#curdate">CURDATE()</a>.</p>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>&gt; source=people | eval `CURRENT_DATE()` = CURRENT_DATE() | fields `CURRENT_DATE()`
+fetched rows / total rows = 1/1
++------------------+
+| CURRENT_DATE()   |
+|------------------+
+| 2022-08-02       |
++------------------+
+</pre></div>
+</div>
+</section>
+</section>
+<section id="current-time">
+<h2><a class="toc-backref" href="#id86" role="doc-backlink">CURRENT_TIME</a><a class="headerlink" href="#current-time" title="Link to this heading">¶</a></h2>
+<section id="id6">
+<h3>Description<a class="headerlink" href="#id6" title="Link to this heading">¶</a></h3>
+<p><cite>CURRENT_TIME()</cite> are synonyms for <a class="reference external" href="#curtime">CURTIME()</a>.</p>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>&gt; source=people | eval `CURRENT_TIME()` = CURRENT_TIME() | fields `CURRENT_TIME()`
+fetched rows / total rows = 1/1
++------------------+
+| CURRENT_TIME()   |
+|------------------+
+| 15:39:05         |
++------------------+
+</pre></div>
+</div>
+</section>
+</section>
+<section id="current-timestamp">
+<h2><a class="toc-backref" href="#id87" role="doc-backlink">CURRENT_TIMESTAMP</a><a class="headerlink" href="#current-timestamp" title="Link to this heading">¶</a></h2>
+<section id="id7">
+<h3>Description<a class="headerlink" href="#id7" title="Link to this heading">¶</a></h3>
+<p><cite>CURRENT_TIMESTAMP()</cite> are synonyms for <a class="reference external" href="#now">NOW()</a>.</p>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>&gt; source=people | eval `CURRENT_TIMESTAMP()` = CURRENT_TIMESTAMP() | fields `CURRENT_TIMESTAMP()`
+fetched rows / total rows = 1/1
++-----------------------+
+| CURRENT_TIMESTAMP()   |
+|-----------------------+
+| 2022-08-02 15:54:19   |
++-----------------------+
+</pre></div>
+</div>
+</section>
+</section>
+<section id="id8">
+<h2><a class="toc-backref" href="#id88" role="doc-backlink">CURTIME</a><a class="headerlink" href="#id8" title="Link to this heading">¶</a></h2>
+<section id="id9">
+<h3>Description<a class="headerlink" href="#id9" title="Link to this heading">¶</a></h3>
+<p>Returns the current time as a value in ‘hh:mm:ss’.
+CURTIME() returns the time at which the statement began to execute as <a class="reference external" href="#now">NOW()</a> does.</p>
+<p>Return type: TIME</p>
+<p>Specification: CURTIME() -&gt; TIME</p>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>&gt; source=people | eval `value_1` = CURTIME(), `value_2` = CURTIME() | fields `value_1`, `value_2`
+fetched rows / total rows = 1/1
++-----------+-----------+
+| value_1   | value_2   |
+|-----------+-----------|
+| 15:39:05  | 15:39:05  |
++-----------+-----------+
+</pre></div>
+</div>
+</section>
+</section>
+<section id="date">
+<h2><a class="toc-backref" href="#id89" role="doc-backlink">DATE</a><a class="headerlink" href="#date" title="Link to this heading">¶</a></h2>
+<section id="id11">
+<h3>Description<a class="headerlink" href="#id11" title="Link to this heading">¶</a></h3>
+<p>Usage: date(expr) constructs a date type with the input string expr as a date. If the argument is of date/timestamp, it extracts the date value part from the expression.</p>
+<p>Argument type: STRING/DATE/TIMESTAMP</p>
+<p>Return type: DATE</p>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>os&gt; source=people | eval `DATE(&#39;2020-08-26&#39;)` = DATE(&#39;2020-08-26&#39;) | fields `DATE(&#39;2020-08-26&#39;)`
+fetched rows / total rows = 1/1
++----------------------+
+| DATE(&#39;2020-08-26&#39;)   |
+|----------------------|
+| 2020-08-26           |
++----------------------+
+
+os&gt; source=people | eval `DATE(TIMESTAMP(&#39;2020-08-26 13:49:00&#39;))` = DATE(TIMESTAMP(&#39;2020-08-26 13:49:00&#39;)) | fields `DATE(TIMESTAMP(&#39;2020-08-26 13:49:00&#39;))`
+fetched rows / total rows = 1/1
++------------------------------------------+
+| DATE(TIMESTAMP(&#39;2020-08-26 13:49:00&#39;))   |
+|------------------------------------------|
+| 2020-08-26                               |
++------------------------------------------+
+
+os&gt; source=people | eval `DATE(&#39;2020-08-26 13:49&#39;)` = DATE(&#39;2020-08-26 13:49&#39;) | fields `DATE(&#39;2020-08-26 13:49&#39;)`
+fetched rows / total rows = 1/1
++----------------------------+
+| DATE(&#39;2020-08-26 13:49&#39;)   |
+|----------------------------|
+| 2020-08-26                 |
++----------------------------+
+
+os&gt; source=people | eval `DATE(&#39;2020-08-26 13:49&#39;)` = DATE(&#39;2020-08-26 13:49&#39;) | fields `DATE(&#39;2020-08-26 13:49&#39;)`
+fetched rows / total rows = 1/1
++----------------------------+
+| DATE(&#39;2020-08-26 13:49&#39;)   |
+|----------------------------|
+| 2020-08-26                 |
++----------------------------+
+</pre></div>
+</div>
+</section>
+</section>
+<section id="date-add">
+<h2><a class="toc-backref" href="#id90" role="doc-backlink">DATE_ADD</a><a class="headerlink" href="#date-add" title="Link to this heading">¶</a></h2>
+<section id="id12">
+<h3>Description<a class="headerlink" href="#id12" title="Link to this heading">¶</a></h3>
+<p>Usage: date_add(date, INTERVAL expr unit) adds the interval expr to date. If first argument is TIME, today’s date is used; if first argument is DATE, time at midnight is used.</p>
+<p>Argument type: DATE/TIMESTAMP/TIME, INTERVAL</p>
+<p>Return type: TIMESTAMP</p>
+<p>Synonyms: <a class="reference internal" href="#adddate">ADDDATE</a></p>
+<p>Antonyms: <a class="reference internal" href="#date-sub">DATE_SUB</a></p>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>os&gt; source=people | eval `&#39;2020-08-26&#39; + 1h` = DATE_ADD(DATE(&#39;2020-08-26&#39;), INTERVAL 1 HOUR), `ts &#39;2020-08-26 01:01:01&#39; + 1d` = DATE_ADD(TIMESTAMP(&#39;2020-08-26 01:01:01&#39;), INTERVAL 1 DAY) | fields `&#39;2020-08-26&#39; + 1h`, `ts &#39;2020-08-26 01:01:01&#39; + 1d`
+fetched rows / total rows = 1/1
++---------------------+---------------------------------+
+| &#39;2020-08-26&#39; + 1h   | ts &#39;2020-08-26 01:01:01&#39; + 1d   |
+|---------------------+---------------------------------|
+| 2020-08-26 01:00:00 | 2020-08-27 01:01:01             |
++---------------------+---------------------------------+
+</pre></div>
+</div>
+</section>
+</section>
+<section id="date-format">
+<h2><a class="toc-backref" href="#id91" role="doc-backlink">DATE_FORMAT</a><a class="headerlink" href="#date-format" title="Link to this heading">¶</a></h2>
+<section id="id13">
+<h3>Description<a class="headerlink" href="#id13" title="Link to this heading">¶</a></h3>
+<p>Usage: date_format(date, format) formats the date argument using the specifiers in the format argument.
+If an argument of type TIME is provided, the local date is used.</p>
+<table class="docutils align-default" id="id76">
+<caption><span class="caption-text">The following table describes the available specifier arguments.</span><a class="headerlink" href="#id76" title="Link to this table">¶</a></caption>
+<colgroup>
+<col style="width: 20.0%" />
+<col style="width: 80.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Specifier</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>%a</p></td>
+<td><p>Abbreviated weekday name (Sun..Sat)</p></td>
+</tr>
+<tr class="row-odd"><td><p>%b</p></td>
+<td><p>Abbreviated month name (Jan..Dec)</p></td>
+</tr>
+<tr class="row-even"><td><p>%c</p></td>
+<td><p>Month, numeric (0..12)</p></td>
+</tr>
+<tr class="row-odd"><td><p>%D</p></td>
+<td><p>Day of the month with English suffix (0th, 1st, 2nd, 3rd, …)</p></td>
+</tr>
+<tr class="row-even"><td><p>%d</p></td>
+<td><p>Day of the month, numeric (00..31)</p></td>
+</tr>
+<tr class="row-odd"><td><p>%e</p></td>
+<td><p>Day of the month, numeric (0..31)</p></td>
+</tr>
+<tr class="row-even"><td><p>%f</p></td>
+<td><p>Microseconds (000000..999999)</p></td>
+</tr>
+<tr class="row-odd"><td><p>%H</p></td>
+<td><p>Hour (00..23)</p></td>
+</tr>
+<tr class="row-even"><td><p>%h</p></td>
+<td><p>Hour (01..12)</p></td>
+</tr>
+<tr class="row-odd"><td><p>%I</p></td>
+<td><p>Hour (01..12)</p></td>
+</tr>
+<tr class="row-even"><td><p>%i</p></td>
+<td><p>Minutes, numeric (00..59)</p></td>
+</tr>
+<tr class="row-odd"><td><p>%j</p></td>
+<td><p>Day of year (001..366)</p></td>
+</tr>
+<tr class="row-even"><td><p>%k</p></td>
+<td><p>Hour (0..23)</p></td>
+</tr>
+<tr class="row-odd"><td><p>%l</p></td>
+<td><p>Hour (1..12)</p></td>
+</tr>
+<tr class="row-even"><td><p>%M</p></td>
+<td><p>Month name (January..December)</p></td>
+</tr>
+<tr class="row-odd"><td><p>%m</p></td>
+<td><p>Month, numeric (00..12)</p></td>
+</tr>
+<tr class="row-even"><td><p>%p</p></td>
+<td><p>AM or PM</p></td>
+</tr>
+<tr class="row-odd"><td><p>%r</p></td>
+<td><p>Time, 12-hour (hh:mm:ss followed by AM or PM)</p></td>
+</tr>
+<tr class="row-even"><td><p>%S</p></td>
+<td><p>Seconds (00..59)</p></td>
+</tr>
+<tr class="row-odd"><td><p>%s</p></td>
+<td><p>Seconds (00..59)</p></td>
+</tr>
+<tr class="row-even"><td><p>%T</p></td>
+<td><p>Time, 24-hour (hh:mm:ss)</p></td>
+</tr>
+<tr class="row-odd"><td><p>%U</p></td>
+<td><p>Week (00..53), where Sunday is the first day of the week; WEEK() mode 0</p></td>
+</tr>
+<tr class="row-even"><td><p>%u</p></td>
+<td><p>Week (00..53), where Monday is the first day of the week; WEEK() mode 1</p></td>
+</tr>
+<tr class="row-odd"><td><p>%V</p></td>
+<td><p>Week (01..53), where Sunday is the first day of the week; WEEK() mode 2; used with %X</p></td>
+</tr>
+<tr class="row-even"><td><p>%v</p></td>
+<td><p>Week (01..53), where Monday is the first day of the week; WEEK() mode 3; used with %x</p></td>
+</tr>
+<tr class="row-odd"><td><p>%W</p></td>
+<td><p>Weekday name (Sunday..Saturday)</p></td>
+</tr>
+<tr class="row-even"><td><p>%w</p></td>
+<td><p>Day of the week (0=Sunday..6=Saturday)</p></td>
+</tr>
+<tr class="row-odd"><td><p>%X</p></td>
+<td><p>Year for the week where Sunday is the first day of the week, numeric, four digits; used with %V</p></td>
+</tr>
+<tr class="row-even"><td><p>%x</p></td>
+<td><p>Year for the week, where Monday is the first day of the week, numeric, four digits; used with %v</p></td>
+</tr>
+<tr class="row-odd"><td><p>%Y</p></td>
+<td><p>Year, numeric, four digits</p></td>
+</tr>
+<tr class="row-even"><td><p>%y</p></td>
+<td><p>Year, numeric (two digits)</p></td>
+</tr>
+<tr class="row-odd"><td><p>%%</p></td>
+<td><p>A literal % character</p></td>
+</tr>
+<tr class="row-even"><td><p>%x</p></td>
+<td><p>x, for any “x” not listed above</p></td>
+</tr>
+<tr class="row-odd"><td><p>x</p></td>
+<td><p>x, for any smallcase/uppercase alphabet except [aydmshiHIMYDSEL]</p></td>
+</tr>
+</tbody>
+</table>
+<p>Argument type: STRING/DATE/TIME/TIMESTAMP, STRING</p>
+<p>Return type: STRING</p>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>os&gt; source=people | eval `DATE_FORMAT(&#39;1998-01-31 13:14:15.012345&#39;, &#39;%T.%f&#39;)` = DATE_FORMAT(&#39;1998-01-31 13:14:15.012345&#39;, &#39;%T.%f&#39;), `DATE_FORMAT(TIMESTAMP(&#39;1998-01-31 13:14:15.012345&#39;), &#39;%Y-%b-%D %r&#39;)` = DATE_FORMAT(TIMESTAMP(&#39;1998-01-31 13:14:15.012345&#39;), &#39;%Y-%b-%D %r&#39;) | fields `DATE_FORMAT(&#39;1998-01-31 13:14:15.012345&#39;, &#39;%T.%f&#39;)`, `DATE_FORMAT(TIMESTAMP(&#39;1998-01-31 13:14:15.012345&#39;), &#39;%Y-%b-%D %r&#39;)`
+fetched rows / total rows = 1/1
++------------------------------------------------------+-----------------------------------------------------------------------+
+| DATE_FORMAT(&#39;1998-01-31 13:14:15.012345&#39;, &#39;%T.%f&#39;)   | DATE_FORMAT(TIMESTAMP(&#39;1998-01-31 13:14:15.012345&#39;), &#39;%Y-%b-%D %r&#39;)   |
+|------------------------------------------------------+-----------------------------------------------------------------------|
+| 13:14:15.012345                                      | 1998-Jan-31st 01:14:15 PM                                             |
++------------------------------------------------------+-----------------------------------------------------------------------+
+</pre></div>
+</div>
+</section>
+</section>
+<section id="datetime">
+<h2><a class="toc-backref" href="#id92" role="doc-backlink">DATETIME</a><a class="headerlink" href="#datetime" title="Link to this heading">¶</a></h2>
+<section id="id14">
+<h3>Description<a class="headerlink" href="#id14" title="Link to this heading">¶</a></h3>
+<p>Usage: DATETIME(timestamp)/ DATETIME(date, to_timezone) Converts the datetime to a new timezone</p>
+<p>Argument type: timestamp/STRING</p>
+<p>Return type map:</p>
+<p>(TIMESTAMP, STRING) -&gt; TIMESTAMP</p>
+<p>(TIMESTAMP) -&gt; TIMESTAMP</p>
+<p>Converting timestamp with timezone to the second argument timezone.
+Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>os&gt; source=people | eval `DATETIME(&#39;2004-02-28 23:00:00-10:00&#39;, &#39;+10:00&#39;)` = DATETIME(&#39;2004-02-28 23:00:00-10:00&#39;, &#39;+10:00&#39;) | fields `DATETIME(&#39;2004-02-28 23:00:00-10:00&#39;, &#39;+10:00&#39;)`
+fetched rows / total rows = 1/1
++---------------------------------------------------+
+| DATETIME(&#39;2004-02-28 23:00:00-10:00&#39;, &#39;+10:00&#39;)   |
+|---------------------------------------------------|
+| 2004-02-29 19:00:00                               |
++---------------------------------------------------+
+</pre></div>
+</div>
+<p>The valid timezone range for convert_tz is (-13:59, +14:00) inclusive. Timezones outside of the range will result in null.
+Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>os&gt; source=people | eval  `DATETIME(&#39;2008-01-01 02:00:00&#39;, &#39;-14:00&#39;)` = DATETIME(&#39;2008-01-01 02:00:00&#39;, &#39;-14:00&#39;) | fields `DATETIME(&#39;2008-01-01 02:00:00&#39;, &#39;-14:00&#39;)`
+fetched rows / total rows = 1/1
++---------------------------------------------+
+| DATETIME(&#39;2008-01-01 02:00:00&#39;, &#39;-14:00&#39;)   |
+|---------------------------------------------|
+| null                                        |
++---------------------------------------------+
+</pre></div>
+</div>
+</section>
+</section>
+<section id="date-sub">
+<h2><a class="toc-backref" href="#id93" role="doc-backlink">DATE_SUB</a><a class="headerlink" href="#date-sub" title="Link to this heading">¶</a></h2>
+<section id="id15">
+<h3>Description<a class="headerlink" href="#id15" title="Link to this heading">¶</a></h3>
+<p>Usage: date_sub(date, INTERVAL expr unit) subtracts the interval expr from date. If first argument is TIME, today’s date is used; if first argument is DATE, time at midnight is used.</p>
+<p>Argument type: DATE/TIMESTAMP/TIME, INTERVAL</p>
+<p>Return type: TIMESTAMP</p>
+<p>Synonyms: <a class="reference internal" href="#subdate">SUBDATE</a></p>
+<p>Antonyms: <a class="reference internal" href="#date-add">DATE_ADD</a></p>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>os&gt; source=people | eval `&#39;2008-01-02&#39; - 31d` = DATE_SUB(DATE(&#39;2008-01-02&#39;), INTERVAL 31 DAY), `ts &#39;2020-08-26 01:01:01&#39; + 1h` = DATE_SUB(TIMESTAMP(&#39;2020-08-26 01:01:01&#39;), INTERVAL 1 HOUR) | fields `&#39;2008-01-02&#39; - 31d`, `ts &#39;2020-08-26 01:01:01&#39; + 1h`
+fetched rows / total rows = 1/1
++----------------------+---------------------------------+
+| &#39;2008-01-02&#39; - 31d   | ts &#39;2020-08-26 01:01:01&#39; + 1h   |
+|----------------------+---------------------------------|
+| 2007-12-02 00:00:00  | 2020-08-26 00:01:01             |
++----------------------+---------------------------------+
+</pre></div>
+</div>
+</section>
+</section>
+<section id="datediff">
+<h2><a class="toc-backref" href="#id94" role="doc-backlink">DATEDIFF</a><a class="headerlink" href="#datediff" title="Link to this heading">¶</a></h2>
+<p>Usage: Calculates the difference of date parts of given values. If the first argument is time, today’s date is used.</p>
+<p>Argument type: DATE/TIMESTAMP/TIME, DATE/TIMESTAMP/TIME</p>
+<p>Return type: LONG</p>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>os&gt; source=people | eval `&#39;2000-01-02&#39; - &#39;2000-01-01&#39;` = DATEDIFF(TIMESTAMP(&#39;2000-01-02 00:00:00&#39;), TIMESTAMP(&#39;2000-01-01 23:59:59&#39;)), `&#39;2001-02-01&#39; - &#39;2004-01-01&#39;` = DATEDIFF(DATE(&#39;2001-02-01&#39;), TIMESTAMP(&#39;2004-01-01 00:00:00&#39;)), `today - today` = DATEDIFF(TIME(&#39;23:59:59&#39;), TIME(&#39;00:00:00&#39;)) | fields `&#39;2000-01-02&#39; - &#39;2000-01-01&#39;`, `&#39;2001-02-01&#39; - &#39;2004-01-01&#39;`, `today - today`
+fetched rows / total rows = 1/1
++-------------------------------+-------------------------------+-----------------+
+| &#39;2000-01-02&#39; - &#39;2000-01-01&#39;   | &#39;2001-02-01&#39; - &#39;2004-01-01&#39;   | today - today   |
+|-------------------------------+-------------------------------+-----------------|
+| 1                             | -1064                         | 0               |
++-------------------------------+-------------------------------+-----------------+
+</pre></div>
+</div>
+</section>
+<section id="day">
+<h2><a class="toc-backref" href="#id95" role="doc-backlink">DAY</a><a class="headerlink" href="#day" title="Link to this heading">¶</a></h2>
+<section id="id16">
+<h3>Description<a class="headerlink" href="#id16" title="Link to this heading">¶</a></h3>
+<p>Usage: day(date) extracts the day of the month for date, in the range 1 to 31.</p>
+<p>Argument type: STRING/DATE/TIMESTAMP</p>
+<p>Return type: INTEGER</p>
+<p>Synonyms: <a class="reference internal" href="#dayofmonth">DAYOFMONTH</a>, <a class="reference internal" href="#day-of-month">DAY_OF_MONTH</a></p>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>os&gt; source=people | eval `DAY(DATE(&#39;2020-08-26&#39;))` = DAY(DATE(&#39;2020-08-26&#39;)) | fields `DAY(DATE(&#39;2020-08-26&#39;))`
+fetched rows / total rows = 1/1
++---------------------------+
+| DAY(DATE(&#39;2020-08-26&#39;))   |
+|---------------------------|
+| 26                        |
++---------------------------+
+</pre></div>
+</div>
+</section>
+</section>
+<section id="dayname">
+<h2><a class="toc-backref" href="#id96" role="doc-backlink">DAYNAME</a><a class="headerlink" href="#dayname" title="Link to this heading">¶</a></h2>
+<section id="id17">
+<h3>Description<a class="headerlink" href="#id17" title="Link to this heading">¶</a></h3>
+<p>Usage: dayname(date) returns the name of the weekday for date, including Monday, Tuesday, Wednesday, Thursday, Friday, Saturday and Sunday.</p>
+<p>Argument type: STRING/DATE/TIMESTAMP</p>
+<p>Return type: STRING</p>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>os&gt; source=people | eval `DAYNAME(DATE(&#39;2020-08-26&#39;))` = DAYNAME(DATE(&#39;2020-08-26&#39;)) | fields `DAYNAME(DATE(&#39;2020-08-26&#39;))`
+fetched rows / total rows = 1/1
++-------------------------------+
+| DAYNAME(DATE(&#39;2020-08-26&#39;))   |
+|-------------------------------|
+| Wednesday                     |
++-------------------------------+
+</pre></div>
+</div>
+</section>
+</section>
+<section id="dayofmonth">
+<h2><a class="toc-backref" href="#id97" role="doc-backlink">DAYOFMONTH</a><a class="headerlink" href="#dayofmonth" title="Link to this heading">¶</a></h2>
+<section id="id18">
+<h3>Description<a class="headerlink" href="#id18" title="Link to this heading">¶</a></h3>
+<p>Usage: dayofmonth(date) extracts the day of the month for date, in the range 1 to 31.</p>
+<p>Argument type: STRING/DATE/TIMESTAMP</p>
+<p>Return type: INTEGER</p>
+<p>Synonyms: <a class="reference internal" href="#day">DAY</a>, <a class="reference internal" href="#day-of-month">DAY_OF_MONTH</a></p>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>os&gt; source=people | eval `DAYOFMONTH(DATE(&#39;2020-08-26&#39;))` = DAYOFMONTH(DATE(&#39;2020-08-26&#39;)) | fields `DAYOFMONTH(DATE(&#39;2020-08-26&#39;))`
+fetched rows / total rows = 1/1
++----------------------------------+
+| DAYOFMONTH(DATE(&#39;2020-08-26&#39;))   |
+|----------------------------------|
+| 26                               |
++----------------------------------+
+</pre></div>
+</div>
+</section>
+</section>
+<section id="day-of-month">
+<h2><a class="toc-backref" href="#id98" role="doc-backlink">DAY_OF_MONTH</a><a class="headerlink" href="#day-of-month" title="Link to this heading">¶</a></h2>
+<section id="id19">
+<h3>Description<a class="headerlink" href="#id19" title="Link to this heading">¶</a></h3>
+<p>Usage: day_of_month(date) extracts the day of the month for date, in the range 1 to 31.</p>
+<p>Argument type: STRING/DATE/TIMESTAMP</p>
+<p>Return type: INTEGER</p>
+<p>Synonyms: <a class="reference internal" href="#day">DAY</a>, <a class="reference internal" href="#dayofmonth">DAYOFMONTH</a></p>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>os&gt; source=people | eval `DAY_OF_MONTH(DATE(&#39;2020-08-26&#39;))` = DAY_OF_MONTH(DATE(&#39;2020-08-26&#39;)) | fields `DAY_OF_MONTH(DATE(&#39;2020-08-26&#39;))`
+fetched rows / total rows = 1/1
++------------------------------------+
+| DAY_OF_MONTH(DATE(&#39;2020-08-26&#39;))   |
+|------------------------------------|
+| 26                                 |
++------------------------------------+
+</pre></div>
+</div>
+</section>
+</section>
+<section id="dayofweek">
+<h2><a class="toc-backref" href="#id99" role="doc-backlink">DAYOFWEEK</a><a class="headerlink" href="#dayofweek" title="Link to this heading">¶</a></h2>
+<section id="id20">
+<h3>Description<a class="headerlink" href="#id20" title="Link to this heading">¶</a></h3>
+<p>Usage: dayofweek(date) returns the weekday index for date (1 = Sunday, 2 = Monday, …, 7 = Saturday).</p>
+<p>Argument type: STRING/DATE/TIMESTAMP</p>
+<p>Return type: INTEGER</p>
+<p>Synonyms: <a class="reference internal" href="#day-of-week">DAY_OF_WEEK</a></p>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>os&gt; source=people | eval `DAYOFWEEK(DATE(&#39;2020-08-26&#39;))` = DAYOFWEEK(DATE(&#39;2020-08-26&#39;)) | fields `DAYOFWEEK(DATE(&#39;2020-08-26&#39;))`
+fetched rows / total rows = 1/1
++---------------------------------+
+| DAYOFWEEK(DATE(&#39;2020-08-26&#39;))   |
+|---------------------------------|
+| 4                               |
++---------------------------------+
+</pre></div>
+</div>
+</section>
+</section>
+<section id="day-of-week">
+<h2><a class="toc-backref" href="#id100" role="doc-backlink">DAY_OF_WEEK</a><a class="headerlink" href="#day-of-week" title="Link to this heading">¶</a></h2>
+<section id="id21">
+<h3>Description<a class="headerlink" href="#id21" title="Link to this heading">¶</a></h3>
+<p>Usage: day_of_week(date) returns the weekday index for date (1 = Sunday, 2 = Monday, …, 7 = Saturday).</p>
+<p>Argument type: STRING/DATE/TIMESTAMP</p>
+<p>Return type: INTEGER</p>
+<p>Synonyms: <a class="reference internal" href="#dayofweek">DAYOFWEEK</a></p>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>os&gt; source=people | eval `DAY_OF_WEEK(DATE(&#39;2020-08-26&#39;))` = DAY_OF_WEEK(DATE(&#39;2020-08-26&#39;)) | fields `DAY_OF_WEEK(DATE(&#39;2020-08-26&#39;))`
+fetched rows / total rows = 1/1
++-----------------------------------+
+| DAY_OF_WEEK(DATE(&#39;2020-08-26&#39;))   |
+|-----------------------------------|
+| 4                                 |
++-----------------------------------+
+</pre></div>
+</div>
+</section>
+</section>
+<section id="dayofyear">
+<h2><a class="toc-backref" href="#id101" role="doc-backlink">DAYOFYEAR</a><a class="headerlink" href="#dayofyear" title="Link to this heading">¶</a></h2>
+<section id="id22">
+<h3>Description<a class="headerlink" href="#id22" title="Link to this heading">¶</a></h3>
+<p>Usage:  dayofyear(date) returns the day of the year for date, in the range 1 to 366.</p>
+<p>Argument type: STRING/DATE/TIMESTAMP</p>
+<p>Return type: INTEGER</p>
+<p>Synonyms: <a class="reference internal" href="#day-of-year">DAY_OF_YEAR</a></p>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>os&gt; source=people | eval `DAYOFYEAR(DATE(&#39;2020-08-26&#39;))` = DAYOFYEAR(DATE(&#39;2020-08-26&#39;)) | fields `DAYOFYEAR(DATE(&#39;2020-08-26&#39;))`
+fetched rows / total rows = 1/1
++---------------------------------+
+| DAYOFYEAR(DATE(&#39;2020-08-26&#39;))   |
+|---------------------------------|
+| 239                             |
++---------------------------------+
+</pre></div>
+</div>
+</section>
+</section>
+<section id="day-of-year">
+<h2><a class="toc-backref" href="#id102" role="doc-backlink">DAY_OF_YEAR</a><a class="headerlink" href="#day-of-year" title="Link to this heading">¶</a></h2>
+<section id="id23">
+<h3>Description<a class="headerlink" href="#id23" title="Link to this heading">¶</a></h3>
+<p>Usage:  day_of_year(date) returns the day of the year for date, in the range 1 to 366.</p>
+<p>Argument type: STRING/DATE/TIMESTAMP</p>
+<p>Return type: INTEGER</p>
+<p>Synonyms: <a class="reference internal" href="#dayofyear">DAYOFYEAR</a></p>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>os&gt; source=people | eval `DAY_OF_YEAR(DATE(&#39;2020-08-26&#39;))` = DAY_OF_YEAR(DATE(&#39;2020-08-26&#39;)) | fields `DAY_OF_YEAR(DATE(&#39;2020-08-26&#39;))`
+fetched rows / total rows = 1/1
++-----------------------------------+
+| DAY_OF_YEAR(DATE(&#39;2020-08-26&#39;))   |
+|-----------------------------------|
+| 239                               |
++-----------------------------------+
+</pre></div>
+</div>
+</section>
+</section>
+<section id="extract">
+<h2><a class="toc-backref" href="#id103" role="doc-backlink">EXTRACT</a><a class="headerlink" href="#extract" title="Link to this heading">¶</a></h2>
+<section id="id24">
+<h3>Description<a class="headerlink" href="#id24" title="Link to this heading">¶</a></h3>
+<p>Usage: extract(part FROM date) returns a LONG with digits in order according to the given ‘part’ arguments.
+The specific format of the returned long is determined by the table below.</p>
+<p>Argument type: PART, where PART is one of the following tokens in the table below.</p>
+<p>The format specifiers found in this table are the same as those found in the <a class="reference internal" href="#date-format">DATE_FORMAT</a> function.</p>
+<table class="docutils align-default" id="id77">
+<caption><span class="caption-text">The following table describes the mapping of a ‘part’ to a particular format.</span><a class="headerlink" href="#id77" title="Link to this table">¶</a></caption>
+<colgroup>
+<col style="width: 20.0%" />
+<col style="width: 80.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Part</p></th>
+<th class="head"><p>Format</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>MICROSECOND</p></td>
+<td><p>%f</p></td>
+</tr>
+<tr class="row-odd"><td><p>SECOND</p></td>
+<td><p>%s</p></td>
+</tr>
+<tr class="row-even"><td><p>MINUTE</p></td>
+<td><p>%i</p></td>
+</tr>
+<tr class="row-odd"><td><p>HOUR</p></td>
+<td><p>%H</p></td>
+</tr>
+<tr class="row-even"><td><p>DAY</p></td>
+<td><p>%d</p></td>
+</tr>
+<tr class="row-odd"><td><p>WEEK</p></td>
+<td><p>%X</p></td>
+</tr>
+<tr class="row-even"><td><p>MONTH</p></td>
+<td><p>%m</p></td>
+</tr>
+<tr class="row-odd"><td><p>YEAR</p></td>
+<td><p>%V</p></td>
+</tr>
+<tr class="row-even"><td><p>SECOND_MICROSECOND</p></td>
+<td><p>%s%f</p></td>
+</tr>
+<tr class="row-odd"><td><p>MINUTE_MICROSECOND</p></td>
+<td><p>%i%s%f</p></td>
+</tr>
+<tr class="row-even"><td><p>MINUTE_SECOND</p></td>
+<td><p>%i%s</p></td>
+</tr>
+<tr class="row-odd"><td><p>HOUR_MICROSECOND</p></td>
+<td><p>%H%i%s%f</p></td>
+</tr>
+<tr class="row-even"><td><p>HOUR_SECOND</p></td>
+<td><p>%H%i%s</p></td>
+</tr>
+<tr class="row-odd"><td><p>HOUR_MINUTE</p></td>
+<td><p>%H%i</p></td>
+</tr>
+<tr class="row-even"><td><p>DAY_MICROSECOND</p></td>
+<td><p>%d%H%i%s%f</p></td>
+</tr>
+<tr class="row-odd"><td><p>DAY_SECOND</p></td>
+<td><p>%d%H%i%s</p></td>
+</tr>
+<tr class="row-even"><td><p>DAY_MINUTE</p></td>
+<td><p>%d%H%i</p></td>
+</tr>
+<tr class="row-odd"><td><p>DAY_HOUR</p></td>
+<td><p>%d%H%</p></td>
+</tr>
+<tr class="row-even"><td><p>YEAR_MONTH</p></td>
+<td><p>%V%m</p></td>
+</tr>
+</tbody>
+</table>
+<p>Return type: LONG</p>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>os&gt; source=people | eval `extract(YEAR_MONTH FROM &quot;2023-02-07 10:11:12&quot;)` = extract(YEAR_MONTH FROM &quot;2023-02-07 10:11:12&quot;) | fields `extract(YEAR_MONTH FROM &quot;2023-02-07 10:11:12&quot;)`
+fetched rows / total rows = 1/1
++--------------------------------------------------+
+| extract(YEAR_MONTH FROM &quot;2023-02-07 10:11:12&quot;)   |
+|--------------------------------------------------|
+| 202302                                           |
++--------------------------------------------------+
+</pre></div>
+</div>
+</section>
+</section>
+<section id="from-days">
+<h2><a class="toc-backref" href="#id104" role="doc-backlink">FROM_DAYS</a><a class="headerlink" href="#from-days" title="Link to this heading">¶</a></h2>
+<section id="id25">
+<h3>Description<a class="headerlink" href="#id25" title="Link to this heading">¶</a></h3>
+<p>Usage: from_days(N) returns the date value given the day number N.</p>
+<p>Argument type: INTEGER/LONG</p>
+<p>Return type: DATE</p>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>os&gt; source=people | eval `FROM_DAYS(733687)` = FROM_DAYS(733687) | fields `FROM_DAYS(733687)`
+fetched rows / total rows = 1/1
++---------------------+
+| FROM_DAYS(733687)   |
+|---------------------|
+| 2008-10-07          |
++---------------------+
+</pre></div>
+</div>
+</section>
+</section>
+<section id="from-unixtime">
+<h2><a class="toc-backref" href="#id105" role="doc-backlink">FROM_UNIXTIME</a><a class="headerlink" href="#from-unixtime" title="Link to this heading">¶</a></h2>
+<section id="id26">
+<h3>Description<a class="headerlink" href="#id26" title="Link to this heading">¶</a></h3>
+<p>Usage: Returns a representation of the argument given as a timestamp or character string value. Perform reverse conversion for <a class="reference internal" href="#unix-timestamp">UNIX_TIMESTAMP</a> function.
+If second argument is provided, it is used to format the result in the same way as the format string used for the <a class="reference internal" href="#date-format">DATE_FORMAT</a> function.
+If timestamp is outside of range 1970-01-01 00:00:00 - 3001-01-18 23:59:59.999999 (0 to 32536771199.999999 epoch time), function returns NULL.
+Argument type: DOUBLE, STRING</p>
+<p>Return type map:</p>
+<p>DOUBLE -&gt; TIMESTAMP</p>
+<p>DOUBLE, STRING -&gt; STRING</p>
+<p>Examples:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>os&gt; source=people | eval `FROM_UNIXTIME(1220249547)` = FROM_UNIXTIME(1220249547) | fields `FROM_UNIXTIME(1220249547)`
+fetched rows / total rows = 1/1
++-----------------------------+
+| FROM_UNIXTIME(1220249547)   |
+|-----------------------------|
+| 2008-09-01 06:12:27         |
++-----------------------------+
+
+os&gt; source=people | eval `FROM_UNIXTIME(1220249547, &#39;%T&#39;)` = FROM_UNIXTIME(1220249547, &#39;%T&#39;) | fields `FROM_UNIXTIME(1220249547, &#39;%T&#39;)`
+fetched rows / total rows = 1/1
++-----------------------------------+
+| FROM_UNIXTIME(1220249547, &#39;%T&#39;)   |
+|-----------------------------------|
+| 06:12:27                          |
++-----------------------------------+
+</pre></div>
+</div>
+</section>
+</section>
+<section id="get-format">
+<h2><a class="toc-backref" href="#id106" role="doc-backlink">GET_FORMAT</a><a class="headerlink" href="#get-format" title="Link to this heading">¶</a></h2>
+<section id="id27">
+<h3>Description<a class="headerlink" href="#id27" title="Link to this heading">¶</a></h3>
+<p>Usage: Returns a string value containing string format specifiers based on the input arguments.</p>
+<p>Argument type: TYPE, STRING, where TYPE must be one of the following tokens: [DATE, TIME, TIMESTAMP], and
+STRING must be one of the following tokens: [“USA”, “JIS”, “ISO”, “EUR”, “INTERNAL”] (” can be replaced by ‘).</p>
+<p>Examples:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>os&gt; source=people | eval `GET_FORMAT(DATE, &#39;USA&#39;)` = GET_FORMAT(DATE, &#39;USA&#39;) | fields `GET_FORMAT(DATE, &#39;USA&#39;)`
+fetched rows / total rows = 1/1
++---------------------------+
+| GET_FORMAT(DATE, &#39;USA&#39;)   |
+|---------------------------|
+| %m.%d.%Y                  |
++---------------------------+
+</pre></div>
+</div>
+</section>
+</section>
+<section id="hour">
+<h2><a class="toc-backref" href="#id107" role="doc-backlink">HOUR</a><a class="headerlink" href="#hour" title="Link to this heading">¶</a></h2>
+<section id="id28">
+<h3>Description<a class="headerlink" href="#id28" title="Link to this heading">¶</a></h3>
+<p>Usage: hour(time) extracts the hour value for time. Different from the time of day value, the time value has a large range and can be greater than 23, so the return value of hour(time) can be also greater than 23.</p>
+<p>Argument type: STRING/TIME/TIMESTAMP</p>
+<p>Return type: INTEGER</p>
+<p>Synonyms: <a class="reference internal" href="#hour-of-day">HOUR_OF_DAY</a></p>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>os&gt; source=people | eval `HOUR(TIME(&#39;01:02:03&#39;))` = HOUR(TIME(&#39;01:02:03&#39;)) | fields `HOUR(TIME(&#39;01:02:03&#39;))`
+fetched rows / total rows = 1/1
++--------------------------+
+| HOUR(TIME(&#39;01:02:03&#39;))   |
+|--------------------------|
+| 1                        |
++--------------------------+
+</pre></div>
+</div>
+</section>
+</section>
+<section id="hour-of-day">
+<h2><a class="toc-backref" href="#id108" role="doc-backlink">HOUR_OF_DAY</a><a class="headerlink" href="#hour-of-day" title="Link to this heading">¶</a></h2>
+<section id="id29">
+<h3>Description<a class="headerlink" href="#id29" title="Link to this heading">¶</a></h3>
+<p>Usage: hour_of_day(time) extracts the hour value for time. Different from the time of day value, the time value has a large range and can be greater than 23, so the return value of hour_of_day(time) can be also greater than 23.</p>
+<p>Argument type: STRING/TIME/TIMESTAMP</p>
+<p>Return type: INTEGER</p>
+<p>Synonyms: <a class="reference internal" href="#hour">HOUR</a></p>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>os&gt; source=people | eval `HOUR_OF_DAY(TIME(&#39;01:02:03&#39;))` = HOUR_OF_DAY(TIME(&#39;01:02:03&#39;)) | fields `HOUR_OF_DAY(TIME(&#39;01:02:03&#39;))`
+fetched rows / total rows = 1/1
++---------------------------------+
+| HOUR_OF_DAY(TIME(&#39;01:02:03&#39;))   |
+|---------------------------------|
+| 1                               |
++---------------------------------+
+</pre></div>
+</div>
+</section>
+</section>
+<section id="last-day">
+<h2><a class="toc-backref" href="#id109" role="doc-backlink">LAST_DAY</a><a class="headerlink" href="#last-day" title="Link to this heading">¶</a></h2>
+<p>Usage: Returns the last day of the month as a DATE for a valid argument.</p>
+<p>Argument type: DATE/STRING/TIMESTAMP/TIME</p>
+<p>Return type: DATE</p>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>os&gt; source=people | eval `last_day(&#39;2023-02-06&#39;)` = last_day(&#39;2023-02-06&#39;) | fields `last_day(&#39;2023-02-06&#39;)`
+fetched rows / total rows = 1/1
++--------------------------+
+| last_day(&#39;2023-02-06&#39;)   |
+|--------------------------|
+| 2023-02-28               |
++--------------------------+
+</pre></div>
+</div>
+</section>
+<section id="localtimestamp">
+<h2><a class="toc-backref" href="#id110" role="doc-backlink">LOCALTIMESTAMP</a><a class="headerlink" href="#localtimestamp" title="Link to this heading">¶</a></h2>
+<section id="id30">
+<h3>Description<a class="headerlink" href="#id30" title="Link to this heading">¶</a></h3>
+<p><cite>LOCALTIMESTAMP()</cite> are synonyms for <a class="reference external" href="#now">NOW()</a>.</p>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>&gt; source=people | eval `LOCALTIMESTAMP()` = LOCALTIMESTAMP() | fields `LOCALTIMESTAMP()`
+fetched rows / total rows = 1/1
++---------------------+
+| LOCALTIMESTAMP()    |
+|---------------------+
+| 2022-08-02 15:54:19 |
++---------------------+
+</pre></div>
+</div>
+</section>
+</section>
+<section id="localtime">
+<h2><a class="toc-backref" href="#id111" role="doc-backlink">LOCALTIME</a><a class="headerlink" href="#localtime" title="Link to this heading">¶</a></h2>
+<section id="id32">
+<h3>Description<a class="headerlink" href="#id32" title="Link to this heading">¶</a></h3>
+<p><cite>LOCALTIME()</cite> are synonyms for <a class="reference external" href="#now">NOW()</a>.</p>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>&gt; source=people | eval `LOCALTIME()` = LOCALTIME() | fields `LOCALTIME()`
+fetched rows / total rows = 1/1
++---------------------+
+| LOCALTIME()         |
+|---------------------+
+| 2022-08-02 15:54:19 |
++---------------------+
+</pre></div>
+</div>
+</section>
+</section>
+<section id="makedate">
+<h2><a class="toc-backref" href="#id112" role="doc-backlink">MAKEDATE</a><a class="headerlink" href="#makedate" title="Link to this heading">¶</a></h2>
+<section id="id34">
+<h3>Description<a class="headerlink" href="#id34" title="Link to this heading">¶</a></h3>
+<p>Returns a date, given <cite>year</cite> and <cite>day-of-year</cite> values. <cite>dayofyear</cite> must be greater than 0 or the result is <cite>NULL</cite>. The result is also <cite>NULL</cite> if either argument is <cite>NULL</cite>.
+Arguments are rounded to an integer.</p>
+<p>Limitations:
+- Zero <cite>year</cite> interpreted as 2000;
+- Negative <cite>year</cite> is not accepted;
+- <cite>day-of-year</cite> should be greater than zero;
+- <cite>day-of-year</cite> could be greater than 365/366, calculation switches to the next year(s) (see example).</p>
+<p>Specifications:</p>
+<ol class="arabic simple">
+<li><p>MAKEDATE(DOUBLE, DOUBLE) -&gt; DATE</p></li>
+</ol>
+<p>Argument type: DOUBLE</p>
+<p>Return type: DATE</p>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>os&gt; source=people | eval `MAKEDATE(1945, 5.9)` = MAKEDATE(1945, 5.9), `MAKEDATE(1984, 1984)` = MAKEDATE(1984, 1984) | fields `MAKEDATE(1945, 5.9)`, `MAKEDATE(1984, 1984)`
+fetched rows / total rows = 1/1
++-----------------------+------------------------+
+| MAKEDATE(1945, 5.9)   | MAKEDATE(1984, 1984)   |
+|-----------------------+------------------------|
+| 1945-01-06            | 1989-06-06             |
++-----------------------+------------------------+
+</pre></div>
+</div>
+</section>
+</section>
+<section id="maketime">
+<h2><a class="toc-backref" href="#id113" role="doc-backlink">MAKETIME</a><a class="headerlink" href="#maketime" title="Link to this heading">¶</a></h2>
+<section id="id35">
+<h3>Description<a class="headerlink" href="#id35" title="Link to this heading">¶</a></h3>
+<p>Returns a time value calculated from the hour, minute, and second arguments. Returns <cite>NULL</cite> if any of its arguments are <cite>NULL</cite>.
+The second argument can have a fractional part, rest arguments are rounded to an integer.</p>
+<p>Limitations:
+- 24-hour clock is used, available time range is [00:00:00.0 - 23:59:59.(9)];
+- Up to 9 digits of second fraction part is taken (nanosecond precision).</p>
+<p>Specifications:</p>
+<ol class="arabic simple">
+<li><p>MAKETIME(DOUBLE, DOUBLE, DOUBLE) -&gt; TIME</p></li>
+</ol>
+<p>Argument type: DOUBLE</p>
+<p>Return type: TIME</p>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>os&gt; source=people | eval `MAKETIME(20, 30, 40)` = MAKETIME(20, 30, 40), `MAKETIME(20.2, 49.5, 42.100502)` = MAKETIME(20.2, 49.5, 42.100502) | fields `MAKETIME(20, 30, 40)`, `MAKETIME(20.2, 49.5, 42.100502)`
+fetched rows / total rows = 1/1
++------------------------+-----------------------------------+
+| MAKETIME(20, 30, 40)   | MAKETIME(20.2, 49.5, 42.100502)   |
+|------------------------+-----------------------------------|
+| 20:30:40               | 20:50:42.100502                   |
++------------------------+-----------------------------------+
+</pre></div>
+</div>
+</section>
+</section>
+<section id="microsecond">
+<h2><a class="toc-backref" href="#id114" role="doc-backlink">MICROSECOND</a><a class="headerlink" href="#microsecond" title="Link to this heading">¶</a></h2>
+<section id="id36">
+<h3>Description<a class="headerlink" href="#id36" title="Link to this heading">¶</a></h3>
+<p>Usage: microsecond(expr) returns the microseconds from the time or timestamp expression expr as a number in the range from 0 to 999999.</p>
+<p>Argument type: STRING/TIME/TIMESTAMP</p>
+<p>Return type: INTEGER</p>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>os&gt; source=people | eval `MICROSECOND(TIME(&#39;01:02:03.123456&#39;))` = MICROSECOND(TIME(&#39;01:02:03.123456&#39;)) | fields `MICROSECOND(TIME(&#39;01:02:03.123456&#39;))`
+fetched rows / total rows = 1/1
++----------------------------------------+
+| MICROSECOND(TIME(&#39;01:02:03.123456&#39;))   |
+|----------------------------------------|
+| 123456                                 |
++----------------------------------------+
+</pre></div>
+</div>
+</section>
+</section>
+<section id="minute">
+<h2><a class="toc-backref" href="#id115" role="doc-backlink">MINUTE</a><a class="headerlink" href="#minute" title="Link to this heading">¶</a></h2>
+<section id="id37">
+<h3>Description<a class="headerlink" href="#id37" title="Link to this heading">¶</a></h3>
+<p>Usage: minute(time) returns the minute for time, in the range 0 to 59.</p>
+<p>Argument type: STRING/TIME/TIMESTAMP</p>
+<p>Return type: INTEGER</p>
+<p>Synonyms: <a class="reference internal" href="#minute-of-hour">MINUTE_OF_HOUR</a></p>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>os&gt; source=people | eval `MINUTE(TIME(&#39;01:02:03&#39;))` =  MINUTE(TIME(&#39;01:02:03&#39;)) | fields `MINUTE(TIME(&#39;01:02:03&#39;))`
+fetched rows / total rows = 1/1
++----------------------------+
+| MINUTE(TIME(&#39;01:02:03&#39;))   |
+|----------------------------|
+| 2                          |
++----------------------------+
+</pre></div>
+</div>
+</section>
+</section>
+<section id="minute-of-day">
+<h2><a class="toc-backref" href="#id116" role="doc-backlink">MINUTE_OF_DAY</a><a class="headerlink" href="#minute-of-day" title="Link to this heading">¶</a></h2>
+<section id="id38">
+<h3>Description<a class="headerlink" href="#id38" title="Link to this heading">¶</a></h3>
+<p>Usage: minute(time) returns the amount of minutes in the day, in the range of 0 to 1439.</p>
+<p>Argument type: STRING/TIME/TIMESTAMP</p>
+<p>Return type: INTEGER</p>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>os&gt; source=people | eval `MINUTE_OF_DAY(TIME(&#39;01:02:03&#39;))` = MINUTE_OF_DAY(TIME(&#39;01:02:03&#39;)) | fields `MINUTE_OF_DAY(TIME(&#39;01:02:03&#39;))`
+fetched rows / total rows = 1/1
++-----------------------------------+
+| MINUTE_OF_DAY(TIME(&#39;01:02:03&#39;))   |
+|-----------------------------------|
+| 62                                |
++-----------------------------------+
+</pre></div>
+</div>
+</section>
+</section>
+<section id="minute-of-hour">
+<h2><a class="toc-backref" href="#id117" role="doc-backlink">MINUTE_OF_HOUR</a><a class="headerlink" href="#minute-of-hour" title="Link to this heading">¶</a></h2>
+<section id="id39">
+<h3>Description<a class="headerlink" href="#id39" title="Link to this heading">¶</a></h3>
+<p>Usage: minute(time) returns the minute for time, in the range 0 to 59.</p>
+<p>Argument type: STRING/TIME/TIMESTAMP</p>
+<p>Return type: INTEGER</p>
+<p>Synonyms: <a class="reference internal" href="#minute">MINUTE</a></p>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>os&gt; source=people | eval `MINUTE_OF_HOUR(TIME(&#39;01:02:03&#39;))` =  MINUTE_OF_HOUR(TIME(&#39;01:02:03&#39;)) | fields `MINUTE_OF_HOUR(TIME(&#39;01:02:03&#39;))`
+fetched rows / total rows = 1/1
++------------------------------------+
+| MINUTE_OF_HOUR(TIME(&#39;01:02:03&#39;))   |
+|------------------------------------|
+| 2                                  |
++------------------------------------+
+</pre></div>
+</div>
+</section>
+</section>
+<section id="month">
+<h2><a class="toc-backref" href="#id118" role="doc-backlink">MONTH</a><a class="headerlink" href="#month" title="Link to this heading">¶</a></h2>
+<section id="id40">
+<h3>Description<a class="headerlink" href="#id40" title="Link to this heading">¶</a></h3>
+<p>Usage: month(date) returns the month for date, in the range 1 to 12 for January to December.</p>
+<p>Argument type: STRING/DATE/TIMESTAMP</p>
+<p>Return type: INTEGER</p>
+<p>Synonyms: <a class="reference internal" href="#month-of-year">MONTH_OF_YEAR</a></p>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>os&gt; source=people | eval `MONTH(DATE(&#39;2020-08-26&#39;))` =  MONTH(DATE(&#39;2020-08-26&#39;)) | fields `MONTH(DATE(&#39;2020-08-26&#39;))`
+fetched rows / total rows = 1/1
++-----------------------------+
+| MONTH(DATE(&#39;2020-08-26&#39;))   |
+|-----------------------------|
+| 8                           |
++-----------------------------+
+</pre></div>
+</div>
+</section>
+</section>
+<section id="month-of-year">
+<h2><a class="toc-backref" href="#id119" role="doc-backlink">MONTH_OF_YEAR</a><a class="headerlink" href="#month-of-year" title="Link to this heading">¶</a></h2>
+<section id="id41">
+<h3>Description<a class="headerlink" href="#id41" title="Link to this heading">¶</a></h3>
+<p>Usage: month_of_year(date) returns the month for date, in the range 1 to 12 for January to December.</p>
+<p>Argument type: STRING/DATE/TIMESTAMP</p>
+<p>Return type: INTEGER</p>
+<p>Synonyms: <a class="reference internal" href="#month">MONTH</a></p>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>os&gt; source=people | eval `MONTH_OF_YEAR(DATE(&#39;2020-08-26&#39;))` =  MONTH_OF_YEAR(DATE(&#39;2020-08-26&#39;)) | fields `MONTH_OF_YEAR(DATE(&#39;2020-08-26&#39;))`
+fetched rows / total rows = 1/1
++-------------------------------------+
+| MONTH_OF_YEAR(DATE(&#39;2020-08-26&#39;))   |
+|-------------------------------------|
+| 8                                   |
++-------------------------------------+
+</pre></div>
+</div>
+</section>
+</section>
+<section id="monthname">
+<h2><a class="toc-backref" href="#id120" role="doc-backlink">MONTHNAME</a><a class="headerlink" href="#monthname" title="Link to this heading">¶</a></h2>
+<section id="id42">
+<h3>Description<a class="headerlink" href="#id42" title="Link to this heading">¶</a></h3>
+<p>Usage: monthname(date) returns the full name of the month for date.</p>
+<p>Argument type: STRING/DATE/TIMESTAMP</p>
+<p>Return type: STRING</p>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>os&gt; source=people | eval `MONTHNAME(DATE(&#39;2020-08-26&#39;))` = MONTHNAME(DATE(&#39;2020-08-26&#39;)) | fields `MONTHNAME(DATE(&#39;2020-08-26&#39;))`
+fetched rows / total rows = 1/1
++---------------------------------+
+| MONTHNAME(DATE(&#39;2020-08-26&#39;))   |
+|---------------------------------|
+| August                          |
++---------------------------------+
+</pre></div>
+</div>
+</section>
+</section>
+<section id="id43">
+<h2><a class="toc-backref" href="#id121" role="doc-backlink">NOW</a><a class="headerlink" href="#id43" title="Link to this heading">¶</a></h2>
+<section id="id44">
+<h3>Description<a class="headerlink" href="#id44" title="Link to this heading">¶</a></h3>
+<p>Returns the current date and time as a value in ‘YYYY-MM-DD hh:mm:ss’ format. The value is expressed in the cluster time zone.
+<cite>NOW()</cite> returns a constant time that indicates the time at which the statement began to execute. This differs from the behavior for <a class="reference external" href="#sysdate">SYSDATE()</a>, which returns the exact time at which it executes.</p>
+<p>Return type: TIMESTAMP</p>
+<p>Specification: NOW() -&gt; TIMESTAMP</p>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>&gt; source=people | eval `value_1` = NOW(), `value_2` = NOW() | fields `value_1`, `value_2`
+fetched rows / total rows = 1/1
++---------------------+---------------------+
+| value_1             | value_2             |
+|---------------------+---------------------|
+| 2022-08-02 15:39:05 | 2022-08-02 15:39:05 |
++---------------------+---------------------+
+</pre></div>
+</div>
+</section>
+</section>
+<section id="period-add">
+<h2><a class="toc-backref" href="#id122" role="doc-backlink">PERIOD_ADD</a><a class="headerlink" href="#period-add" title="Link to this heading">¶</a></h2>
+<section id="id46">
+<h3>Description<a class="headerlink" href="#id46" title="Link to this heading">¶</a></h3>
+<p>Usage: period_add(P, N) add N months to period P (in the format YYMM or YYYYMM). Returns a value in the format YYYYMM.</p>
+<p>Argument type: INTEGER, INTEGER</p>
+<p>Return type: INTEGER</p>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>os&gt; source=people | eval `PERIOD_ADD(200801, 2)` = PERIOD_ADD(200801, 2), `PERIOD_ADD(200801, -12)` = PERIOD_ADD(200801, -12) | fields `PERIOD_ADD(200801, 2)`, `PERIOD_ADD(200801, -12)`
+fetched rows / total rows = 1/1
++-------------------------+---------------------------+
+| PERIOD_ADD(200801, 2)   | PERIOD_ADD(200801, -12)   |
+|-------------------------+---------------------------|
+| 200803                  | 200701                    |
++-------------------------+---------------------------+
+</pre></div>
+</div>
+</section>
+</section>
+<section id="period-diff">
+<h2><a class="toc-backref" href="#id123" role="doc-backlink">PERIOD_DIFF</a><a class="headerlink" href="#period-diff" title="Link to this heading">¶</a></h2>
+<section id="id47">
+<h3>Description<a class="headerlink" href="#id47" title="Link to this heading">¶</a></h3>
+<p>Usage: period_diff(P1, P2) returns the number of months between periods P1 and P2 given in the format YYMM or YYYYMM.</p>
+<p>Argument type: INTEGER, INTEGER</p>
+<p>Return type: INTEGER</p>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>os&gt; source=people | eval `PERIOD_DIFF(200802, 200703)` = PERIOD_DIFF(200802, 200703), `PERIOD_DIFF(200802, 201003)` = PERIOD_DIFF(200802, 201003) | fields `PERIOD_DIFF(200802, 200703)`, `PERIOD_DIFF(200802, 201003)`
+fetched rows / total rows = 1/1
++-------------------------------+-------------------------------+
+| PERIOD_DIFF(200802, 200703)   | PERIOD_DIFF(200802, 201003)   |
+|-------------------------------+-------------------------------|
+| 11                            | -25                           |
++-------------------------------+-------------------------------+
+</pre></div>
+</div>
+</section>
+</section>
+<section id="quarter">
+<h2><a class="toc-backref" href="#id124" role="doc-backlink">QUARTER</a><a class="headerlink" href="#quarter" title="Link to this heading">¶</a></h2>
+<section id="id48">
+<h3>Description<a class="headerlink" href="#id48" title="Link to this heading">¶</a></h3>
+<p>Usage: quarter(date) returns the quarter of the year for date, in the range 1 to 4.</p>
+<p>Argument type: STRING/DATE/TIMESTAMP</p>
+<p>Return type: INTEGER</p>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>os&gt; source=people | eval `QUARTER(DATE(&#39;2020-08-26&#39;))` = QUARTER(DATE(&#39;2020-08-26&#39;)) | fields `QUARTER(DATE(&#39;2020-08-26&#39;))`
+fetched rows / total rows = 1/1
++-------------------------------+
+| QUARTER(DATE(&#39;2020-08-26&#39;))   |
+|-------------------------------|
+| 3                             |
++-------------------------------+
+</pre></div>
+</div>
+</section>
+</section>
+<section id="sec-to-time">
+<h2><a class="toc-backref" href="#id125" role="doc-backlink">SEC_TO_TIME</a><a class="headerlink" href="#sec-to-time" title="Link to this heading">¶</a></h2>
+<section id="id49">
+<h3>Description<a class="headerlink" href="#id49" title="Link to this heading">¶</a></h3>
+<p>Usage: sec_to_time(number) returns the time in HH:mm:ssss[.nnnnnn] format.
+Note that the function returns a time between 00:00:00 and 23:59:59.
+If an input value is too large (greater than 86399), the function will wrap around and begin returning outputs starting from 00:00:00.
+If an input value is too small (less than 0), the function will wrap around and begin returning outputs counting down from 23:59:59.</p>
+<p>Argument type: INTEGER, LONG, DOUBLE, FLOAT</p>
+<p>Return type: TIME</p>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>os&gt; source=people | eval `SEC_TO_TIME(3601)` = SEC_TO_TIME(3601) | eval `SEC_TO_TIME(1234.123)` = SEC_TO_TIME(1234.123) | fields `SEC_TO_TIME(3601)`, `SEC_TO_TIME(1234.123)`
+fetched rows / total rows = 1/1
++---------------------+-------------------------+
+| SEC_TO_TIME(3601)   | SEC_TO_TIME(1234.123)   |
+|---------------------+-------------------------|
+| 01:00:01            | 00:20:34.123            |
++---------------------+-------------------------+
+</pre></div>
+</div>
+</section>
+</section>
+<section id="second">
+<h2><a class="toc-backref" href="#id126" role="doc-backlink">SECOND</a><a class="headerlink" href="#second" title="Link to this heading">¶</a></h2>
+<section id="id50">
+<h3>Description<a class="headerlink" href="#id50" title="Link to this heading">¶</a></h3>
+<p>Usage: second(time) returns the second for time, in the range 0 to 59.</p>
+<p>Argument type: STRING/TIME/TIMESTAMP</p>
+<p>Return type: INTEGER</p>
+<p>Synonyms: <a class="reference internal" href="#second-of-minute">SECOND_OF_MINUTE</a></p>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>os&gt; source=people | eval `SECOND(TIME(&#39;01:02:03&#39;))` = SECOND(TIME(&#39;01:02:03&#39;)) | fields `SECOND(TIME(&#39;01:02:03&#39;))`
+fetched rows / total rows = 1/1
++----------------------------+
+| SECOND(TIME(&#39;01:02:03&#39;))   |
+|----------------------------|
+| 3                          |
++----------------------------+
+</pre></div>
+</div>
+</section>
+</section>
+<section id="second-of-minute">
+<h2><a class="toc-backref" href="#id127" role="doc-backlink">SECOND_OF_MINUTE</a><a class="headerlink" href="#second-of-minute" title="Link to this heading">¶</a></h2>
+<section id="id51">
+<h3>Description<a class="headerlink" href="#id51" title="Link to this heading">¶</a></h3>
+<p>Usage: second_of_minute(time) returns the second for time, in the range 0 to 59.</p>
+<p>Argument type: STRING/TIME/TIMESTAMP</p>
+<p>Return type: INTEGER</p>
+<p>Synonyms: <a class="reference internal" href="#second">SECOND</a></p>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>os&gt; source=people | eval `SECOND_OF_MINUTE(TIME(&#39;01:02:03&#39;))` = SECOND_OF_MINUTE(TIME(&#39;01:02:03&#39;)) | fields `SECOND_OF_MINUTE(TIME(&#39;01:02:03&#39;))`
+fetched rows / total rows = 1/1
++--------------------------------------+
+| SECOND_OF_MINUTE(TIME(&#39;01:02:03&#39;))   |
+|--------------------------------------|
+| 3                                    |
++--------------------------------------+
+</pre></div>
+</div>
+</section>
+</section>
+<section id="str-to-date">
+<h2><a class="toc-backref" href="#id128" role="doc-backlink">STR_TO_DATE</a><a class="headerlink" href="#str-to-date" title="Link to this heading">¶</a></h2>
+<section id="id52">
+<h3>Description<a class="headerlink" href="#id52" title="Link to this heading">¶</a></h3>
+<p>Usage: str_to_date(string, string) is used to extract a TIMESTAMP from the first argument string using the formats specified in the second argument string.
+The input argument must have enough information to be parsed as a DATE, TIMESTAMP, or TIME.
+Acceptable string format specifiers are the same as those used in the <a class="reference internal" href="#date-format">DATE_FORMAT</a> function.
+It returns NULL when a statement cannot be parsed due to an invalid pair of arguments, and when 0 is provided for any DATE field. Otherwise, it will return a TIMESTAMP with the parsed values (as well as default values for any field that was not parsed).</p>
+<p>Argument type: STRING, STRING</p>
+<p>Return type: TIMESTAMP</p>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>OS&gt; source=people | eval `str_to_date(&quot;01,5,2013&quot;, &quot;%d,%m,%Y&quot;)` = str_to_date(&quot;01,5,2013&quot;, &quot;%d,%m,%Y&quot;) | fields = `str_to_date(&quot;01,5,2013&quot;, &quot;%d,%m,%Y&quot;)`
+fetched rows / total rows = 1/1
++----------------------------------------+
+| str_to_date(&quot;01,5,2013&quot;, &quot;%d,%m,%Y&quot;)   |
+|----------------------------------------|
+| 2013-05-01 00:00:00                    |
++----------------------------------------+
+</pre></div>
+</div>
+</section>
+</section>
+<section id="subdate">
+<h2><a class="toc-backref" href="#id129" role="doc-backlink">SUBDATE</a><a class="headerlink" href="#subdate" title="Link to this heading">¶</a></h2>
+<section id="id53">
+<h3>Description<a class="headerlink" href="#id53" title="Link to this heading">¶</a></h3>
+<p>Usage: subdate(date, INTERVAL expr unit) / subdate(date, days) subtracts the interval expr from date; subdate(date, days) subtracts the second argument as integer number of days from date.
+If first argument is TIME, today’s date is used; if first argument is DATE, time at midnight is used.</p>
+<p>Argument type: DATE/TIMESTAMP/TIME, INTERVAL/LONG</p>
+<p>Return type map:</p>
+<p>(DATE/TIMESTAMP/TIME, INTERVAL) -&gt; TIMESTAMP</p>
+<p>(DATE, LONG) -&gt; DATE</p>
+<p>(TIMESTAMP/TIME, LONG) -&gt; TIMESTAMP</p>
+<p>Synonyms: <a class="reference internal" href="#date-sub">DATE_SUB</a> when invoked with the INTERVAL form of the second argument.</p>
+<p>Antonyms: <a class="reference internal" href="#adddate">ADDDATE</a></p>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>os&gt; source=people | eval `&#39;2008-01-02&#39; - 31d` = SUBDATE(DATE(&#39;2008-01-02&#39;), INTERVAL 31 DAY), `&#39;2020-08-26&#39; - 1` = SUBDATE(DATE(&#39;2020-08-26&#39;), 1), `ts &#39;2020-08-26 01:01:01&#39; - 1` = SUBDATE(TIMESTAMP(&#39;2020-08-26 01:01:01&#39;), 1) | fields `&#39;2008-01-02&#39; - 31d`, `&#39;2020-08-26&#39; - 1`, `ts &#39;2020-08-26 01:01:01&#39; - 1`
+fetched rows / total rows = 1/1
++----------------------+--------------------+--------------------------------+
+| &#39;2008-01-02&#39; - 31d   | &#39;2020-08-26&#39; - 1   | ts &#39;2020-08-26 01:01:01&#39; - 1   |
+|----------------------+--------------------+--------------------------------|
+| 2007-12-02 00:00:00  | 2020-08-25         | 2020-08-25 01:01:01            |
++----------------------+--------------------+--------------------------------+
+</pre></div>
+</div>
+</section>
+</section>
+<section id="subtime">
+<h2><a class="toc-backref" href="#id130" role="doc-backlink">SUBTIME</a><a class="headerlink" href="#subtime" title="Link to this heading">¶</a></h2>
+<section id="id54">
+<h3>Description<a class="headerlink" href="#id54" title="Link to this heading">¶</a></h3>
+<p>Usage: subtime(expr1, expr2) subtracts expr2 from expr1 and returns the result. If argument is TIME, today’s date is used; if argument is DATE, time at midnight is used.</p>
+<p>Argument type: DATE/TIMESTAMP/TIME, DATE/TIMESTAMP/TIME</p>
+<p>Return type map:</p>
+<p>(DATE/TIMESTAMP, DATE/TIMESTAMP/TIME) -&gt; TIMESTAMP</p>
+<p>(TIME, DATE/TIMESTAMP/TIME) -&gt; TIME</p>
+<p>Antonyms: <a class="reference internal" href="#addtime">ADDTIME</a></p>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>os&gt; source=people | eval `&#39;2008-12-12&#39; - 0` = SUBTIME(DATE(&#39;2008-12-12&#39;), DATE(&#39;2008-11-15&#39;)) | fields `&#39;2008-12-12&#39; - 0`
+fetched rows / total rows = 1/1
++---------------------+
+| &#39;2008-12-12&#39; - 0    |
+|---------------------|
+| 2008-12-12 00:00:00 |
++---------------------+
+
+os&gt; source=people | eval `&#39;23:59:59&#39; - 0` = SUBTIME(TIME(&#39;23:59:59&#39;), DATE(&#39;2004-01-01&#39;)) | fields `&#39;23:59:59&#39; - 0`
+fetched rows / total rows = 1/1
++------------------+
+| &#39;23:59:59&#39; - 0   |
+|------------------|
+| 23:59:59         |
++------------------+
+
+os&gt; source=people | eval `&#39;2004-01-01&#39; - &#39;23:59:59&#39;` = SUBTIME(DATE(&#39;2004-01-01&#39;), TIME(&#39;23:59:59&#39;)) | fields `&#39;2004-01-01&#39; - &#39;23:59:59&#39;`
+fetched rows / total rows = 1/1
++-----------------------------+
+| &#39;2004-01-01&#39; - &#39;23:59:59&#39;   |
+|-----------------------------|
+| 2003-12-31 00:00:01         |
++-----------------------------+
+
+os&gt; source=people | eval `&#39;10:20:30&#39; - &#39;00:05:42&#39;` = SUBTIME(TIME(&#39;10:20:30&#39;), TIME(&#39;00:05:42&#39;)) | fields `&#39;10:20:30&#39; - &#39;00:05:42&#39;`
+fetched rows / total rows = 1/1
++---------------------------+
+| &#39;10:20:30&#39; - &#39;00:05:42&#39;   |
+|---------------------------|
+| 10:14:48                  |
++---------------------------+
+
+os&gt; source=people | eval `&#39;2007-03-01 10:20:30&#39; - &#39;20:40:50&#39;` = SUBTIME(TIMESTAMP(&#39;2007-03-01 10:20:30&#39;), TIMESTAMP(&#39;2002-03-04 20:40:50&#39;)) | fields `&#39;2007-03-01 10:20:30&#39; - &#39;20:40:50&#39;`
+fetched rows / total rows = 1/1
++--------------------------------------+
+| &#39;2007-03-01 10:20:30&#39; - &#39;20:40:50&#39;   |
+|--------------------------------------|
+| 2007-02-28 13:39:40                  |
++--------------------------------------+
+</pre></div>
+</div>
+</section>
+</section>
+<section id="id55">
+<h2><a class="toc-backref" href="#id131" role="doc-backlink">SYSDATE</a><a class="headerlink" href="#id55" title="Link to this heading">¶</a></h2>
+<section id="id56">
+<h3>Description<a class="headerlink" href="#id56" title="Link to this heading">¶</a></h3>
+<p>Returns the current date and time as a value in ‘YYYY-MM-DD hh:mm:ss[.nnnnnn]’.
+SYSDATE() returns the time at which it executes. This differs from the behavior for <a class="reference external" href="#now">NOW()</a>, which returns a constant time that indicates the time at which the statement began to execute.
+If the argument is given, it specifies a fractional seconds precision from 0 to 6, the return value includes a fractional seconds part of that many digits.</p>
+<p>Optional argument type: INTEGER</p>
+<p>Return type: TIMESTAMP</p>
+<p>Specification: SYSDATE([INTEGER]) -&gt; TIMESTAMP</p>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>&gt; source=people | eval `value_1` = SYSDATE(), `value_2` = SYSDATE(6) | fields `value_1`, `value_2`
+fetched rows / total rows = 1/1
++---------------------+----------------------------+
+| value_1             | value_2                    |
+|---------------------+----------------------------|
+| 2022-08-02 15:39:05 | 2022-08-02 15:39:05.123456 |
++---------------------+----------------------------+
+</pre></div>
+</div>
+</section>
+</section>
+<section id="time">
+<h2><a class="toc-backref" href="#id132" role="doc-backlink">TIME</a><a class="headerlink" href="#time" title="Link to this heading">¶</a></h2>
+<section id="id58">
+<h3>Description<a class="headerlink" href="#id58" title="Link to this heading">¶</a></h3>
+<p>Usage: time(expr) constructs a time type with the input string expr as a time. If the argument is of date/time/timestamp, it extracts the time value part from the expression.</p>
+<p>Argument type: STRING/DATE/TIME/TIMESTAMP</p>
+<p>Return type: TIME</p>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>os&gt; source=people | eval `TIME(&#39;13:49:00&#39;)` = TIME(&#39;13:49:00&#39;) | fields `TIME(&#39;13:49:00&#39;)`
+fetched rows / total rows = 1/1
++--------------------+
+| TIME(&#39;13:49:00&#39;)   |
+|--------------------|
+| 13:49:00           |
++--------------------+
+
+os&gt; source=people | eval `TIME(&#39;13:49&#39;)` = TIME(&#39;13:49&#39;) | fields `TIME(&#39;13:49&#39;)`
+fetched rows / total rows = 1/1
++-----------------+
+| TIME(&#39;13:49&#39;)   |
+|-----------------|
+| 13:49:00        |
++-----------------+
+
+os&gt; source=people | eval `TIME(&#39;2020-08-26 13:49:00&#39;)` = TIME(&#39;2020-08-26 13:49:00&#39;) | fields `TIME(&#39;2020-08-26 13:49:00&#39;)`
+fetched rows / total rows = 1/1
++-------------------------------+
+| TIME(&#39;2020-08-26 13:49:00&#39;)   |
+|-------------------------------|
+| 13:49:00                      |
++-------------------------------+
+
+os&gt; source=people | eval `TIME(&#39;2020-08-26 13:49&#39;)` = TIME(&#39;2020-08-26 13:49&#39;) | fields `TIME(&#39;2020-08-26 13:49&#39;)`
+fetched rows / total rows = 1/1
++----------------------------+
+| TIME(&#39;2020-08-26 13:49&#39;)   |
+|----------------------------|
+| 13:49:00                   |
++----------------------------+
+</pre></div>
+</div>
+</section>
+</section>
+<section id="time-format">
+<h2><a class="toc-backref" href="#id133" role="doc-backlink">TIME_FORMAT</a><a class="headerlink" href="#time-format" title="Link to this heading">¶</a></h2>
+<section id="id59">
+<h3>Description<a class="headerlink" href="#id59" title="Link to this heading">¶</a></h3>
+<p>Usage: time_format(time, format) formats the time argument using the specifiers in the format argument.
+This supports a subset of the time format specifiers available for the <a class="reference internal" href="#date-format">date_format</a> function.
+Using date format specifiers supported by <a class="reference internal" href="#date-format">date_format</a> will return 0 or null.
+Acceptable format specifiers are listed in the table below.
+If an argument of type DATE is passed in, it is treated as a TIMESTAMP at midnight (i.e., 00:00:00).</p>
+<table class="docutils align-default" id="id78">
+<caption><span class="caption-text">The following table describes the available specifier arguments.</span><a class="headerlink" href="#id78" title="Link to this table">¶</a></caption>
+<colgroup>
+<col style="width: 20.0%" />
+<col style="width: 80.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Specifier</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>%f</p></td>
+<td><p>Microseconds (000000..999999)</p></td>
+</tr>
+<tr class="row-odd"><td><p>%H</p></td>
+<td><p>Hour (00..23)</p></td>
+</tr>
+<tr class="row-even"><td><p>%h</p></td>
+<td><p>Hour (01..12)</p></td>
+</tr>
+<tr class="row-odd"><td><p>%I</p></td>
+<td><p>Hour (01..12)</p></td>
+</tr>
+<tr class="row-even"><td><p>%i</p></td>
+<td><p>Minutes, numeric (00..59)</p></td>
+</tr>
+<tr class="row-odd"><td><p>%p</p></td>
+<td><p>AM or PM</p></td>
+</tr>
+<tr class="row-even"><td><p>%r</p></td>
+<td><p>Time, 12-hour (hh:mm:ss followed by AM or PM)</p></td>
+</tr>
+<tr class="row-odd"><td><p>%S</p></td>
+<td><p>Seconds (00..59)</p></td>
+</tr>
+<tr class="row-even"><td><p>%s</p></td>
+<td><p>Seconds (00..59)</p></td>
+</tr>
+<tr class="row-odd"><td><p>%T</p></td>
+<td><p>Time, 24-hour (hh:mm:ss)</p></td>
+</tr>
+</tbody>
+</table>
+<p>Argument type: STRING/DATE/TIME/TIMESTAMP, STRING</p>
+<p>Return type: STRING</p>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>os&gt; source=people | eval `TIME_FORMAT(&#39;1998-01-31 13:14:15.012345&#39;, &#39;%f %H %h %I %i %p %r %S %s %T&#39;)` = TIME_FORMAT(&#39;1998-01-31 13:14:15.012345&#39;, &#39;%f %H %h %I %i %p %r %S %s %T&#39;) | fields `TIME_FORMAT(&#39;1998-01-31 13:14:15.012345&#39;, &#39;%f %H %h %I %i %p %r %S %s %T&#39;)`
+fetched rows / total rows = 1/1
++------------------------------------------------------------------------------+
+| TIME_FORMAT(&#39;1998-01-31 13:14:15.012345&#39;, &#39;%f %H %h %I %i %p %r %S %s %T&#39;)   |
+|------------------------------------------------------------------------------|
+| 012345 13 01 01 14 PM 01:14:15 PM 15 15 13:14:15                             |
++------------------------------------------------------------------------------+
+</pre></div>
+</div>
+</section>
+</section>
+<section id="time-to-sec">
+<h2><a class="toc-backref" href="#id134" role="doc-backlink">TIME_TO_SEC</a><a class="headerlink" href="#time-to-sec" title="Link to this heading">¶</a></h2>
+<section id="id60">
+<h3>Description<a class="headerlink" href="#id60" title="Link to this heading">¶</a></h3>
+<p>Usage: time_to_sec(time) returns the time argument, converted to seconds.</p>
+<p>Argument type: STRING/TIME/TIMESTAMP</p>
+<p>Return type: LONG</p>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>os&gt; source=people | eval `TIME_TO_SEC(TIME(&#39;22:23:00&#39;))` = TIME_TO_SEC(TIME(&#39;22:23:00&#39;)) | fields `TIME_TO_SEC(TIME(&#39;22:23:00&#39;))`
+fetched rows / total rows = 1/1
++---------------------------------+
+| TIME_TO_SEC(TIME(&#39;22:23:00&#39;))   |
+|---------------------------------|
+| 80580                           |
++---------------------------------+
+</pre></div>
+</div>
+</section>
+</section>
+<section id="timediff">
+<h2><a class="toc-backref" href="#id135" role="doc-backlink">TIMEDIFF</a><a class="headerlink" href="#timediff" title="Link to this heading">¶</a></h2>
+<section id="id61">
+<h3>Description<a class="headerlink" href="#id61" title="Link to this heading">¶</a></h3>
+<p>Usage: returns the difference between two time expressions as a time.</p>
+<p>Argument type: TIME, TIME</p>
+<p>Return type: TIME</p>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>os&gt; source=people | eval `TIMEDIFF(&#39;23:59:59&#39;, &#39;13:00:00&#39;)` = TIMEDIFF(&#39;23:59:59&#39;, &#39;13:00:00&#39;) | fields `TIMEDIFF(&#39;23:59:59&#39;, &#39;13:00:00&#39;)`
+fetched rows / total rows = 1/1
++------------------------------------+
+| TIMEDIFF(&#39;23:59:59&#39;, &#39;13:00:00&#39;)   |
+|------------------------------------|
+| 10:59:59                           |
++------------------------------------+
+</pre></div>
+</div>
+</section>
+</section>
+<section id="timestamp">
+<h2><a class="toc-backref" href="#id136" role="doc-backlink">TIMESTAMP</a><a class="headerlink" href="#timestamp" title="Link to this heading">¶</a></h2>
+<section id="id62">
+<h3>Description<a class="headerlink" href="#id62" title="Link to this heading">¶</a></h3>
+<p>Usage: timestamp(expr) constructs a timestamp type with the input string <cite>expr</cite> as an timestamp. If the argument is not a string, it casts <cite>expr</cite> to timestamp type with default timezone UTC. If argument is a time, it applies today’s date before cast.
+With two arguments <cite>timestamp(expr1, expr2)</cite> adds the time expression <cite>expr2</cite> to the date or timestamp expression <cite>expr1</cite> and returns the result as a timestamp value.</p>
+<p>Argument type: STRING/DATE/TIME/TIMESTAMP</p>
+<p>Return type map:</p>
+<p>(STRING/DATE/TIME/TIMESTAMP) -&gt; TIMESTAMP</p>
+<p>(STRING/DATE/TIME/TIMESTAMP, STRING/DATE/TIME/TIMESTAMP) -&gt; TIMESTAMP</p>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>os&gt; source=people | eval `TIMESTAMP(&#39;2020-08-26 13:49:00&#39;)` = TIMESTAMP(&#39;2020-08-26 13:49:00&#39;), `TIMESTAMP(&#39;2020-08-26 13:49:00&#39;, TIME(&#39;12:15:42&#39;))` = TIMESTAMP(&#39;2020-08-26 13:49:00&#39;, TIME(&#39;12:15:42&#39;)) | fields `TIMESTAMP(&#39;2020-08-26 13:49:00&#39;)`, `TIMESTAMP(&#39;2020-08-26 13:49:00&#39;, TIME(&#39;12:15:42&#39;))`
+fetched rows / total rows = 1/1
++------------------------------------+------------------------------------------------------+
+| TIMESTAMP(&#39;2020-08-26 13:49:00&#39;)   | TIMESTAMP(&#39;2020-08-26 13:49:00&#39;, TIME(&#39;12:15:42&#39;))   |
+|------------------------------------+------------------------------------------------------|
+| 2020-08-26 13:49:00                | 2020-08-27 02:04:42                                  |
++------------------------------------+------------------------------------------------------+
+</pre></div>
+</div>
+</section>
+</section>
+<section id="timestampadd">
+<h2><a class="toc-backref" href="#id137" role="doc-backlink">TIMESTAMPADD</a><a class="headerlink" href="#timestampadd" title="Link to this heading">¶</a></h2>
+<section id="id63">
+<h3>Description<a class="headerlink" href="#id63" title="Link to this heading">¶</a></h3>
+<p>Usage: Returns a TIMESTAMP value based on a passed in DATE/TIME/TIMESTAMP/STRING argument and an INTERVAL and INTEGER argument which determine the amount of time to be added.
+If the third argument is a STRING, it must be formatted as a valid TIMESTAMP. If only a TIME is provided, a TIMESTAMP is still returned with the DATE portion filled in using the current date.
+If the third argument is a DATE, it will be automatically converted to a TIMESTAMP.</p>
+<p>Argument type: INTERVAL, INTEGER, DATE/TIME/TIMESTAMP/STRING</p>
+<p>INTERVAL must be one of the following tokens: [MICROSECOND, SECOND, MINUTE, HOUR, DAY, WEEK, MONTH, QUARTER, YEAR]</p>
+<p>Examples:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>os&gt; source=people | eval `TIMESTAMPADD(DAY, 17, &#39;2000-01-01 00:00:00&#39;)` = TIMESTAMPADD(DAY, 17, &#39;2000-01-01 00:00:00&#39;) | eval `TIMESTAMPADD(QUARTER, -1, &#39;2000-01-01 00:00:00&#39;)` = TIMESTAMPADD(QUARTER, -1, &#39;2000-01-01 00:00:00&#39;) | fields `TIMESTAMPADD(DAY, 17, &#39;2000-01-01 00:00:00&#39;)`, `TIMESTAMPADD(QUARTER, -1, &#39;2000-01-01 00:00:00&#39;)`
+fetched rows / total rows = 1/1
++------------------------------------------------+----------------------------------------------------+
+| TIMESTAMPADD(DAY, 17, &#39;2000-01-01 00:00:00&#39;)   | TIMESTAMPADD(QUARTER, -1, &#39;2000-01-01 00:00:00&#39;)   |
+|------------------------------------------------+----------------------------------------------------|
+| 2000-01-18 00:00:00                            | 1999-10-01 00:00:00                                |
++------------------------------------------------+----------------------------------------------------+
+</pre></div>
+</div>
+</section>
+</section>
+<section id="timestampdiff">
+<h2><a class="toc-backref" href="#id138" role="doc-backlink">TIMESTAMPDIFF</a><a class="headerlink" href="#timestampdiff" title="Link to this heading">¶</a></h2>
+<section id="id64">
+<h3>Description<a class="headerlink" href="#id64" title="Link to this heading">¶</a></h3>
+<p>Usage: TIMESTAMPDIFF(interval, start, end) returns the difference between the start and end date/times in interval units.
+If a TIME is provided as an argument, it will be converted to a TIMESTAMP with the DATE portion filled in using the current date.
+Arguments will be automatically converted to a TIME/TIMESTAMP when appropriate.
+Any argument that is a STRING must be formatted as a valid TIMESTAMP.</p>
+<p>Argument type: INTERVAL, DATE/TIME/TIMESTAMP/STRING, DATE/TIME/TIMESTAMP/STRING</p>
+<p>INTERVAL must be one of the following tokens: [MICROSECOND, SECOND, MINUTE, HOUR, DAY, WEEK, MONTH, QUARTER, YEAR]</p>
+<p>Examples:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>os&gt; source=people | eval `TIMESTAMPDIFF(YEAR, &#39;1997-01-01 00:00:00&#39;, &#39;2001-03-06 00:00:00&#39;)` = TIMESTAMPDIFF(YEAR, &#39;1997-01-01 00:00:00&#39;, &#39;2001-03-06 00:00:00&#39;) | eval `TIMESTAMPDIFF(SECOND, time(&#39;00:00:23&#39;), time(&#39;00:00:00&#39;))` = TIMESTAMPDIFF(SECOND, time(&#39;00:00:23&#39;), time(&#39;00:00:00&#39;)) | fields `TIMESTAMPDIFF(YEAR, &#39;1997-01-01 00:00:00&#39;, &#39;2001-03-06 00:00:00&#39;)`, `TIMESTAMPDIFF(SECOND, time(&#39;00:00:23&#39;), time(&#39;00:00:00&#39;))`
+fetched rows / total rows = 1/1
++---------------------------------------------------------------------+-------------------------------------------------------------+
+| TIMESTAMPDIFF(YEAR, &#39;1997-01-01 00:00:00&#39;, &#39;2001-03-06 00:00:00&#39;)   | TIMESTAMPDIFF(SECOND, time(&#39;00:00:23&#39;), time(&#39;00:00:00&#39;))   |
+|---------------------------------------------------------------------+-------------------------------------------------------------|
+| 4                                                                   | -23                                                         |
++---------------------------------------------------------------------+-------------------------------------------------------------+
+</pre></div>
+</div>
+</section>
+</section>
+<section id="to-days">
+<h2><a class="toc-backref" href="#id139" role="doc-backlink">TO_DAYS</a><a class="headerlink" href="#to-days" title="Link to this heading">¶</a></h2>
+<section id="id65">
+<h3>Description<a class="headerlink" href="#id65" title="Link to this heading">¶</a></h3>
+<p>Usage: to_days(date) returns the day number (the number of days since year 0) of the given date. Returns NULL if date is invalid.</p>
+<p>Argument type: STRING/DATE/TIMESTAMP</p>
+<p>Return type: LONG</p>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>os&gt; source=people | eval `TO_DAYS(DATE(&#39;2008-10-07&#39;))` = TO_DAYS(DATE(&#39;2008-10-07&#39;)) | fields `TO_DAYS(DATE(&#39;2008-10-07&#39;))`
+fetched rows / total rows = 1/1
++-------------------------------+
+| TO_DAYS(DATE(&#39;2008-10-07&#39;))   |
+|-------------------------------|
+| 733687                        |
++-------------------------------+
+</pre></div>
+</div>
+</section>
+</section>
+<section id="to-seconds">
+<h2><a class="toc-backref" href="#id140" role="doc-backlink">TO_SECONDS</a><a class="headerlink" href="#to-seconds" title="Link to this heading">¶</a></h2>
+<section id="id66">
+<h3>Description<a class="headerlink" href="#id66" title="Link to this heading">¶</a></h3>
+<p>Usage: to_seconds(date) returns the number of seconds since the year 0 of the given value. Returns NULL if value is invalid.
+An argument of a LONG type can be used. It must be formatted as YMMDD, YYMMDD, YYYMMDD or YYYYMMDD. Note that a LONG type argument cannot have leading 0s as it will be parsed using an octal numbering system.</p>
+<p>Argument type: STRING/LONG/DATE/TIME/TIMESTAMP</p>
+<p>Return type: LONG</p>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>os&gt; source=people | eval `TO_SECONDS(DATE(&#39;2008-10-07&#39;))` = TO_SECONDS(DATE(&#39;2008-10-07&#39;)) | eval `TO_SECONDS(950228)` = TO_SECONDS(950228) | fields `TO_SECONDS(DATE(&#39;2008-10-07&#39;))`, `TO_SECONDS(950228)`
+fetched rows / total rows = 1/1
++----------------------------------+----------------------+
+| TO_SECONDS(DATE(&#39;2008-10-07&#39;))   | TO_SECONDS(950228)   |
+|----------------------------------+----------------------|
+| 63390556800                      | 62961148800          |
++----------------------------------+----------------------+
+</pre></div>
+</div>
+</section>
+</section>
+<section id="unix-timestamp">
+<h2><a class="toc-backref" href="#id141" role="doc-backlink">UNIX_TIMESTAMP</a><a class="headerlink" href="#unix-timestamp" title="Link to this heading">¶</a></h2>
+<section id="id67">
+<h3>Description<a class="headerlink" href="#id67" title="Link to this heading">¶</a></h3>
+<p>Usage: Converts given argument to Unix time (seconds since Epoch - very beginning of year 1970). If no argument given, it returns the current Unix time.
+The date argument may be a DATE, or TIMESTAMP string, or a number in YYMMDD, YYMMDDhhmmss, YYYYMMDD, or YYYYMMDDhhmmss format. If the argument includes a time part, it may optionally include a fractional seconds part.
+If argument is in invalid format or outside of range 1970-01-01 00:00:00 - 3001-01-18 23:59:59.999999 (0 to 32536771199.999999 epoch time), function returns NULL.
+You can use <a class="reference internal" href="#from-unixtime">FROM_UNIXTIME</a> to do reverse conversion.</p>
+<p>Argument type: &lt;NONE&gt;/DOUBLE/DATE/TIMESTAMP</p>
+<p>Return type: DOUBLE</p>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>os&gt; source=people | eval `UNIX_TIMESTAMP(double)` = UNIX_TIMESTAMP(20771122143845), `UNIX_TIMESTAMP(timestamp)` = UNIX_TIMESTAMP(TIMESTAMP(&#39;1996-11-15 17:05:42&#39;)) | fields `UNIX_TIMESTAMP(double)`, `UNIX_TIMESTAMP(timestamp)`
+fetched rows / total rows = 1/1
++--------------------------+-----------------------------+
+| UNIX_TIMESTAMP(double)   | UNIX_TIMESTAMP(timestamp)   |
+|--------------------------+-----------------------------|
+| 3404817525.0             | 848077542.0                 |
++--------------------------+-----------------------------+
+</pre></div>
+</div>
+</section>
+</section>
+<section id="utc-date">
+<h2><a class="toc-backref" href="#id142" role="doc-backlink">UTC_DATE</a><a class="headerlink" href="#utc-date" title="Link to this heading">¶</a></h2>
+<section id="id68">
+<h3>Description<a class="headerlink" href="#id68" title="Link to this heading">¶</a></h3>
+<p>Returns the current UTC date as a value in ‘YYYY-MM-DD’.</p>
+<p>Return type: DATE</p>
+<p>Specification: UTC_DATE() -&gt; DATE</p>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>&gt; source=people | eval `UTC_DATE()` = UTC_DATE() | fields `UTC_DATE()`
+fetched rows / total rows = 1/1
++--------------+
+| UTC_DATE()   |
+|--------------|
+| 2022-10-03   |
++--------------+
+</pre></div>
+</div>
+</section>
+</section>
+<section id="utc-time">
+<h2><a class="toc-backref" href="#id143" role="doc-backlink">UTC_TIME</a><a class="headerlink" href="#utc-time" title="Link to this heading">¶</a></h2>
+<section id="id69">
+<h3>Description<a class="headerlink" href="#id69" title="Link to this heading">¶</a></h3>
+<p>Returns the current UTC time as a value in ‘hh:mm:ss’.</p>
+<p>Return type: TIME</p>
+<p>Specification: UTC_TIME() -&gt; TIME</p>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>&gt; source=people | eval `UTC_TIME()` = UTC_TIME() | fields `UTC_TIME()`
+fetched rows / total rows = 1/1
++--------------+
+| UTC_TIME()   |
+|--------------|
+| 17:54:27     |
++--------------+
+</pre></div>
+</div>
+</section>
+</section>
+<section id="utc-timestamp">
+<h2><a class="toc-backref" href="#id144" role="doc-backlink">UTC_TIMESTAMP</a><a class="headerlink" href="#utc-timestamp" title="Link to this heading">¶</a></h2>
+<section id="id70">
+<h3>Description<a class="headerlink" href="#id70" title="Link to this heading">¶</a></h3>
+<p>Returns the current UTC timestamp as a value in ‘YYYY-MM-DD hh:mm:ss’.</p>
+<p>Return type: TIMESTAMP</p>
+<p>Specification: UTC_TIMESTAMP() -&gt; TIMESTAMP</p>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>&gt; source=people | eval `UTC_TIMESTAMP()` = UTC_TIMESTAMP() | fields `UTC_TIMESTAMP()`
+fetched rows / total rows = 1/1
++---------------------+
+| UTC_TIMESTAMP()     |
+|---------------------|
+| 2022-10-03 17:54:28 |
++---------------------+
+</pre></div>
+</div>
+</section>
+</section>
+<section id="week">
+<h2><a class="toc-backref" href="#id145" role="doc-backlink">WEEK</a><a class="headerlink" href="#week" title="Link to this heading">¶</a></h2>
+<section id="id71">
+<h3>Description<a class="headerlink" href="#id71" title="Link to this heading">¶</a></h3>
+<p>Usage: week(date[, mode]) returns the week number for date. If the mode argument is omitted, the default mode 0 is used.</p>
+<table class="docutils align-default" id="id79">
+<caption><span class="caption-text">The following table describes how the mode argument works.</span><a class="headerlink" href="#id79" title="Link to this table">¶</a></caption>
+<colgroup>
+<col style="width: 14.3%" />
+<col style="width: 28.6%" />
+<col style="width: 14.3%" />
+<col style="width: 42.9%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Mode</p></th>
+<th class="head"><p>First day of week</p></th>
+<th class="head"><p>Range</p></th>
+<th class="head"><p>Week 1 is the first week …</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>0</p></td>
+<td><p>Sunday</p></td>
+<td><p>0-53</p></td>
+<td><p>with a Sunday in this year</p></td>
+</tr>
+<tr class="row-odd"><td><p>1</p></td>
+<td><p>Monday</p></td>
+<td><p>0-53</p></td>
+<td><p>with 4 or more days this year</p></td>
+</tr>
+<tr class="row-even"><td><p>2</p></td>
+<td><p>Sunday</p></td>
+<td><p>1-53</p></td>
+<td><p>with a Sunday in this year</p></td>
+</tr>
+<tr class="row-odd"><td><p>3</p></td>
+<td><p>Monday</p></td>
+<td><p>1-53</p></td>
+<td><p>with 4 or more days this year</p></td>
+</tr>
+<tr class="row-even"><td><p>4</p></td>
+<td><p>Sunday</p></td>
+<td><p>0-53</p></td>
+<td><p>with 4 or more days this year</p></td>
+</tr>
+<tr class="row-odd"><td><p>5</p></td>
+<td><p>Monday</p></td>
+<td><p>0-53</p></td>
+<td><p>with a Monday in this year</p></td>
+</tr>
+<tr class="row-even"><td><p>6</p></td>
+<td><p>Sunday</p></td>
+<td><p>1-53</p></td>
+<td><p>with 4 or more days this year</p></td>
+</tr>
+<tr class="row-odd"><td><p>7</p></td>
+<td><p>Monday</p></td>
+<td><p>1-53</p></td>
+<td><p>with a Monday in this year</p></td>
+</tr>
+</tbody>
+</table>
+<p>Argument type: DATE/TIMESTAMP/STRING</p>
+<p>Return type: INTEGER</p>
+<p>Synonyms: <a class="reference internal" href="#week-of-year">WEEK_OF_YEAR</a></p>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>os&gt; source=people | eval `WEEK(DATE(&#39;2008-02-20&#39;))` = WEEK(DATE(&#39;2008-02-20&#39;)), `WEEK(DATE(&#39;2008-02-20&#39;), 1)` = WEEK(DATE(&#39;2008-02-20&#39;), 1) | fields `WEEK(DATE(&#39;2008-02-20&#39;))`, `WEEK(DATE(&#39;2008-02-20&#39;), 1)`
+fetched rows / total rows = 1/1
++----------------------------+-------------------------------+
+| WEEK(DATE(&#39;2008-02-20&#39;))   | WEEK(DATE(&#39;2008-02-20&#39;), 1)   |
+|----------------------------+-------------------------------|
+| 7                          | 8                             |
++----------------------------+-------------------------------+
+</pre></div>
+</div>
+</section>
+</section>
+<section id="weekday">
+<h2><a class="toc-backref" href="#id146" role="doc-backlink">WEEKDAY</a><a class="headerlink" href="#weekday" title="Link to this heading">¶</a></h2>
+<section id="id72">
+<h3>Description<a class="headerlink" href="#id72" title="Link to this heading">¶</a></h3>
+<p>Usage: weekday(date) returns the weekday index for date (0 = Monday, 1 = Tuesday, …, 6 = Sunday).</p>
+<p>It is similar to the <a class="reference internal" href="#dayofweek">dayofweek</a> function, but returns different indexes for each day.</p>
+<p>Argument type: STRING/DATE/TIME/TIMESTAMP</p>
+<p>Return type: INTEGER</p>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>os&gt; source=people | eval `weekday(DATE(&#39;2020-08-26&#39;))` = weekday(DATE(&#39;2020-08-26&#39;)) | eval `weekday(DATE(&#39;2020-08-27&#39;))` = weekday(DATE(&#39;2020-08-27&#39;)) | fields `weekday(DATE(&#39;2020-08-26&#39;))`, `weekday(DATE(&#39;2020-08-27&#39;))`
+fetched rows / total rows = 1/1
++-------------------------------+-------------------------------+
+| weekday(DATE(&#39;2020-08-26&#39;))   | weekday(DATE(&#39;2020-08-27&#39;))   |
+|-------------------------------+-------------------------------|
+| 2                             | 3                             |
++-------------------------------+-------------------------------+
+</pre></div>
+</div>
+</section>
+</section>
+<section id="week-of-year">
+<h2><a class="toc-backref" href="#id147" role="doc-backlink">WEEK_OF_YEAR</a><a class="headerlink" href="#week-of-year" title="Link to this heading">¶</a></h2>
+<section id="id73">
+<h3>Description<a class="headerlink" href="#id73" title="Link to this heading">¶</a></h3>
+<p>Usage: week_of_year(date[, mode]) returns the week number for date. If the mode argument is omitted, the default mode 0 is used.</p>
+<table class="docutils align-default" id="id80">
+<caption><span class="caption-text">The following table describes how the mode argument works.</span><a class="headerlink" href="#id80" title="Link to this table">¶</a></caption>
+<colgroup>
+<col style="width: 14.3%" />
+<col style="width: 28.6%" />
+<col style="width: 14.3%" />
+<col style="width: 42.9%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Mode</p></th>
+<th class="head"><p>First day of week</p></th>
+<th class="head"><p>Range</p></th>
+<th class="head"><p>Week 1 is the first week …</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>0</p></td>
+<td><p>Sunday</p></td>
+<td><p>0-53</p></td>
+<td><p>with a Sunday in this year</p></td>
+</tr>
+<tr class="row-odd"><td><p>1</p></td>
+<td><p>Monday</p></td>
+<td><p>0-53</p></td>
+<td><p>with 4 or more days this year</p></td>
+</tr>
+<tr class="row-even"><td><p>2</p></td>
+<td><p>Sunday</p></td>
+<td><p>1-53</p></td>
+<td><p>with a Sunday in this year</p></td>
+</tr>
+<tr class="row-odd"><td><p>3</p></td>
+<td><p>Monday</p></td>
+<td><p>1-53</p></td>
+<td><p>with 4 or more days this year</p></td>
+</tr>
+<tr class="row-even"><td><p>4</p></td>
+<td><p>Sunday</p></td>
+<td><p>0-53</p></td>
+<td><p>with 4 or more days this year</p></td>
+</tr>
+<tr class="row-odd"><td><p>5</p></td>
+<td><p>Monday</p></td>
+<td><p>0-53</p></td>
+<td><p>with a Monday in this year</p></td>
+</tr>
+<tr class="row-even"><td><p>6</p></td>
+<td><p>Sunday</p></td>
+<td><p>1-53</p></td>
+<td><p>with 4 or more days this year</p></td>
+</tr>
+<tr class="row-odd"><td><p>7</p></td>
+<td><p>Monday</p></td>
+<td><p>1-53</p></td>
+<td><p>with a Monday in this year</p></td>
+</tr>
+</tbody>
+</table>
+<p>Argument type: DATE/TIMESTAMP/STRING</p>
+<p>Return type: INTEGER</p>
+<p>Synonyms: <a class="reference internal" href="#week">WEEK</a></p>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>os&gt; source=people | eval `WEEK_OF_YEAR(DATE(&#39;2008-02-20&#39;))` = WEEK(DATE(&#39;2008-02-20&#39;)), `WEEK_OF_YEAR(DATE(&#39;2008-02-20&#39;), 1)` = WEEK_OF_YEAR(DATE(&#39;2008-02-20&#39;), 1) | fields `WEEK_OF_YEAR(DATE(&#39;2008-02-20&#39;))`, `WEEK_OF_YEAR(DATE(&#39;2008-02-20&#39;), 1)`
+fetched rows / total rows = 1/1
++------------------------------------+---------------------------------------+
+| WEEK_OF_YEAR(DATE(&#39;2008-02-20&#39;))   | WEEK_OF_YEAR(DATE(&#39;2008-02-20&#39;), 1)   |
+|------------------------------------+---------------------------------------|
+| 7                                  | 8                                     |
++------------------------------------+---------------------------------------+
+</pre></div>
+</div>
+</section>
+</section>
+<section id="year">
+<h2><a class="toc-backref" href="#id148" role="doc-backlink">YEAR</a><a class="headerlink" href="#year" title="Link to this heading">¶</a></h2>
+<section id="id74">
+<h3>Description<a class="headerlink" href="#id74" title="Link to this heading">¶</a></h3>
+<p>Usage: year(date) returns the year for date, in the range 1000 to 9999, or 0 for the “zero” date.</p>
+<p>Argument type: STRING/DATE/TIMESTAMP</p>
+<p>Return type: INTEGER</p>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>os&gt; source=people | eval `YEAR(DATE(&#39;2020-08-26&#39;))` = YEAR(DATE(&#39;2020-08-26&#39;)) | fields `YEAR(DATE(&#39;2020-08-26&#39;))`
+fetched rows / total rows = 1/1
++----------------------------+
+| YEAR(DATE(&#39;2020-08-26&#39;))   |
+|----------------------------|
+| 2020                       |
++----------------------------+
+</pre></div>
+</div>
+</section>
+</section>
+<section id="yearweek">
+<h2><a class="toc-backref" href="#id149" role="doc-backlink">YEARWEEK</a><a class="headerlink" href="#yearweek" title="Link to this heading">¶</a></h2>
+<section id="id75">
+<h3>Description<a class="headerlink" href="#id75" title="Link to this heading">¶</a></h3>
+<p>Usage: yearweek(date) returns the year and week for date as an integer. It accepts and optional mode arguments aligned with those available for the <a class="reference internal" href="#week">WEEK</a> function.</p>
+<p>Argument type: STRING/DATE/TIME/TIMESTAMP</p>
+<p>Return type: INTEGER</p>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>os&gt; source=people | eval `YEARWEEK(&#39;2020-08-26&#39;)` = YEARWEEK(&#39;2020-08-26&#39;) | eval `YEARWEEK(&#39;2019-01-05&#39;, 1)` = YEARWEEK(&#39;2019-01-05&#39;, 1) | fields `YEARWEEK(&#39;2020-08-26&#39;)`, `YEARWEEK(&#39;2019-01-05&#39;, 1)`
+fetched rows / total rows = 1/1
++--------------------------+-----------------------------+
+| YEARWEEK(&#39;2020-08-26&#39;)   | YEARWEEK(&#39;2019-01-05&#39;, 1)   |
+|--------------------------+-----------------------------|
+| 202034                   | 201901                      |
++--------------------------+-----------------------------+
+</pre></div>
+</div>
+</section>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../../index.html">sql-docs</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../../index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2024, josh.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 7.3.7</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 0.7.16</a>
+      
+      |
+      <a href="../../../../_sources/docs/user/ppl/functions/datetime.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
