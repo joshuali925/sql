@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Protocol &#8212; sql-docs  documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=d1102ebc" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/alabaster.css?v=12dfc556" />
+    <script src="../../../../_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="../../../../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="protocol">
+<h1>Protocol<a class="headerlink" href="#protocol" title="Link to this heading">¶</a></h1>
+<p class="rubric">Table of contents</p>
+<nav class="contents local" id="contents">
+<ul class="simple">
+<li><p><a class="reference internal" href="#introduction" id="id3">Introduction</a></p></li>
+<li><p><a class="reference internal" href="#request-response-format" id="id4">Request/Response Format</a></p></li>
+<li><p><a class="reference internal" href="#jdbc-format" id="id5">JDBC Format</a></p></li>
+</ul>
+</nav>
+<section id="introduction">
+<h2><a class="toc-backref" href="#id3" role="doc-backlink">Introduction</a><a class="headerlink" href="#introduction" title="Link to this heading">¶</a></h2>
+<p>For the protocol, PPL endpoint provides response formats in the JDBC format. JDBC format is widely used because it provides schema information and more functionality such as pagination. Besides JDBC driver, various clients can benefit from the detailed and well formatted response.</p>
+</section>
+<section id="request-response-format">
+<h2><a class="toc-backref" href="#id4" role="doc-backlink">Request/Response Format</a><a class="headerlink" href="#request-response-format" title="Link to this heading">¶</a></h2>
+<section id="description">
+<h3>Description<a class="headerlink" href="#description" title="Link to this heading">¶</a></h3>
+<p>The body of HTTP POST request can take PPL query.</p>
+</section>
+<section id="example-1">
+<h3>Example 1<a class="headerlink" href="#example-1" title="Link to this heading">¶</a></h3>
+<p>PPL query:</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>sh$<span class="w"> </span>curl<span class="w"> </span>-sS<span class="w"> </span>-H<span class="w"> </span><span class="s1">&#39;Content-Type: application/json&#39;</span><span class="w"> </span><span class="se">\</span>
+...<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>localhost:9200/_plugins/_ppl<span class="w"> </span><span class="se">\</span>
+...<span class="w"> </span>-d<span class="w"> </span><span class="s1">&#39;{&quot;query&quot; : &quot;source=accounts | fields firstname, lastname&quot;}&#39;</span>
+<span class="o">{</span>
+<span class="w">  </span><span class="s2">&quot;schema&quot;</span>:<span class="w"> </span><span class="o">[</span>
+<span class="w">    </span><span class="o">{</span>
+<span class="w">      </span><span class="s2">&quot;name&quot;</span>:<span class="w"> </span><span class="s2">&quot;firstname&quot;</span>,
+<span class="w">      </span><span class="s2">&quot;type&quot;</span>:<span class="w"> </span><span class="s2">&quot;string&quot;</span>
+<span class="w">    </span><span class="o">}</span>,
+<span class="w">    </span><span class="o">{</span>
+<span class="w">      </span><span class="s2">&quot;name&quot;</span>:<span class="w"> </span><span class="s2">&quot;lastname&quot;</span>,
+<span class="w">      </span><span class="s2">&quot;type&quot;</span>:<span class="w"> </span><span class="s2">&quot;string&quot;</span>
+<span class="w">    </span><span class="o">}</span>
+<span class="w">  </span><span class="o">]</span>,
+<span class="w">  </span><span class="s2">&quot;datarows&quot;</span>:<span class="w"> </span><span class="o">[</span>
+<span class="w">    </span><span class="o">[</span>
+<span class="w">      </span><span class="s2">&quot;Amber&quot;</span>,
+<span class="w">      </span><span class="s2">&quot;Duke&quot;</span>
+<span class="w">    </span><span class="o">]</span>,
+<span class="w">    </span><span class="o">[</span>
+<span class="w">      </span><span class="s2">&quot;Hattie&quot;</span>,
+<span class="w">      </span><span class="s2">&quot;Bond&quot;</span>
+<span class="w">    </span><span class="o">]</span>,
+<span class="w">    </span><span class="o">[</span>
+<span class="w">      </span><span class="s2">&quot;Nanette&quot;</span>,
+<span class="w">      </span><span class="s2">&quot;Bates&quot;</span>
+<span class="w">    </span><span class="o">]</span>,
+<span class="w">    </span><span class="o">[</span>
+<span class="w">      </span><span class="s2">&quot;Dale&quot;</span>,
+<span class="w">      </span><span class="s2">&quot;Adams&quot;</span>
+<span class="w">    </span><span class="o">]</span>
+<span class="w">  </span><span class="o">]</span>,
+<span class="w">  </span><span class="s2">&quot;total&quot;</span>:<span class="w"> </span><span class="m">4</span>,
+<span class="w">  </span><span class="s2">&quot;size&quot;</span>:<span class="w"> </span><span class="m">4</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="jdbc-format">
+<h2><a class="toc-backref" href="#id5" role="doc-backlink">JDBC Format</a><a class="headerlink" href="#jdbc-format" title="Link to this heading">¶</a></h2>
+<section id="id1">
+<h3>Description<a class="headerlink" href="#id1" title="Link to this heading">¶</a></h3>
+<p>By default the plugin return JDBC format. JDBC format is provided for JDBC driver and client side that needs both schema and result set well formatted.</p>
+</section>
+<section id="id2">
+<h3>Example 1<a class="headerlink" href="#id2" title="Link to this heading">¶</a></h3>
+<p>Here is an example for normal response. The <cite>schema</cite> includes field name and its type and <cite>datarows</cite> includes the result set.</p>
+<p>PPL query:</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>sh$<span class="w"> </span>curl<span class="w"> </span>-sS<span class="w"> </span>-H<span class="w"> </span><span class="s1">&#39;Content-Type: application/json&#39;</span><span class="w"> </span><span class="se">\</span>
+...<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>localhost:9200/_plugins/_ppl<span class="w"> </span><span class="se">\</span>
+...<span class="w"> </span>-d<span class="w"> </span><span class="s1">&#39;{&quot;query&quot; : &quot;source=accounts | fields firstname, lastname&quot;}&#39;</span>
+<span class="o">{</span>
+<span class="w">  </span><span class="s2">&quot;schema&quot;</span>:<span class="w"> </span><span class="o">[</span>
+<span class="w">    </span><span class="o">{</span>
+<span class="w">      </span><span class="s2">&quot;name&quot;</span>:<span class="w"> </span><span class="s2">&quot;firstname&quot;</span>,
+<span class="w">      </span><span class="s2">&quot;type&quot;</span>:<span class="w"> </span><span class="s2">&quot;string&quot;</span>
+<span class="w">    </span><span class="o">}</span>,
+<span class="w">    </span><span class="o">{</span>
+<span class="w">      </span><span class="s2">&quot;name&quot;</span>:<span class="w"> </span><span class="s2">&quot;lastname&quot;</span>,
+<span class="w">      </span><span class="s2">&quot;type&quot;</span>:<span class="w"> </span><span class="s2">&quot;string&quot;</span>
+<span class="w">    </span><span class="o">}</span>
+<span class="w">  </span><span class="o">]</span>,
+<span class="w">  </span><span class="s2">&quot;datarows&quot;</span>:<span class="w"> </span><span class="o">[</span>
+<span class="w">    </span><span class="o">[</span>
+<span class="w">      </span><span class="s2">&quot;Amber&quot;</span>,
+<span class="w">      </span><span class="s2">&quot;Duke&quot;</span>
+<span class="w">    </span><span class="o">]</span>,
+<span class="w">    </span><span class="o">[</span>
+<span class="w">      </span><span class="s2">&quot;Hattie&quot;</span>,
+<span class="w">      </span><span class="s2">&quot;Bond&quot;</span>
+<span class="w">    </span><span class="o">]</span>,
+<span class="w">    </span><span class="o">[</span>
+<span class="w">      </span><span class="s2">&quot;Nanette&quot;</span>,
+<span class="w">      </span><span class="s2">&quot;Bates&quot;</span>
+<span class="w">    </span><span class="o">]</span>,
+<span class="w">    </span><span class="o">[</span>
+<span class="w">      </span><span class="s2">&quot;Dale&quot;</span>,
+<span class="w">      </span><span class="s2">&quot;Adams&quot;</span>
+<span class="w">    </span><span class="o">]</span>
+<span class="w">  </span><span class="o">]</span>,
+<span class="w">  </span><span class="s2">&quot;total&quot;</span>:<span class="w"> </span><span class="m">4</span>,
+<span class="w">  </span><span class="s2">&quot;size&quot;</span>:<span class="w"> </span><span class="m">4</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+</section>
+<section id="example-2">
+<h3>Example 2<a class="headerlink" href="#example-2" title="Link to this heading">¶</a></h3>
+<p>If any error occurred, error message and the cause will be returned instead.</p>
+<p>PPL query:</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>sh$<span class="w"> </span>curl<span class="w"> </span>-sS<span class="w"> </span>-H<span class="w"> </span><span class="s1">&#39;Content-Type: application/json&#39;</span><span class="w"> </span><span class="se">\</span>
+...<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>localhost:9200/_plugins/_ppl<span class="w"> </span><span class="se">\</span>
+...<span class="w"> </span>-d<span class="w"> </span><span class="s1">&#39;{&quot;query&quot; : &quot;source=unknown | fields firstname, lastname&quot;}&#39;</span>
+<span class="o">{</span>
+<span class="w">  </span><span class="s2">&quot;error&quot;</span>:<span class="w"> </span><span class="o">{</span>
+<span class="w">    </span><span class="s2">&quot;reason&quot;</span>:<span class="w"> </span><span class="s2">&quot;Error occurred in OpenSearch engine: no such index [unknown]&quot;</span>,
+<span class="w">    </span><span class="s2">&quot;details&quot;</span>:<span class="w"> </span><span class="s2">&quot;[unknown] IndexNotFoundException[no such index [unknown]]\nFor more details, please send request for Json format to see the raw response from OpenSearch engine.&quot;</span>,
+<span class="w">    </span><span class="s2">&quot;type&quot;</span>:<span class="w"> </span><span class="s2">&quot;IndexNotFoundException&quot;</span>
+<span class="w">  </span><span class="o">}</span>,
+<span class="w">  </span><span class="s2">&quot;status&quot;</span>:<span class="w"> </span><span class="m">404</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+</section>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../../index.html">sql-docs</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../../index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2024, josh.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 7.3.7</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 0.7.16</a>
+      
+      |
+      <a href="../../../../_sources/docs/user/ppl/interfaces/protocol.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

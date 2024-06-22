@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Data Type Conversion in SQL/PPL &#8212; sql-docs  documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=d1102ebc" />
+    <link rel="stylesheet" type="text/css" href="../../_static/alabaster.css?v=12dfc556" />
+    <script src="../../_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="../../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="data-type-conversion-in-sql-ppl">
+<h1>Data Type Conversion in SQL/PPL<a class="headerlink" href="#data-type-conversion-in-sql-ppl" title="Link to this heading">¶</a></h1>
+<section id="overview">
+<h2>1.Overview<a class="headerlink" href="#overview" title="Link to this heading">¶</a></h2>
+<section id="type-conversion">
+<h3>1.1 Type Conversion<a class="headerlink" href="#type-conversion" title="Link to this heading">¶</a></h3>
+<p>Type conversion means conversion from one data type to another which has two aspects to consider:</p>
+<ol class="arabic simple">
+<li><p>Whether the conversion is implicit or explicit (implicit conversion is often called coercion)</p></li>
+<li><p>Whether the data is converted within the family or reinterpreted as another data type outside</p></li>
+</ol>
+<p>It’s common that strong typed language only supports little implicit conversions and no data reinterpretation. While languages with weak typing allows many implicit conversions and flexible reinterpretation.</p>
+</section>
+<section id="problem-statement">
+<h3>1.2 Problem Statement<a class="headerlink" href="#problem-statement" title="Link to this heading">¶</a></h3>
+<p>Currently, there are only 2 implicit conversions allowed which are defined by type hierarchy tree:</p>
+<ol class="arabic simple">
+<li><p>Numeric type coercion: narrower numeric types are closer to the root on the top. For example, an integer is converted to a long integer automatically similar as in JAVA.</p></li>
+<li><p>NULL literals: <code class="docutils literal notranslate"><span class="pre">UNDEFINED</span></code> type can be converted to any other so that NULL literal can be accepted by any expression at runtime.</p></li>
+</ol>
+<p><img alt="Current type hierarchy" src="../../_images/type-hierarchy-tree-old.png" /></p>
+<p>However, more general conversions for non-numeric types are missing, such as conversions between string, bool and date types. The strict type check causes inconvenience and other problems discussed below.</p>
+</section>
+</section>
+<hr class="docutils" />
+<section id="requirements">
+<h2>2.Requirements<a class="headerlink" href="#requirements" title="Link to this heading">¶</a></h2>
+<section id="use-cases">
+<h3>2.1 Use Cases<a class="headerlink" href="#use-cases" title="Link to this heading">¶</a></h3>
+<p>The common use case and motivation include:</p>
+<ol class="arabic simple">
+<li><p><em>User-friendly</em>: Although it doesn’t matter for application or BI tool which can always follow the strict grammar rule, it’s more friendly and accessible to human by implicit type conversion, ex. <code class="docutils literal notranslate"><span class="pre">date</span> <span class="pre">&gt;</span> <span class="pre">DATE('2020-06-01')</span> <span class="pre">=&gt;</span> <span class="pre">date</span> <span class="pre">&gt;</span> <span class="pre">'2020-06-01'</span></code></p></li>
+<li><p><em>Schema-on-read</em>: More importantly, implicit conversion from string is required for schema on read (stored as raw string on write and extract field(s) on read), ex. <code class="docutils literal notranslate"><span class="pre">regex</span> <span class="pre">‘...’</span> <span class="pre">|</span> <span class="pre">abs(a)</span></code></p></li>
+</ol>
+</section>
+<section id="functionalities">
+<h3>2.2 Functionalities<a class="headerlink" href="#functionalities" title="Link to this heading">¶</a></h3>
+<p>Immediate:</p>
+<ol class="arabic simple">
+<li><p>Implicit conversion between bool and string: https://github.com/opendistro-for-elasticsearch/sql/issues/1061</p></li>
+<li><p>Implicit conversion between date and string: https://github.com/opendistro-for-elasticsearch/sql/issues/1056</p></li>
+</ol>
+<p>Future:</p>
+<ol class="arabic simple">
+<li><p>Implicit conversion between string and more other types for regex command support</p></li>
+</ol>
+</section>
+</section>
+<hr class="docutils" />
+<section id="design">
+<h2>3.Design<a class="headerlink" href="#design" title="Link to this heading">¶</a></h2>
+<section id="type-precedence">
+<h3>3.1 Type Precedence<a class="headerlink" href="#type-precedence" title="Link to this heading">¶</a></h3>
+<p>Type precedence determines the direction of conversion when fields involved in an expression has different type from resolved signature. Before introducing it into our type system, let’s check how an expression is resolved to a function implementation and why type precedence is required.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Compiling</span> <span class="n">time</span><span class="p">:</span>
+ <span class="n">Expression</span><span class="p">:</span> <span class="mi">1</span> <span class="o">=</span> <span class="mf">1.0</span>
+ <span class="n">Unresolved</span> <span class="n">signature</span><span class="p">:</span> <span class="n">equal</span><span class="p">(</span><span class="n">INT</span><span class="p">,</span> <span class="n">DOUBLE</span><span class="p">)</span>
+ <span class="n">Resovled</span> <span class="n">signature</span><span class="p">:</span> <span class="n">equal</span><span class="p">(</span><span class="n">DOUBLE</span><span class="p">,</span> <span class="n">DOUBLE</span><span class="p">)</span> <span class="p">,</span> <span class="n">distance</span><span class="o">=</span><span class="mi">1</span>
+ <span class="n">Function</span> <span class="n">builder</span><span class="p">:</span> <span class="n">returns</span> <span class="n">equal</span><span class="p">(</span><span class="n">DOUBLE</span><span class="p">,</span> <span class="n">DOUBLE</span><span class="p">)</span> <span class="n">impl</span>
+</pre></div>
+</div>
+<p>Now let’s follow the same idea to add support for conversion from <code class="docutils literal notranslate"><span class="pre">BOOLEAN</span></code> to <code class="docutils literal notranslate"><span class="pre">STRING</span></code>. Because all boolean values can be converted to a string (in other word string is “wider”), String type is made the parent of Boolean. However, this leads to wrong semantic as the following expression <code class="docutils literal notranslate"><span class="pre">false</span> <span class="pre">=</span> <span class="pre">‘FALSE’</span></code> for example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Compiling</span> <span class="n">time</span><span class="p">:</span>
+ <span class="n">Expression</span><span class="p">:</span> <span class="n">false</span> <span class="o">=</span> <span class="s1">&#39;FALSE&#39;</span>
+ <span class="n">Unresolved</span> <span class="n">signature</span><span class="p">:</span> <span class="n">equal</span><span class="p">(</span><span class="n">BOOL</span><span class="p">,</span> <span class="n">STRING</span><span class="p">)</span>
+ <span class="n">Resovled</span> <span class="n">signature</span><span class="p">:</span> <span class="n">equal</span><span class="p">(</span><span class="n">STRING</span><span class="p">,</span> <span class="n">STRING</span><span class="p">)</span>
+ <span class="n">Function</span> <span class="n">builder</span><span class="p">:</span> <span class="n">returns</span> <span class="n">equal</span><span class="p">(</span><span class="n">STRING</span><span class="p">,</span> <span class="n">STRING</span><span class="p">)</span> <span class="n">impl</span>
+
+<span class="n">Runtime</span><span class="p">:</span>
+ <span class="n">Function</span> <span class="n">impl</span><span class="p">:</span> <span class="n">String</span><span class="o">.</span><span class="n">value</span><span class="p">(</span><span class="n">false</span><span class="p">)</span><span class="o">.</span><span class="n">equals</span><span class="p">(</span><span class="s1">&#39;FALSE&#39;</span><span class="p">)</span>
+ <span class="n">Evaluation</span> <span class="n">result</span><span class="p">:</span> <span class="o">*</span><span class="n">false</span><span class="o">*</span>
+</pre></div>
+</div>
+<p>Therefore type precedence is supposed to be defined based on semantic expected rather than intuitive “width” of type. Now let’s reverse the direction and make Boolean the parent of String type.</p>
+<p><img alt="New type hierarchy" src="../../_images/type-hierarchy-tree-with-implicit-cast.png" /></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Compiling</span> <span class="n">time</span><span class="p">:</span>
+ <span class="n">Expression</span><span class="p">:</span> <span class="n">false</span> <span class="o">=</span> <span class="s1">&#39;FALSE&#39;</span>
+ <span class="n">Unresolved</span> <span class="n">signature</span><span class="p">:</span> <span class="n">equal</span><span class="p">(</span><span class="n">BOOL</span><span class="p">,</span> <span class="n">STRING</span><span class="p">)</span>
+ <span class="n">Resovled</span> <span class="n">signature</span><span class="p">:</span> <span class="n">equal</span><span class="p">(</span><span class="n">BOOL</span><span class="p">,</span> <span class="n">BOOL</span><span class="p">)</span>
+ <span class="n">Function</span> <span class="n">builder</span><span class="p">:</span> <span class="mi">1</span><span class="p">)</span> <span class="n">returns</span> <span class="n">equal</span><span class="p">(</span><span class="n">BOOL</span><span class="p">,</span> <span class="n">cast_to_bool</span><span class="p">(</span><span class="n">STRING</span><span class="p">))</span> <span class="n">impl</span>
+                   <span class="mi">2</span><span class="p">)</span> <span class="n">returns</span> <span class="n">equal</span><span class="p">(</span><span class="n">BOOL</span><span class="p">,</span> <span class="n">BOOL</span><span class="p">)</span> <span class="n">impl</span>
+<span class="n">Runtime</span><span class="p">:</span>
+ <span class="n">equal</span> <span class="n">impl</span><span class="p">:</span> <span class="n">false</span><span class="o">.</span><span class="n">equals</span><span class="p">(</span><span class="n">cast_to_bool</span><span class="p">(</span><span class="s1">&#39;FALSE&#39;</span><span class="p">))</span>
+ <span class="n">cast_to_bool</span> <span class="n">impl</span><span class="p">:</span> <span class="n">Boolean</span><span class="o">.</span><span class="n">valueOf</span><span class="p">(</span><span class="s1">&#39;FALSE&#39;</span><span class="p">)</span>
+ <span class="n">Evaluation</span> <span class="n">result</span><span class="p">:</span> <span class="o">*</span><span class="n">true</span><span class="o">*</span>
+</pre></div>
+</div>
+</section>
+<section id="general-rules">
+<h3>3.2 General Rules<a class="headerlink" href="#general-rules" title="Link to this heading">¶</a></h3>
+<ol class="arabic simple">
+<li><p>Implicit conversion is defined by type precedence which is represented by the type hierarchy tree.</p></li>
+<li><p>Explicit conversion defines the complete set of conversion allowed. If no explicit conversion defined, implicit conversion should be impossible too.</p></li>
+<li><p>On the other hand, if implicit conversion can occur between 2 types, then explicit conversion should be allowed too.</p></li>
+<li><p>Conversion within a data type family is considered as conversion between different data representation and should be supported as much as possible.</p></li>
+<li><p>Conversion across 2 data type families is considered as data reinterpretation and should be enabled with strong motivation.</p></li>
+</ol>
+</section>
+</section>
+<hr class="docutils" />
+<section id="implementation">
+<h2>4.Implementation<a class="headerlink" href="#implementation" title="Link to this heading">¶</a></h2>
+<section id="explicit-conversion">
+<h3>4.1 Explicit Conversion<a class="headerlink" href="#explicit-conversion" title="Link to this heading">¶</a></h3>
+<p>Explicit conversion is defined as the set of <code class="docutils literal notranslate"><span class="pre">CAST</span></code> function implementation which includes all the conversions allowed between data types. Same as before, missing cast function is added and implemented by the conversion logic in <code class="docutils literal notranslate"><span class="pre">ExprType</span></code> class.</p>
+<div class="highlight-java notranslate"><div class="highlight"><pre><span></span><span class="kd">public</span><span class="w"> </span><span class="kd">class</span> <span class="nc">Cast</span><span class="w"> </span><span class="kd">extends</span><span class="w"> </span><span class="n">UnresolvedExpression</span><span class="w"> </span><span class="p">{</span>
+
+<span class="w">  </span><span class="kd">private</span><span class="w"> </span><span class="kd">static</span><span class="w"> </span><span class="kd">final</span><span class="w"> </span><span class="n">Map</span><span class="o">&lt;</span><span class="n">String</span><span class="p">,</span><span class="w"> </span><span class="n">FunctionName</span><span class="o">&gt;</span><span class="w"> </span><span class="n">CONVERTED_TYPE_FUNCTION_NAME_MAP</span><span class="w"> </span><span class="o">=</span>
+<span class="w">      </span><span class="k">new</span><span class="w"> </span><span class="n">ImmutableMap</span><span class="p">.</span><span class="na">Builder</span><span class="o">&lt;</span><span class="n">String</span><span class="p">,</span><span class="w"> </span><span class="n">FunctionName</span><span class="o">&gt;</span><span class="p">()</span>
+<span class="w">          </span><span class="p">.</span><span class="na">put</span><span class="p">(</span><span class="s">&quot;string&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">CAST_TO_STRING</span><span class="p">.</span><span class="na">getName</span><span class="p">())</span>
+<span class="w">          </span><span class="p">.</span><span class="na">put</span><span class="p">(</span><span class="s">&quot;byte&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">CAST_TO_BYTE</span><span class="p">.</span><span class="na">getName</span><span class="p">())</span>
+<span class="w">          </span><span class="p">.</span><span class="na">put</span><span class="p">(</span><span class="s">&quot;short&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">CAST_TO_SHORT</span><span class="p">.</span><span class="na">getName</span><span class="p">())</span>
+<span class="w">          </span><span class="p">.</span><span class="na">put</span><span class="p">(</span><span class="s">&quot;int&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">CAST_TO_INT</span><span class="p">.</span><span class="na">getName</span><span class="p">())</span>
+<span class="w">          </span><span class="p">.</span><span class="na">put</span><span class="p">(</span><span class="s">&quot;integer&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">CAST_TO_INT</span><span class="p">.</span><span class="na">getName</span><span class="p">())</span>
+<span class="w">          </span><span class="p">.</span><span class="na">put</span><span class="p">(</span><span class="s">&quot;long&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">CAST_TO_LONG</span><span class="p">.</span><span class="na">getName</span><span class="p">())</span>
+<span class="w">          </span><span class="p">.</span><span class="na">put</span><span class="p">(</span><span class="s">&quot;float&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">CAST_TO_FLOAT</span><span class="p">.</span><span class="na">getName</span><span class="p">())</span>
+<span class="w">          </span><span class="p">.</span><span class="na">put</span><span class="p">(</span><span class="s">&quot;double&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">CAST_TO_DOUBLE</span><span class="p">.</span><span class="na">getName</span><span class="p">())</span>
+<span class="w">          </span><span class="p">.</span><span class="na">put</span><span class="p">(</span><span class="s">&quot;boolean&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">CAST_TO_BOOLEAN</span><span class="p">.</span><span class="na">getName</span><span class="p">())</span>
+<span class="w">          </span><span class="p">.</span><span class="na">put</span><span class="p">(</span><span class="s">&quot;date&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">CAST_TO_DATE</span><span class="p">.</span><span class="na">getName</span><span class="p">())</span>
+<span class="w">          </span><span class="p">.</span><span class="na">put</span><span class="p">(</span><span class="s">&quot;time&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">CAST_TO_TIME</span><span class="p">.</span><span class="na">getName</span><span class="p">())</span>
+<span class="w">          </span><span class="p">.</span><span class="na">put</span><span class="p">(</span><span class="s">&quot;timestamp&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">CAST_TO_TIMESTAMP</span><span class="p">.</span><span class="na">getName</span><span class="p">())</span>
+<span class="w">          </span><span class="p">.</span><span class="na">build</span><span class="p">();</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="implicit-conversion">
+<h3>4.2 Implicit Conversion<a class="headerlink" href="#implicit-conversion" title="Link to this heading">¶</a></h3>
+<p>Implicit conversion and precedence are defined by the type hierarchy tree. The data type at the head of an arrow has higher precedence than the type at the tail.</p>
+<div class="highlight-java notranslate"><div class="highlight"><pre><span></span><span class="kd">public</span><span class="w"> </span><span class="kd">enum</span><span class="w"> </span><span class="n">ExprCoreType</span><span class="w"> </span><span class="kd">implements</span><span class="w"> </span><span class="n">ExprType</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="n">UNKNOWN</span><span class="p">,</span>
+<span class="w">  </span><span class="n">UNDEFINED</span><span class="p">,</span>
+
+<span class="w">  </span><span class="cm">/**</span>
+<span class="cm">   * Numbers.</span>
+<span class="cm">   */</span>
+<span class="w">  </span><span class="n">BYTE</span><span class="p">(</span><span class="n">UNDEFINED</span><span class="p">),</span>
+<span class="w">  </span><span class="n">SHORT</span><span class="p">(</span><span class="n">BYTE</span><span class="p">),</span>
+<span class="w">  </span><span class="n">INTEGER</span><span class="p">(</span><span class="n">SHORT</span><span class="p">),</span>
+<span class="w">  </span><span class="n">LONG</span><span class="p">(</span><span class="n">INTEGER</span><span class="p">),</span>
+<span class="w">  </span><span class="n">FLOAT</span><span class="p">(</span><span class="n">LONG</span><span class="p">),</span>
+<span class="w">  </span><span class="n">DOUBLE</span><span class="p">(</span><span class="n">FLOAT</span><span class="p">),</span>
+
+<span class="w">  </span><span class="n">STRING</span><span class="p">(</span><span class="n">UNDEFINED</span><span class="p">),</span>
+<span class="w">  </span><span class="n">BOOLEAN</span><span class="p">(</span><span class="n">STRING</span><span class="p">),</span><span class="w"> </span><span class="c1">// PR: change STRING&#39;s parent to BOOLEAN</span>
+
+<span class="w">  </span><span class="cm">/**</span>
+<span class="cm">   * Date.</span>
+<span class="cm">   */</span>
+<span class="w">  </span><span class="n">TIMESTAMP</span><span class="p">(</span><span class="n">UNDEFINED</span><span class="p">),</span>
+<span class="w">  </span><span class="n">DATE</span><span class="p">(</span><span class="n">UNDEFINED</span><span class="p">),</span>
+<span class="w">  </span><span class="n">TIME</span><span class="p">(</span><span class="n">UNDEFINED</span><span class="p">),</span>
+<span class="w">  </span><span class="n">DATETIME</span><span class="p">(</span><span class="n">UNDEFINED</span><span class="p">),</span>
+<span class="w">  </span><span class="n">INTERVAL</span><span class="p">(</span><span class="n">UNDEFINED</span><span class="p">),</span>
+
+<span class="w">  </span><span class="n">STRUCT</span><span class="p">(</span><span class="n">UNDEFINED</span><span class="p">),</span>
+<span class="w">  </span><span class="n">ARRAY</span><span class="p">(</span><span class="n">UNDEFINED</span><span class="p">);</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="type-casting-logic">
+<h3>4.3 Type Casting Logic<a class="headerlink" href="#type-casting-logic" title="Link to this heading">¶</a></h3>
+<p>As with examples in section 3.1, the implementation is:</p>
+<ol class="arabic simple">
+<li><p>Define all possible conversions in CAST function family.</p></li>
+<li><p>Define implicit conversions by type hierarchy tree (auto implicit cast from child to parent)</p></li>
+<li><p>During compile time, wrap original function builder by a new one which cast arguments to target type.</p></li>
+</ol>
+</section>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../index.html">sql-docs</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2024, josh.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 7.3.7</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 0.7.16</a>
+      
+      |
+      <a href="../../_sources/docs/dev/query-type-conversion.md.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

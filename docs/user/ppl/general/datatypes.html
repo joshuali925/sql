@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Data Types &#8212; sql-docs  documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=d1102ebc" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/alabaster.css?v=12dfc556" />
+    <script src="../../../../_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="../../../../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="data-types">
+<h1>Data Types<a class="headerlink" href="#data-types" title="Link to this heading">¶</a></h1>
+<p class="rubric">Table of contents</p>
+<nav class="contents local" id="contents">
+<ul class="simple">
+<li><p><a class="reference internal" href="#overview" id="id1">Overview</a></p>
+<ul>
+<li><p><a class="reference internal" href="#ppl-data-types" id="id2">PPL Data Types</a></p></li>
+<li><p><a class="reference internal" href="#data-types-mapping" id="id3">Data Types Mapping</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#numeric-data-types" id="id4">Numeric Data Types</a></p></li>
+<li><p><a class="reference internal" href="#date-and-time-data-types" id="id5">Date and Time Data Types</a></p>
+<ul>
+<li><p><a class="reference internal" href="#date" id="id6">Date</a></p></li>
+<li><p><a class="reference internal" href="#time" id="id7">Time</a></p></li>
+<li><p><a class="reference internal" href="#timestamp" id="id8">Timestamp</a></p></li>
+<li><p><a class="reference internal" href="#interval" id="id9">Interval</a></p></li>
+<li><p><a class="reference internal" href="#conversion-between-date-and-time-types" id="id10">Conversion between date and time types</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#string-data-types" id="id11">String Data Types</a></p></li>
+<li><p><a class="reference internal" href="#query-struct-data-types" id="id12">Query Struct Data Types</a></p>
+<ul>
+<li><p><a class="reference internal" href="#example-people" id="id13">Example: People</a></p></li>
+<li><p><a class="reference internal" href="#example-employees" id="id14">Example: Employees</a></p></li>
+<li><p><a class="reference internal" href="#example-1-select-struct-inner-attribute" id="id15">Example 1: Select struct inner attribute</a></p></li>
+<li><p><a class="reference internal" href="#example-2-group-by-struct-inner-attribute" id="id16">Example 2: Group by struct inner attribute</a></p></li>
+<li><p><a class="reference internal" href="#example-3-selecting-field-of-array-value" id="id17">Example 3: Selecting Field of Array Value</a></p></li>
+</ul>
+</li>
+</ul>
+</nav>
+<section id="overview">
+<h2><a class="toc-backref" href="#id1" role="doc-backlink">Overview</a><a class="headerlink" href="#overview" title="Link to this heading">¶</a></h2>
+<section id="ppl-data-types">
+<h3><a class="toc-backref" href="#id2" role="doc-backlink">PPL Data Types</a><a class="headerlink" href="#ppl-data-types" title="Link to this heading">¶</a></h3>
+<p>The PPL support the following data types.</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>PPL Data Type</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>boolean</p></td>
+</tr>
+<tr class="row-odd"><td><p>byte</p></td>
+</tr>
+<tr class="row-even"><td><p>short</p></td>
+</tr>
+<tr class="row-odd"><td><p>integer</p></td>
+</tr>
+<tr class="row-even"><td><p>long</p></td>
+</tr>
+<tr class="row-odd"><td><p>float</p></td>
+</tr>
+<tr class="row-even"><td><p>double</p></td>
+</tr>
+<tr class="row-odd"><td><p>string</p></td>
+</tr>
+<tr class="row-even"><td><p>timestamp</p></td>
+</tr>
+<tr class="row-odd"><td><p>date</p></td>
+</tr>
+<tr class="row-even"><td><p>time</p></td>
+</tr>
+<tr class="row-odd"><td><p>interval</p></td>
+</tr>
+<tr class="row-even"><td><p>ip</p></td>
+</tr>
+<tr class="row-odd"><td><p>geo_point</p></td>
+</tr>
+<tr class="row-even"><td><p>binary</p></td>
+</tr>
+<tr class="row-odd"><td><p>struct</p></td>
+</tr>
+<tr class="row-even"><td><p>array</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="data-types-mapping">
+<h3><a class="toc-backref" href="#id3" role="doc-backlink">Data Types Mapping</a><a class="headerlink" href="#data-types-mapping" title="Link to this heading">¶</a></h3>
+<p>The table below list the mapping between OpenSearch Data Type, PPL Data Type and SQL Type.</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>OpenSearch Type</p></th>
+<th class="head"><p>PPL Type</p></th>
+<th class="head"><p>SQL Type</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>boolean</p></td>
+<td><p>boolean</p></td>
+<td><p>BOOLEAN</p></td>
+</tr>
+<tr class="row-odd"><td><p>byte</p></td>
+<td><p>byte</p></td>
+<td><p>TINYINT</p></td>
+</tr>
+<tr class="row-even"><td><p>short</p></td>
+<td><p>byte</p></td>
+<td><p>SMALLINT</p></td>
+</tr>
+<tr class="row-odd"><td><p>integer</p></td>
+<td><p>integer</p></td>
+<td><p>INTEGER</p></td>
+</tr>
+<tr class="row-even"><td><p>long</p></td>
+<td><p>long</p></td>
+<td><p>BIGINT</p></td>
+</tr>
+<tr class="row-odd"><td><p>float</p></td>
+<td><p>float</p></td>
+<td><p>REAL</p></td>
+</tr>
+<tr class="row-even"><td><p>half_float</p></td>
+<td><p>float</p></td>
+<td><p>FLOAT</p></td>
+</tr>
+<tr class="row-odd"><td><p>scaled_float</p></td>
+<td><p>float</p></td>
+<td><p>DOUBLE</p></td>
+</tr>
+<tr class="row-even"><td><p>double</p></td>
+<td><p>double</p></td>
+<td><p>DOUBLE</p></td>
+</tr>
+<tr class="row-odd"><td><p>keyword</p></td>
+<td><p>string</p></td>
+<td><p>VARCHAR</p></td>
+</tr>
+<tr class="row-even"><td><p>text</p></td>
+<td><p>string</p></td>
+<td><p>VARCHAR</p></td>
+</tr>
+<tr class="row-odd"><td><p>date</p></td>
+<td><p>timestamp</p></td>
+<td><p>TIMESTAMP</p></td>
+</tr>
+<tr class="row-even"><td><p>ip</p></td>
+<td><p>ip</p></td>
+<td><p>VARCHAR</p></td>
+</tr>
+<tr class="row-odd"><td><p>date</p></td>
+<td><p>timestamp</p></td>
+<td><p>TIMESTAMP</p></td>
+</tr>
+<tr class="row-even"><td><p>binary</p></td>
+<td><p>binary</p></td>
+<td><p>VARBINARY</p></td>
+</tr>
+<tr class="row-odd"><td><p>object</p></td>
+<td><p>struct</p></td>
+<td><p>STRUCT</p></td>
+</tr>
+<tr class="row-even"><td><p>nested</p></td>
+<td><p>array</p></td>
+<td><p>STRUCT</p></td>
+</tr>
+</tbody>
+</table>
+<p>Notes: Not all the PPL Type has correspond OpenSearch Type. e.g. data and time. To use function which required such data type, user should explict convert the data type.</p>
+</section>
+</section>
+<section id="numeric-data-types">
+<h2><a class="toc-backref" href="#id4" role="doc-backlink">Numeric Data Types</a><a class="headerlink" href="#numeric-data-types" title="Link to this heading">¶</a></h2>
+<p>Numeric values ranged from -2147483648 to +2147483647 are recognized as integer with type name <code class="docutils literal notranslate"><span class="pre">INTEGER</span></code>. For others outside the range, <code class="docutils literal notranslate"><span class="pre">LONG</span></code> integer will be the data type after parsed.</p>
+</section>
+<section id="date-and-time-data-types">
+<h2><a class="toc-backref" href="#id5" role="doc-backlink">Date and Time Data Types</a><a class="headerlink" href="#date-and-time-data-types" title="Link to this heading">¶</a></h2>
+<p>The date and time data types are the types that represent temporal values and PPL plugin supports types including DATE, TIME, TIMESTAMP and INTERVAL. By default, the OpenSearch DSL uses date type as the only date and time related type, which has contained all information about an absolute time point. To integrate with PPL language, each of the types other than timestamp is holding part of temporal or timezone information, and the usage to explicitly clarify the date and time types is reflected in the datetime functions (see <a class="reference external" href="functions.rst">Functions</a> for details), where some functions might have restrictions in the input argument type.</p>
+<section id="date">
+<h3><a class="toc-backref" href="#id6" role="doc-backlink">Date</a><a class="headerlink" href="#date" title="Link to this heading">¶</a></h3>
+<p>Date represents the calendar date regardless of the time zone. A given date value represents a 24-hour period, or say a day, but this period varies in different timezones and might have flexible hours during Daylight Savings Time programs. Besides, the date type does not contain time information as well. The supported range is ‘1000-01-01’ to ‘9999-12-31’.</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Type</p></th>
+<th class="head"><p>Syntax</p></th>
+<th class="head"><p>Range</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Date</p></td>
+<td><p>‘yyyy-MM-dd’</p></td>
+<td><p>‘0001-01-01’ to ‘9999-12-31’</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="time">
+<h3><a class="toc-backref" href="#id7" role="doc-backlink">Time</a><a class="headerlink" href="#time" title="Link to this heading">¶</a></h3>
+<p>Time represents the time on the clock or watch with no regard for which timezone it might be related with. Time type data does not have date information.</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Type</p></th>
+<th class="head"><p>Syntax</p></th>
+<th class="head"><p>Range</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Time</p></td>
+<td><p>‘hh:mm:ss[.fraction]’</p></td>
+<td><p>‘00:00:00.000000’ to ‘23:59:59.999999’</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="timestamp">
+<h3><a class="toc-backref" href="#id8" role="doc-backlink">Timestamp</a><a class="headerlink" href="#timestamp" title="Link to this heading">¶</a></h3>
+<p>A timestamp instance is an absolute instant independent of timezone or convention. For example, for a given point of time, if we set the timestamp of this time point into another timezone, the value should also be different accordingly. Besides, the storage of timestamp type is also different from the other types. The timestamp is converted from the current timezone to UTC for storage, and is converted back to the set timezone from UTC when retrieving.</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Type</p></th>
+<th class="head"><p>Syntax</p></th>
+<th class="head"><p>Range</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Timestamp</p></td>
+<td><p>‘yyyy-MM-dd hh:mm:ss[.fraction]’</p></td>
+<td><p>‘0001-01-01 00:00:01.000000’ UTC to ‘9999-12-31 23:59:59.999999’</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="interval">
+<h3><a class="toc-backref" href="#id9" role="doc-backlink">Interval</a><a class="headerlink" href="#interval" title="Link to this heading">¶</a></h3>
+<p>Interval data type represents a temporal duration or a period. The syntax is as follows:</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Type</p></th>
+<th class="head"><p>Syntax</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Interval</p></td>
+<td><p>INTERVAL expr unit</p></td>
+</tr>
+</tbody>
+</table>
+<p>The expr is any expression that can be iterated to a quantity value eventually, see <a class="reference external" href="expressions.rst">Expressions</a> for details. The unit represents the unit for interpreting the quantity, including MICROSECOND, SECOND, MINUTE, HOUR, DAY, WEEK, MONTH, QUARTER and YEAR.The INTERVAL keyword and the unit specifier are not case sensitive. Note that there are two classes of intervals. Year-week intervals can store years, quarters, months and weeks. Day-time intervals can store days, hours, minutes, seconds and microseconds. Year-week intervals are comparable only with another year-week intervals. These two types of intervals can only comparable with the same type of themselves.</p>
+</section>
+<section id="conversion-between-date-and-time-types">
+<h3><a class="toc-backref" href="#id10" role="doc-backlink">Conversion between date and time types</a><a class="headerlink" href="#conversion-between-date-and-time-types" title="Link to this heading">¶</a></h3>
+<p>Basically the date and time types except interval can be converted to each other, but might suffer some alteration of the value or some information loss, for example extracting the time value from a timestamp value, or convert a date value to a timestamp value and so forth. Here lists the summary of the conversion rules that PPL plugin supports for each of the types:</p>
+<section id="conversion-from-date">
+<h4>Conversion from DATE<a class="headerlink" href="#conversion-from-date" title="Link to this heading">¶</a></h4>
+<ul class="simple">
+<li><p>Since the date value does not have any time information, conversion to <a class="reference internal" href="#time">Time</a> type is not useful, and will always return a zero time value ‘00:00:00’.</p></li>
+<li><p>Conversion to timestamp is to alternate both the time value and the timezone information, and it attaches the zero time value ‘00:00:00’ and the session timezone (UTC by default) to the date. For example, the result to covert date ‘2020-08-17’ to timestamp type with session timezone UTC is timestamp ‘2020-08-17 00:00:00’ UTC.</p></li>
+</ul>
+</section>
+<section id="conversion-from-time">
+<h4>Conversion from TIME<a class="headerlink" href="#conversion-from-time" title="Link to this heading">¶</a></h4>
+<ul class="simple">
+<li><p>Time value cannot be converted to any other date and time types since it does not contain any date information, so it is not meaningful to give no date info to a date/timestamp instance.</p></li>
+</ul>
+</section>
+<section id="conversion-from-timestamp">
+<h4>Conversion from TIMESTAMP<a class="headerlink" href="#conversion-from-timestamp" title="Link to this heading">¶</a></h4>
+<ul class="simple">
+<li><p>Conversion from timestamp is much more straightforward. To convert it to date is to extract the date value, and conversion to time is to extract the time value. For example, the result to convert timestamp ‘2020-08-17 14:09:00’ UTC to date is date ‘2020-08-17’, to time is ‘14:09:00’.</p></li>
+</ul>
+</section>
+</section>
+</section>
+<section id="string-data-types">
+<h2><a class="toc-backref" href="#id11" role="doc-backlink">String Data Types</a><a class="headerlink" href="#string-data-types" title="Link to this heading">¶</a></h2>
+<p>A string is a sequence of characters enclosed in either single or double quotes. For example, both ‘text’ and “text” will be treated as string literal.</p>
+</section>
+<section id="query-struct-data-types">
+<h2><a class="toc-backref" href="#id12" role="doc-backlink">Query Struct Data Types</a><a class="headerlink" href="#query-struct-data-types" title="Link to this heading">¶</a></h2>
+<p>In PPL, the Struct Data Types corresponding to the <a class="reference external" href="https://www.elastic.co/guide/en/elasticsearch/reference/current/object.html">Object field type in OpenSearch</a>. The “.” is used as the path selector when access the inner attribute of the struct data.</p>
+<section id="example-people">
+<h3><a class="toc-backref" href="#id13" role="doc-backlink">Example: People</a><a class="headerlink" href="#example-people" title="Link to this heading">¶</a></h3>
+<p>There are three fields in test index <code class="docutils literal notranslate"><span class="pre">people</span></code>: 1) deep nested object field <code class="docutils literal notranslate"><span class="pre">city</span></code>; 2) object field of array value <code class="docutils literal notranslate"><span class="pre">account</span></code>; 3) nested field <code class="docutils literal notranslate"><span class="pre">projects</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+  <span class="s2">&quot;mappings&quot;</span><span class="p">:</span> <span class="p">{</span>
+    <span class="s2">&quot;properties&quot;</span><span class="p">:</span> <span class="p">{</span>
+      <span class="s2">&quot;city&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;properties&quot;</span><span class="p">:</span> <span class="p">{</span>
+          <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;keyword&quot;</span>
+          <span class="p">},</span>
+          <span class="s2">&quot;location&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;properties&quot;</span><span class="p">:</span> <span class="p">{</span>
+              <span class="s2">&quot;latitude&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;double&quot;</span>
+              <span class="p">}</span>
+            <span class="p">}</span>
+          <span class="p">}</span>
+        <span class="p">}</span>
+      <span class="p">},</span>
+      <span class="s2">&quot;account&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;properties&quot;</span><span class="p">:</span> <span class="p">{</span>
+          <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;keyword&quot;</span>
+          <span class="p">}</span>
+        <span class="p">}</span>
+      <span class="p">},</span>
+      <span class="s2">&quot;projects&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;nested&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;properties&quot;</span><span class="p">:</span> <span class="p">{</span>
+          <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;keyword&quot;</span>
+          <span class="p">}</span>
+        <span class="p">}</span>
+      <span class="p">}</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="example-employees">
+<h3><a class="toc-backref" href="#id14" role="doc-backlink">Example: Employees</a><a class="headerlink" href="#example-employees" title="Link to this heading">¶</a></h3>
+<p>Here is the mapping for test index <code class="docutils literal notranslate"><span class="pre">employees_nested</span></code>. Note that field <code class="docutils literal notranslate"><span class="pre">projects</span></code> is a nested field:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+  <span class="s2">&quot;mappings&quot;</span><span class="p">:</span> <span class="p">{</span>
+    <span class="s2">&quot;properties&quot;</span><span class="p">:</span> <span class="p">{</span>
+      <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;long&quot;</span>
+      <span class="p">},</span>
+      <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;text&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;fields&quot;</span><span class="p">:</span> <span class="p">{</span>
+          <span class="s2">&quot;keyword&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;keyword&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;ignore_above&quot;</span><span class="p">:</span> <span class="mi">256</span>
+          <span class="p">}</span>
+        <span class="p">}</span>
+      <span class="p">},</span>
+      <span class="s2">&quot;projects&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;nested&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;properties&quot;</span><span class="p">:</span> <span class="p">{</span>
+          <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;text&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;fields&quot;</span><span class="p">:</span> <span class="p">{</span>
+              <span class="s2">&quot;keyword&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;keyword&quot;</span>
+              <span class="p">}</span>
+            <span class="p">},</span>
+            <span class="s2">&quot;fielddata&quot;</span><span class="p">:</span> <span class="n">true</span>
+          <span class="p">},</span>
+          <span class="s2">&quot;started_year&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;long&quot;</span>
+          <span class="p">}</span>
+        <span class="p">}</span>
+      <span class="p">},</span>
+      <span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;text&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;fields&quot;</span><span class="p">:</span> <span class="p">{</span>
+          <span class="s2">&quot;keyword&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;keyword&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;ignore_above&quot;</span><span class="p">:</span> <span class="mi">256</span>
+          <span class="p">}</span>
+        <span class="p">}</span>
+      <span class="p">}</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Result set:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+  <span class="s2">&quot;employees_nested&quot;</span> <span class="p">:</span> <span class="p">[</span>
+    <span class="p">{</span>
+      <span class="s2">&quot;id&quot;</span> <span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
+      <span class="s2">&quot;name&quot;</span> <span class="p">:</span> <span class="s2">&quot;Bob Smith&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;title&quot;</span> <span class="p">:</span> <span class="n">null</span><span class="p">,</span>
+      <span class="s2">&quot;projects&quot;</span> <span class="p">:</span> <span class="p">[</span>
+        <span class="p">{</span>
+          <span class="s2">&quot;name&quot;</span> <span class="p">:</span> <span class="s2">&quot;AWS Redshift Spectrum querying&quot;</span><span class="p">,</span>
+          <span class="s2">&quot;started_year&quot;</span> <span class="p">:</span> <span class="mi">1990</span>
+        <span class="p">},</span>
+        <span class="p">{</span>
+          <span class="s2">&quot;name&quot;</span> <span class="p">:</span> <span class="s2">&quot;AWS Redshift security&quot;</span><span class="p">,</span>
+          <span class="s2">&quot;started_year&quot;</span> <span class="p">:</span> <span class="mi">1999</span>
+        <span class="p">},</span>
+        <span class="p">{</span>
+          <span class="s2">&quot;name&quot;</span> <span class="p">:</span> <span class="s2">&quot;AWS Aurora security&quot;</span><span class="p">,</span>
+          <span class="s2">&quot;started_year&quot;</span> <span class="p">:</span> <span class="mi">2015</span>
+        <span class="p">}</span>
+      <span class="p">]</span>
+    <span class="p">},</span>
+    <span class="p">{</span>
+      <span class="s2">&quot;id&quot;</span> <span class="p">:</span> <span class="mi">4</span><span class="p">,</span>
+      <span class="s2">&quot;name&quot;</span> <span class="p">:</span> <span class="s2">&quot;Susan Smith&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;title&quot;</span> <span class="p">:</span> <span class="s2">&quot;Dev Mgr&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;projects&quot;</span> <span class="p">:</span> <span class="p">[</span> <span class="p">]</span>
+    <span class="p">},</span>
+    <span class="p">{</span>
+      <span class="s2">&quot;id&quot;</span> <span class="p">:</span> <span class="mi">6</span><span class="p">,</span>
+      <span class="s2">&quot;name&quot;</span> <span class="p">:</span> <span class="s2">&quot;Jane Smith&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;title&quot;</span> <span class="p">:</span> <span class="s2">&quot;Software Eng 2&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;projects&quot;</span> <span class="p">:</span> <span class="p">[</span>
+        <span class="p">{</span>
+          <span class="s2">&quot;name&quot;</span> <span class="p">:</span> <span class="s2">&quot;AWS Redshift security&quot;</span><span class="p">,</span>
+          <span class="s2">&quot;started_year&quot;</span> <span class="p">:</span> <span class="mi">1998</span>
+        <span class="p">},</span>
+        <span class="p">{</span>
+          <span class="s2">&quot;name&quot;</span> <span class="p">:</span> <span class="s2">&quot;AWS Hello security&quot;</span><span class="p">,</span>
+          <span class="s2">&quot;started_year&quot;</span> <span class="p">:</span> <span class="mi">2015</span><span class="p">,</span>
+          <span class="s2">&quot;address&quot;</span> <span class="p">:</span> <span class="p">[</span>
+            <span class="p">{</span>
+              <span class="s2">&quot;city&quot;</span> <span class="p">:</span> <span class="s2">&quot;Dallas&quot;</span><span class="p">,</span>
+              <span class="s2">&quot;state&quot;</span> <span class="p">:</span> <span class="s2">&quot;TX&quot;</span>
+            <span class="p">}</span>
+          <span class="p">]</span>
+        <span class="p">}</span>
+      <span class="p">]</span>
+    <span class="p">}</span>
+  <span class="p">]</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="example-1-select-struct-inner-attribute">
+<h3><a class="toc-backref" href="#id15" role="doc-backlink">Example 1: Select struct inner attribute</a><a class="headerlink" href="#example-1-select-struct-inner-attribute" title="Link to this heading">¶</a></h3>
+<p>The example show fetch city (top level), city.name (second level), city.location.latitude (deeper level) struct type data from people results.</p>
+<p>PPL query:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">os</span><span class="o">&gt;</span> <span class="n">source</span><span class="o">=</span><span class="n">people</span> <span class="o">|</span> <span class="n">fields</span> <span class="n">city</span><span class="p">,</span> <span class="n">city</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">city</span><span class="o">.</span><span class="n">location</span><span class="o">.</span><span class="n">latitude</span><span class="p">;</span>
+<span class="n">fetched</span> <span class="n">rows</span> <span class="o">/</span> <span class="n">total</span> <span class="n">rows</span> <span class="o">=</span> <span class="mi">1</span><span class="o">/</span><span class="mi">1</span>
+<span class="o">+-----------------------------------------------------+-------------+--------------------------+</span>
+<span class="o">|</span> <span class="n">city</span>                                                <span class="o">|</span> <span class="n">city</span><span class="o">.</span><span class="n">name</span>   <span class="o">|</span> <span class="n">city</span><span class="o">.</span><span class="n">location</span><span class="o">.</span><span class="n">latitude</span>   <span class="o">|</span>
+<span class="o">|-----------------------------------------------------+-------------+--------------------------|</span>
+<span class="o">|</span> <span class="p">{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;Seattle&#39;</span><span class="p">,</span> <span class="s1">&#39;location&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;latitude&#39;</span><span class="p">:</span> <span class="mf">10.5</span><span class="p">}}</span> <span class="o">|</span> <span class="n">Seattle</span>     <span class="o">|</span> <span class="mf">10.5</span>                     <span class="o">|</span>
+<span class="o">+-----------------------------------------------------+-------------+--------------------------+</span>
+</pre></div>
+</div>
+</section>
+<section id="example-2-group-by-struct-inner-attribute">
+<h3><a class="toc-backref" href="#id16" role="doc-backlink">Example 2: Group by struct inner attribute</a><a class="headerlink" href="#example-2-group-by-struct-inner-attribute" title="Link to this heading">¶</a></h3>
+<p>The example show group by object field inner attribute.</p>
+<p>PPL query:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">os</span><span class="o">&gt;</span> <span class="n">source</span><span class="o">=</span><span class="n">people</span> <span class="o">|</span> <span class="n">stats</span> <span class="n">count</span><span class="p">()</span> <span class="n">by</span> <span class="n">city</span><span class="o">.</span><span class="n">name</span><span class="p">;</span>
+<span class="n">fetched</span> <span class="n">rows</span> <span class="o">/</span> <span class="n">total</span> <span class="n">rows</span> <span class="o">=</span> <span class="mi">1</span><span class="o">/</span><span class="mi">1</span>
+<span class="o">+-----------+-------------+</span>
+<span class="o">|</span> <span class="n">count</span><span class="p">()</span>   <span class="o">|</span> <span class="n">city</span><span class="o">.</span><span class="n">name</span>   <span class="o">|</span>
+<span class="o">|-----------+-------------|</span>
+<span class="o">|</span> <span class="mi">1</span>         <span class="o">|</span> <span class="n">Seattle</span>     <span class="o">|</span>
+<span class="o">+-----------+-------------+</span>
+</pre></div>
+</div>
+</section>
+<section id="example-3-selecting-field-of-array-value">
+<h3><a class="toc-backref" href="#id17" role="doc-backlink">Example 3: Selecting Field of Array Value</a><a class="headerlink" href="#example-3-selecting-field-of-array-value" title="Link to this heading">¶</a></h3>
+<p>Select deeper level for object fields of array value which returns the first element in the array. For example, because inner field <code class="docutils literal notranslate"><span class="pre">accounts.id</span></code> has three values instead of a tuple in this document, the first entry is returned.:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">os</span><span class="o">&gt;</span> <span class="n">source</span> <span class="o">=</span> <span class="n">people</span> <span class="o">|</span> <span class="n">fields</span> <span class="n">accounts</span><span class="p">,</span> <span class="n">accounts</span><span class="o">.</span><span class="n">id</span><span class="p">;</span>
+<span class="n">fetched</span> <span class="n">rows</span> <span class="o">/</span> <span class="n">total</span> <span class="n">rows</span> <span class="o">=</span> <span class="mi">1</span><span class="o">/</span><span class="mi">1</span>
+<span class="o">+------------+---------------+</span>
+<span class="o">|</span> <span class="n">accounts</span>   <span class="o">|</span> <span class="n">accounts</span><span class="o">.</span><span class="n">id</span>   <span class="o">|</span>
+<span class="o">|------------+---------------|</span>
+<span class="o">|</span> <span class="p">{</span><span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">}</span>  <span class="o">|</span> <span class="mi">1</span>             <span class="o">|</span>
+<span class="o">+------------+---------------+</span>
+</pre></div>
+</div>
+</section>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../../index.html">sql-docs</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../../index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2024, josh.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 7.3.7</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 0.7.16</a>
+      
+      |
+      <a href="../../../../_sources/docs/user/ppl/general/datatypes.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

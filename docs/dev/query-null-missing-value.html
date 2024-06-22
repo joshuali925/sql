@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Description &#8212; sql-docs  documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=d1102ebc" />
+    <link rel="stylesheet" type="text/css" href="../../_static/alabaster.css?v=12dfc556" />
+    <script src="../../_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="../../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="description">
+<h1>Description<a class="headerlink" href="#description" title="Link to this heading">¶</a></h1>
+<ul class="simple">
+<li><p>Auto add FIELDS * for PPL command.</p></li>
+<li><p>In Analyzer, expend SELECT * to SELECT all fields.</p></li>
+<li><p>Extract type info from QueryPlan and add to QueryResponse.</p></li>
+<li><p>Support NULL and MISSING value in response. https://github.com/penghuo/sql/blob/pr-select-all/docs/user/general/values.rst</p></li>
+</ul>
+</section>
+<section id="problem-statements">
+<h1>Problem Statements<a class="headerlink" href="#problem-statements" title="Link to this heading">¶</a></h1>
+<section id="background">
+<h2>Background<a class="headerlink" href="#background" title="Link to this heading">¶</a></h2>
+<p>Before explain the current issue, firstly, let’s setup the context.</p>
+<section id="sample-data">
+<h3>Sample Data<a class="headerlink" href="#sample-data" title="Link to this heading">¶</a></h3>
+<p>Let’s explain the problem with an example, the bank index which has 2 fields.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>    <span class="s2">&quot;mappings&quot;</span> <span class="p">:</span> <span class="p">{</span>
+      <span class="s2">&quot;properties&quot;</span> <span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;account_number&quot;</span> <span class="p">:</span> <span class="p">{</span>
+          <span class="s2">&quot;type&quot;</span> <span class="p">:</span> <span class="s2">&quot;long&quot;</span>
+        <span class="p">},</span>
+        <span class="s2">&quot;age&quot;</span> <span class="p">:</span> <span class="p">{</span>
+          <span class="s2">&quot;type&quot;</span> <span class="p">:</span> <span class="s2">&quot;integer&quot;</span>
+        <span class="p">}</span>
+      <span class="p">}</span>
+    <span class="p">}</span>
+</pre></div>
+</div>
+<p>Then we add some data to the index.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">POST</span> <span class="n">bank</span><span class="o">/</span><span class="n">_doc</span><span class="o">/</span><span class="mi">1</span>
+<span class="p">{</span><span class="s2">&quot;account_number&quot;</span><span class="p">:</span><span class="mi">1</span><span class="p">,</span><span class="s2">&quot;age&quot;</span><span class="p">:</span><span class="mi">31</span><span class="p">}</span>
+
+<span class="o">//</span> <span class="n">age</span> <span class="ow">is</span> <span class="n">null</span>
+<span class="n">POST</span> <span class="n">bank</span><span class="o">/</span><span class="n">_doc</span><span class="o">/</span><span class="mi">2</span>
+<span class="p">{</span><span class="s2">&quot;account_number&quot;</span><span class="p">:</span><span class="mi">2</span><span class="p">,</span><span class="s2">&quot;age&quot;</span><span class="p">:</span><span class="n">null</span><span class="p">}</span>
+
+<span class="o">//</span> <span class="n">age</span> <span class="ow">is</span> <span class="n">missing</span>
+<span class="n">POST</span> <span class="n">bank</span><span class="o">/</span><span class="n">_doc</span><span class="o">/</span><span class="mi">3</span>
+<span class="p">{</span><span class="s2">&quot;account_number&quot;</span><span class="p">:</span><span class="mi">3</span><span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="jdbc-and-json-data-format">
+<h3>JDBC and JSON data format<a class="headerlink" href="#jdbc-and-json-data-format" title="Link to this heading">¶</a></h3>
+<p>Then, we define the response data format for query “SELECT account_number FROM bank” as follows.</p>
+<p>JDBC Format. There are mandatory fields, “field name”, “field type” and “data”. e.g.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+  <span class="s2">&quot;schema&quot;</span><span class="p">:</span> <span class="p">[{</span>
+    <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;account_number&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;long&quot;</span>
+  <span class="p">}],</span>
+  <span class="s2">&quot;total&quot;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
+  <span class="s2">&quot;datarows&quot;</span><span class="p">:</span> <span class="p">[</span>
+    <span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+    <span class="p">[</span><span class="mi">2</span><span class="p">],</span>
+    <span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+  <span class="p">],</span>
+  <span class="s2">&quot;size&quot;</span><span class="p">:</span> <span class="mi">3</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>JSON Format, comparing with JDBC format, it doesn’t have schema field</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+  <span class="s2">&quot;datarows&quot;</span><span class="p">:</span> <span class="p">[</span>
+    <span class="p">{</span><span class="s2">&quot;account_number&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">},</span>
+    <span class="p">{</span><span class="s2">&quot;account_number&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">},</span>
+    <span class="p">{</span><span class="s2">&quot;account_number&quot;</span><span class="p">:</span> <span class="mi">3</span><span class="p">}</span>
+  <span class="p">]</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="issue-1-represent-null-and-missing-in-response">
+<h2>Issue 1. Represent NULL and MISSING in Response<a class="headerlink" href="#issue-1-represent-null-and-missing-in-response" title="Link to this heading">¶</a></h2>
+<p>With these sample data and response data format in mind, let go through more query and examine their results.
+Considering the query:** SELECT age, account_number FROM bank. **
+The JDBC format doesn’t have MISSING value. If the field exist in the schema but missed in the document, it should be considered as NULL value.
+The JSON format could represent the MISSING value properly.</p>
+<ul class="simple">
+<li><p>JDBC Format</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>  <span class="p">{</span>
+    <span class="s2">&quot;schema&quot;</span><span class="p">:</span> <span class="p">[</span>
+    <span class="p">{</span>
+      <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;age&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;integer&quot;</span>
+    <span class="p">},</span>
+    <span class="p">{</span>
+      <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;account_number&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;long&quot;</span>
+    <span class="p">}</span>
+    <span class="p">],</span>
+    <span class="s2">&quot;total&quot;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
+    <span class="s2">&quot;datarows&quot;</span><span class="p">:</span> <span class="p">[</span>
+      <span class="p">[</span>
+        <span class="mi">31</span><span class="p">,</span>
+        <span class="mi">1</span>
+      <span class="p">],</span>
+      <span class="p">[</span>
+        <span class="n">null</span><span class="p">,</span>
+        <span class="mi">2</span>
+      <span class="p">],</span>
+      <span class="p">[</span>
+        <span class="n">null</span><span class="p">,</span>
+        <span class="mi">3</span>
+      <span class="p">],</span>
+    <span class="p">],</span>
+    <span class="s2">&quot;size&quot;</span><span class="p">:</span> <span class="mi">3</span>
+  <span class="p">}</span>
+
+<span class="o">*</span> <span class="n">JSON</span> <span class="n">Format</span>
+  <span class="p">{</span>
+    <span class="s2">&quot;datarows&quot;</span><span class="p">:</span> <span class="p">[</span>
+      <span class="p">{</span><span class="s2">&quot;age&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;account_number&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">},</span>
+      <span class="p">{</span><span class="s2">&quot;age&quot;</span><span class="p">:</span> <span class="n">null</span><span class="p">,</span> <span class="s2">&quot;account_number&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">},</span>
+      <span class="p">{</span><span class="s2">&quot;account_number&quot;</span><span class="p">:</span> <span class="mi">3</span><span class="p">}</span>
+    <span class="p">]</span>
+  <span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="issue-2-exprvalue-to-jdbc-format">
+<h2>Issue 2. ExprValue to JDBC format<a class="headerlink" href="#issue-2-exprvalue-to-jdbc-format" title="Link to this heading">¶</a></h2>
+<p>Based on our current implementation, all the SQL operator is translated to chain of PhysicalOperator. Each PhysicalOperator provide the ExprValue as the return value. The protocol pull the result from PhysicalOperator and translate to the expected format. e.g. Taking the above query as example, the result of the PhysicalOpeartor is a list of ExprValues.</p>
+<p>[
+{“age”: ExprIntegerValue(1), “account_number”: ExprIntegerValue(1)},
+{“age”: ExprNullValue(), “account_number”: ExprIntegerValue(2)},
+{“account_number”: ExprIntegerValue(3)}
+]
+The current solution is extract field name and field type from the data itself. This solution has two problems</p>
+<p>It is impossible to derive the type from NULL value.
+If the field is missing in the ExprValue, there is no way to derive it.</p>
+</section>
+<section id="issue-3-the-type-info-is-missing">
+<h2>Issue 3. The Type info is missing<a class="headerlink" href="#issue-3-the-type-info-is-missing" title="Link to this heading">¶</a></h2>
+<p>In current design, the Protocol is a separate module which work independently with QueryEngine. The Protocol module receive the list of ExprTupleValue from QueryEngine, then the Protocol module format the result based on the type of ExprValue. the problem is ExprNullValue and ExprMissingValue doesn’t have type assosicate with it. thus the Protocol module can’t derive the type info from input ExprTupleValue directly.</p>
+</section>
+<section id="issue-4-what-is-all-field-means-in-select">
+<h2>Issue 4. What is *(all field) means in SELECT<a class="headerlink" href="#issue-4-what-is-all-field-means-in-select" title="Link to this heading">¶</a></h2>
+<p>In current design, the SELECT * clause ignored in the AST builder logic, because it means select all the data from input operator. The issue is similar as Issue 3 that if the input operator produce NULL or MISSING value, then the Protocol have no idea to derive type info from it.</p>
+<section id="requirements">
+<h3>Requirements<a class="headerlink" href="#requirements" title="Link to this heading">¶</a></h3>
+<p>The JDBC format should be supported. The MISSING and NULL value should be represented as NULL.
+The JSON format should be supported.
+The Protocol module should receive the QueryResponse which include schema and data.</p>
+</section>
+<section id="solution">
+<h3>Solution<a class="headerlink" href="#solution" title="Link to this heading">¶</a></h3>
+<section id="include-null-and-missing-value-in-the-queryresult-issue-1-2">
+<h4>Include NULL and MISSING value in the QueryResult (Issue 1, 2)<a class="headerlink" href="#include-null-and-missing-value-in-the-queryresult-issue-1-2" title="Link to this heading">¶</a></h4>
+<p>The SELECT operator will be translated to PhysicalOpeartor with a list of expression to resolve ExprValue from input data. With the above example, when handling NULL and MISSING value, the expected output data should be as follows.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[</span>
+  <span class="p">{</span><span class="s2">&quot;age&quot;</span><span class="p">:</span> <span class="n">ExprIntegerValue</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span> <span class="s2">&quot;account_number&quot;</span><span class="p">:</span> <span class="n">ExprIntegerValue</span><span class="p">(</span><span class="mi">1</span><span class="p">)},</span>
+  <span class="p">{</span><span class="s2">&quot;age&quot;</span><span class="p">:</span> <span class="n">ExprNullValue</span><span class="p">(),</span> <span class="s2">&quot;account_number&quot;</span><span class="p">:</span> <span class="n">ExprIntegerValue</span><span class="p">(</span><span class="mi">2</span><span class="p">)},</span>
+  <span class="p">{</span><span class="s2">&quot;age&quot;</span><span class="p">:</span> <span class="n">ExprMissingValue</span><span class="p">(),</span> <span class="s2">&quot;account_number&quot;</span><span class="p">:</span> <span class="n">ExprIntegerValue</span><span class="p">(</span><span class="mi">3</span><span class="p">)}</span>
+<span class="p">]</span>
+</pre></div>
+</div>
+<p>An additional list of Schema is also required to when protocol is JDBC.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+  <span class="s2">&quot;schema&quot;</span><span class="p">:</span> <span class="p">[</span>
+    <span class="p">{</span>
+      <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;age&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;integer&quot;</span>
+    <span class="p">},</span>
+    <span class="p">{</span>
+      <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;account_number&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;long&quot;</span>
+    <span class="p">}</span>
+  <span class="p">]</span>    
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Then the protocol module could easily translate the JDBC format or JSON format.</p>
+</section>
+<section id="expend-select-to-select-fields-issue-4">
+<h4>Expend SELECT * to SELECT …fields (Issue 4)<a class="headerlink" href="#expend-select-to-select-fields-issue-4" title="Link to this heading">¶</a></h4>
+<p>In our current implementation, in SQL, the SELECT * is ignored and in PPL there even no fields * command. This solution works fine for JSON format which doesn’t require schema, but it doesn’t work for JDBC format.
+The proposal in here is</p>
+<ul class="simple">
+<li><p>Automatically add the fields command to PPL query</p></li>
+<li><p>Expand SELECT * to SELECT …fields.</p></li>
+</ul>
+</section>
+<section id="automatically-add-fields-to-ppl-query">
+<h4>Automatically add fields * to PPL query<a class="headerlink" href="#automatically-add-fields-to-ppl-query" title="Link to this heading">¶</a></h4>
+<p>Comparing with SQL, the PPL grammer doesn’t require the Fields command is the last command. Thus, the fields * command should be automatically added.
+The automatically added logic is if the last operator is not Fields command, the Fields * command will be added.</p>
+</section>
+<section id="expand-select-to-select-fields">
+<h4>Expand SELECT * to SELECT …fields<a class="headerlink" href="#expand-select-to-select-fields" title="Link to this heading">¶</a></h4>
+<p>In Analyzer, we should expend the * to all fields in the current scope. There are two issues we need to address,</p>
+<p>No all the fields in the current scope should been used to expand *. The original scope is from Elasticsearch mapping which include nested mapping. In current design, only the top fields will be retrived from the current scope, all the nested fields will been ignored.
+The scope should been dynamtic maintain in the Analyzer. For example, the stats command will define the new scope.</p>
+</section>
+</section>
+<section id="retrieve-type-info-from-projectoperator-and-expose-to-protocol-issue-3">
+<h3>Retrieve Type Info from ProjectOperator and Expose to Protocol (Issue 3)<a class="headerlink" href="#retrieve-type-info-from-projectoperator-and-expose-to-protocol-issue-3" title="Link to this heading">¶</a></h3>
+<p>After expending the * and automatically add fields, the type info could been retrieved from ProjectOperator. Then the Protocol could get schema and data from QueryEngine.</p>
+</section>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../index.html">sql-docs</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2024, josh.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 7.3.7</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 0.7.16</a>
+      
+      |
+      <a href="../../_sources/docs/dev/query-null-missing-value.md.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
