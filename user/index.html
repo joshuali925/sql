@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>OpenSearch SQL Reference Manual &#8212; Example 0.1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d1102ebc" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css?v=12dfc556" />
+    <script src="../_static/documentation_options.js?v=2709fde1"></script>
+    <script src="../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="opensearch-sql-reference-manual">
+<h1>OpenSearch SQL Reference Manual<a class="headerlink" href="#opensearch-sql-reference-manual" title="Link to this heading">¶</a></h1>
+<p>OpenSearch SQL enables you to extract insights out of OpenSearch using the familiar SQL query syntax. Please refer to the <a class="reference external" href="https://docs-beta.opensearch.org/">technical documentation</a> for detailed information on installing and configuring opendistro-elasticsearch-sql plugin. In this user reference manual, you can find many information for your reference. In each part, we try to make it clear by adding work example along with detailed description. Here is table of contents of the documentation:</p>
+<ul class="simple">
+<li><p><strong>Interfaces</strong></p>
+<ul>
+<li><p><a class="reference internal" href="ppl/interfaces/endpoint.html#endpoint"><span class="std std-ref">Endpoint</span></a></p></li>
+<li><p><a class="reference internal" href="ppl/interfaces/protocol.html#protocol"><span class="std std-ref">Protocol</span></a></p></li>
+</ul>
+</li>
+<li><p><strong>Administration</strong></p>
+<ul>
+<li><p><a class="reference internal" href="ppl/admin/monitoring.html#monitoring"><span class="std std-ref">Monitoring</span></a></p></li>
+<li><p><a class="reference internal" href="admin/settings.html#plugin-settings"><span class="std std-ref">Plugin Settings</span></a></p></li>
+</ul>
+</li>
+<li><p><strong>Language Structure</strong></p>
+<ul>
+<li><p><a class="reference internal" href="ppl/general/identifiers.html#identifiers"><span class="std std-ref">Identifiers</span></a></p></li>
+<li><p><a class="reference internal" href="ppl/general/datatypes.html#data-types"><span class="std std-ref">Data Types</span></a></p></li>
+<li><p><span class="xref std std-ref">Values</span></p></li>
+<li><p><a class="reference internal" href="general/comments.html#comments"><span class="std std-ref">Comments</span></a></p></li>
+</ul>
+</li>
+<li><p><strong>Data Query Language</strong></p>
+<ul>
+<li><p><a class="reference internal" href="ppl/functions/expressions.html#expressions"><span class="std std-ref">Expressions</span></a></p></li>
+<li><p><a class="reference internal" href="dql/basics.html#basic-queries"><span class="std std-ref">Basic Queries</span></a></p></li>
+<li><p><a class="reference internal" href="dql/complex.html#complex-queries"><span class="std std-ref">Complex Queries</span></a></p></li>
+<li><p><a class="reference internal" href="dql/metadata.html#metadata-queries"><span class="std std-ref">Metadata Queries</span></a></p></li>
+<li><p><span class="xref std std-ref">SQL Functions</span></p></li>
+<li><p><span class="xref std std-ref">SQL Aggregations</span></p></li>
+<li><p><a class="reference internal" href="dql/window.html#window-functions"><span class="std std-ref">Window Functions</span></a></p></li>
+</ul>
+</li>
+<li><p><strong>Data Manipulation Language</strong></p>
+<ul>
+<li><p><a class="reference internal" href="dml/delete.html#delete-statement"><span class="std std-ref">DELETE Statement</span></a></p></li>
+</ul>
+</li>
+<li><p><strong>Beyond SQL</strong></p>
+<ul>
+<li><p><a class="reference internal" href="beyond/partiql.html#partiql-json-support"><span class="std std-ref">PartiQL (JSON) Support</span></a></p></li>
+<li><p><a class="reference internal" href="beyond/fulltext.html#full-text-search"><span class="std std-ref">Full-text Search</span></a></p></li>
+</ul>
+</li>
+<li><p><strong>Optimization</strong></p>
+<ul>
+<li><p><span class="xref std std-ref">Optimization</span></p></li>
+</ul>
+</li>
+<li><p><strong>Troubleshooting</strong></p>
+<ul>
+<li><p><a class="reference internal" href="dql/troubleshooting.html#troubleshooting"><span class="std std-ref">Troubleshooting</span></a></p></li>
+</ul>
+</li>
+<li><p><strong>Limitations</strong></p>
+<ul>
+<li><p><a class="reference internal" href="ppl/limitations/limitations.html#limitations"><span class="std std-ref">Limitations</span></a></p></li>
+</ul>
+</li>
+</ul>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">Example</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;workshop participant.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 7.3.7</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 0.7.16</a>
+      
+      |
+      <a href="../_sources/user/index.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

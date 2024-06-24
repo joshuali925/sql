@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Query Manager &#8212; Example 0.1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d1102ebc" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css?v=12dfc556" />
+    <script src="../_static/documentation_options.js?v=2709fde1"></script>
+    <script src="../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="query-manager">
+<h1>Query Manager<a class="headerlink" href="#query-manager" title="Link to this heading">¶</a></h1>
+<section id="new-abstraction">
+<h2>New abstraction<a class="headerlink" href="#new-abstraction" title="Link to this heading">¶</a></h2>
+<p><strong>QueryManager is the high level interface of the core engine</strong>, Parser parse raw query as the Plan and sumitted to QueryManager.</p>
+<ol class="arabic simple">
+<li><p><strong>AstBuilder</strong> analyze raw query string and create <strong>Statement</strong>.</p></li>
+<li><p><strong>QueryPlanFactory</strong> create <strong>Plan</strong> for different <strong>Statement</strong>.</p></li>
+<li><p><strong>QueryManager</strong> execute <strong>Plan</strong>.</p></li>
+</ol>
+<img width="393" alt="Screen Shot 2022-10-25 at 5 05 46 PM" src="https://user-images.githubusercontent.com/2969395/197908941-10b0ff01-13e4-4fc9-8c28-c466abe76446.png">
+<p>Core engine define the interface of <strong>QueryManager. Each execution engine should provide the</strong> implementation of QueryManager which bind to execution enviroment.
+<strong>QueryManager</strong> manage all the submitted plans and define the following interface</p>
+<ul class="simple">
+<li><p>submit: submit queryexecution.</p></li>
+<li><p>cancel: cancel query execution.</p></li>
+<li><p>get: get query execution info of specific query.</p></li>
+</ul>
+<p><img alt="image" src="https://user-images.githubusercontent.com/2969395/197908982-74a30a56-9b0c-4a1a-82bf-176d25e86bc1.png" /></p>
+<p>Parser parse raw query as Statement and create AbstractPlan. Each AbstractPlan decide how to execute the query in QueryManager.</p>
+<p><img alt="image (1)" src="https://user-images.githubusercontent.com/2969395/197909011-c53bf5e0-9418-4d9d-8f4d-353147158526.png" /></p>
+<p><strong>QueryService is the low level interface of core engine</strong>, each <strong>Plan</strong> decide how to execute the query and use QueryService to analyze, plan, optimize and execute the query.</p>
+<img width="387" alt="Screen Shot 2022-10-25 at 5 07 29 PM" src="https://user-images.githubusercontent.com/2969395/197909041-9f2ecf43-24d3-4db3-8dfb-ab82afe80de9.png">
+</section>
+<section id="change-of-existing-logic">
+<h2>Change of existing logic<a class="headerlink" href="#change-of-existing-logic" title="Link to this heading">¶</a></h2>
+<ol class="arabic simple">
+<li><p>Remove the schedule logic in NIO thread. After the change,
+a. Parser will be executed in NIO thread.
+b. QueryManager decide query execution strategy. e.g. OpenSearchQueryManager schedule the QueryExecution running in <strong>sql-worker</strong> thread pool.</p></li>
+</ol>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">Example</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;workshop participant.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 7.3.7</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 0.7.16</a>
+      
+      |
+      <a href="../_sources/dev/query-manager.md.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

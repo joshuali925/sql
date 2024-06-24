@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>OpenSearch SQL/PPL Engine Development Manual &#8212; Example 0.1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d1102ebc" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css?v=12dfc556" />
+    <script src="../_static/documentation_options.js?v=2709fde1"></script>
+    <script src="../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="opensearch-sql-ppl-engine-development-manual">
+<h1>OpenSearch SQL/PPL Engine Development Manual<a class="headerlink" href="#opensearch-sql-ppl-engine-development-manual" title="Link to this heading">¶</a></h1>
+<section id="introduction">
+<h2>Introduction<a class="headerlink" href="#introduction" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><p><a class="reference internal" href="intro-architecture.html"><span class="std std-doc">Architecture</span></a>: a quick overview of architecture</p></li>
+<li><p><a class="reference internal" href="intro-v2-engine.html"><span class="std std-doc">V2 Engine</span></a>: introduces why we developed new V2 engine</p></li>
+<li><p>Concepts</p></li>
+<li><p>Quickstart</p></li>
+</ul>
+</section>
+<hr class="docutils" />
+<section id="clients">
+<h2>Clients<a class="headerlink" href="#clients" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><p><strong>CLI</strong></p></li>
+<li><p><strong>JDBC Driver</strong></p></li>
+<li><p><strong>ODBC Driver</strong></p></li>
+<li><p><strong>Query Workbench</strong></p></li>
+</ul>
+</section>
+<hr class="docutils" />
+<section id="deployment">
+<h2>Deployment<a class="headerlink" href="#deployment" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><p><strong>Standalone Mode</strong></p></li>
+<li><p><strong>OpenSearch Cluster</strong></p></li>
+</ul>
+</section>
+<hr class="docutils" />
+<section id="programming-guides">
+<h2>Programming Guides<a class="headerlink" href="#programming-guides" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><p><strong>API</strong></p></li>
+<li><p><strong>JavaDoc</strong></p></li>
+</ul>
+</section>
+<hr class="docutils" />
+<section id="development-guides">
+<h2>Development Guides<a class="headerlink" href="#development-guides" title="Link to this heading">¶</a></h2>
+<section id="language-processing">
+<h3>Language Processing<a class="headerlink" href="#language-processing" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p><strong>SQL</strong></p>
+<ul>
+<li><p><a class="reference internal" href="sql-aggregate-window-function.html"><span class="std std-doc">Aggregate Window Function</span></a>: aggregate window function support</p></li>
+<li><p><a class="reference internal" href="sql-nested-function-select-clause.html"><span class="std std-doc">Nested Function In Select Clause</span></a>: Nested function support in sql select clause</p></li>
+<li><p><a class="reference internal" href="sql-nested-function-where-clause.html"><span class="std std-doc">Nested Function In Where Clause</span></a>: Nested function support in sql where clause</p></li>
+</ul>
+</li>
+<li><p><strong>Piped Processing Language</strong></p></li>
+</ul>
+</section>
+<section id="query-processing">
+<h3>Query Processing<a class="headerlink" href="#query-processing" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p><strong>Query Analyzing</strong></p>
+<ul>
+<li><p><a class="reference internal" href="query-semantic-analysis.html"><span class="std std-doc">Semantic Analysis</span></a>: performs semantic analysis to ensure semantic correctness</p></li>
+<li><p><a class="reference internal" href="query-type-conversion.html"><span class="std std-doc">Type Conversion</span></a>: implement implicit data type conversion</p></li>
+</ul>
+</li>
+<li><p><strong>Query Planning</strong></p>
+<ul>
+<li><p><a class="reference internal" href="query-optimizer-improvement.html"><span class="std std-doc">Logical Optimization</span></a>: improvement on logical optimizer and physical implementer</p></li>
+</ul>
+</li>
+<li><p><strong>Query Execution</strong></p>
+<ul>
+<li><p><a class="reference internal" href="query-manager.html"><span class="std std-doc">Query Manager</span></a>: query management</p></li>
+</ul>
+</li>
+<li><p><strong>Query Acceleration</strong></p>
+<ul>
+<li><p><a class="reference internal" href="query-automatic-acceleration.html"><span class="std std-doc">Automatic Acceleration</span></a>: workload based automatic query acceleration proposal</p></li>
+</ul>
+</li>
+</ul>
+</section>
+<section id="data-sources">
+<h3>Data Sources<a class="headerlink" href="#data-sources" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p><strong>OpenSearch</strong></p>
+<ul>
+<li><p><a class="reference internal" href="opensearch-relevancy-search.html"><span class="std std-doc">Relevancy Search</span></a>: OpenSearch relevancy search functions</p></li>
+<li><p><a class="reference internal" href="opensearch-nested-field-subquery.html"><span class="std std-doc">Sub Queries</span></a>: support sub queries on OpenSearch nested field</p></li>
+<li><p><a class="reference internal" href="opensearch-pagination.html"><span class="std std-doc">Pagination</span></a>: pagination implementation by OpenSearch scroll API</p></li>
+<li><p><a class="reference internal" href="Pagination-v2.html"><span class="std std-doc">Pagination in V2</span></a>: pagination implementation in V2 engine</p></li>
+<li><p><a class="reference internal" href="sql-nested-function.html"><span class="std std-doc">Nested Function</span></a>: Nested function in sql plugin</p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="datasource-prometheus.html"><span class="std std-doc">Prometheus</span></a>: Prometheus query federation</p></li>
+<li><p><strong>File System</strong></p>
+<ul>
+<li><p><a class="reference internal" href="datasource-query-s3.html"><span class="std std-doc">Querying S3</span></a>: S3 query federation proposal</p></li>
+</ul>
+</li>
+</ul>
+</section>
+</section>
+<hr class="docutils" />
+<section id="other-documents">
+<h2>Other Documents<a class="headerlink" href="#other-documents" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><p><strong>Test Framework</strong></p>
+<ul>
+<li><p><a class="reference internal" href="testing-doctest.html"><span class="std std-doc">Doc Test</span></a>: makes our doc live and runnable to ensure documentation correctness</p></li>
+<li><p><a class="reference internal" href="testing-comparison-test.html"><span class="std std-doc">Comparison Test</span></a>: compares with other databases to ensure functional correctness</p></li>
+</ul>
+</li>
+<li><p><strong>Benchmark</strong></p>
+<ul>
+<li><p><a class="reference internal" href="testing-hash-join-benchmark.html"><span class="std std-doc">Hash Join Benchmark</span></a>: performance test on hash join implementation</p></li>
+</ul>
+</li>
+<li><p><strong>Operation Tools</strong></p></li>
+</ul>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">Example</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;workshop participant.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 7.3.7</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 0.7.16</a>
+      
+      |
+      <a href="../_sources/dev/index.md.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

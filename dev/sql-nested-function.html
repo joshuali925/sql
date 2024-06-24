@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Description &#8212; Example 0.1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d1102ebc" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css?v=12dfc556" />
+    <script src="../_static/documentation_options.js?v=2709fde1"></script>
+    <script src="../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="description">
+<h1>Description<a class="headerlink" href="#description" title="Link to this heading">¶</a></h1>
+<p>The nested function in SQL and PPL maps to the nested query DSL in the OpenSearch query engine. A nested query is used to search nested object field types in an index. If an object matches the search, the nested query returns the root parent document. Nested inner objects are returned as inner hits in the query result. Using the nested function with data stored as <code class="docutils literal notranslate"><span class="pre">nested</span></code> object field type allows users to query inner objects with isolation. Please refer to the documentation page for <code class="docutils literal notranslate"><span class="pre">nested</span></code> object field types for a more in-depth view of how this type works in OpenSearch.
+<a class="reference external" href="https://opensearch.org/docs/2.7/field-types/nested/">2.7 OpenSearch Nested Field Types</a></p>
+</section>
+<section id="table-of-contents">
+<h1>Table Of Contents<a class="headerlink" href="#table-of-contents" title="Link to this heading">¶</a></h1>
+<ol class="arabic simple">
+<li><p><a class="reference internal" href="#1-overview"><span class="xref myst">Overview</span></a></p></li>
+<li><p><a class="reference internal" href="#11-problem-statement"><span class="xref myst">Problem Statement</span></a></p></li>
+<li><p><a class="reference internal" href="#12-use-cases"><span class="xref myst">Use Cases</span></a></p></li>
+<li><p><a class="reference internal" href="#2-requirements"><span class="xref myst">Requirements</span></a></p></li>
+<li><p><a class="reference internal" href="#21-functional-requirements"><span class="xref myst">Functional Requirements</span></a></p></li>
+<li><p><a class="reference internal" href="#22-non-functional-requirements"><span class="xref myst">Non-functional Requirements</span></a></p></li>
+<li><p><a class="reference internal" href="#23-tenets"><span class="xref myst">Tenets</span></a></p></li>
+<li><p><a class="reference internal" href="#24-scope"><span class="xref myst">Scope</span></a></p></li>
+<li><p><a class="reference internal" href="#25-out-of-scope"><span class="xref myst">Out-of-scope</span></a></p></li>
+<li><p><a class="reference internal" href="#additional-info"><span class="xref myst">Additional Info</span></a></p></li>
+<li><p><a class="reference internal" href="#release-schedule"><span class="xref myst">Release Schedule</span></a></p></li>
+</ol>
+</section>
+<section id="overview">
+<h1>1 Overview<a class="headerlink" href="#overview" title="Link to this heading">¶</a></h1>
+<section id="problem-statement">
+<h2>1.1 Problem Statement<a class="headerlink" href="#problem-statement" title="Link to this heading">¶</a></h2>
+<p><strong>1. The V2 engine lacks functionality to query nested object types in OpenSearch</strong> -
+The <code class="docutils literal notranslate"><span class="pre">nested</span></code> function is not present in the V2 engine and is one option for user to query nested object field types in the OpenSearch SQL plugin.</p>
+<p><strong>2. SQL provides a better user experience to query data than DSL</strong> -
+The SQL plugin gives users the ability to interact with their data using SQL and PPL query languages rather than the OpenSearch DSL. To query <code class="docutils literal notranslate"><span class="pre">nested</span></code> object type data in SQL and PPL we need an interface that maps to the DSL <code class="docutils literal notranslate"><span class="pre">nested</span></code> queries in OpenSearch.</p>
+<p><strong>3. The V2 engine has no support for the nested function in PPL</strong> -
+The PPL query language is new to the V2 engine in the SQL plugin. Implementation for the nested function in SQL needs to be ported to the PPL query language for users to query their nested object field type data.</p>
+</section>
+<section id="use-cases">
+<h2>1.2 Use Cases<a class="headerlink" href="#use-cases" title="Link to this heading">¶</a></h2>
+<p><strong>Use case 1:</strong> <strong>OpenSearch Dashboards</strong> -
+Users using OpenSearch Dashboards to query <code class="docutils literal notranslate"><span class="pre">nested</span></code> object field data in SQL and PPL.</p>
+<ul class="simple">
+<li><p><strong>Non-aggregation query:</strong> The <code class="docutils literal notranslate"><span class="pre">nested</span></code> function can be used to select <code class="docutils literal notranslate"><span class="pre">nested</span></code> object fields or filter nested documents based on field values.</p></li>
+<li><p><strong>Aggregation query:</strong> Users can do bucket aggregation on <code class="docutils literal notranslate"><span class="pre">nested</span></code> fields inside a <code class="docutils literal notranslate"><span class="pre">nested</span></code> object treating inner fields as separate documents.</p></li>
+</ul>
+</section>
+</section>
+<section id="requirements">
+<h1>2 Requirements<a class="headerlink" href="#requirements" title="Link to this heading">¶</a></h1>
+<section id="functional-requirements">
+<h2>2.1 Functional Requirements<a class="headerlink" href="#functional-requirements" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><p>Support nested function in SQL and PPL query languages.</p>
+<ul>
+<li><p>Search query must be pushed down to OpenSearch.</p></li>
+</ul>
+</li>
+<li><p>In SQL the nested function is supported in SELECT, WHERE, GROUP BY, ORDER BY, and HAVING clauses.</p></li>
+<li><p>Support JDBC format for nested aggregation queries(Not supported in legacy engine).</p></li>
+<li><p>Add support for nested function used as argument to other functions(Not supported in legacy engine).</p></li>
+<li><p>Nested function support in PPL.</p></li>
+<li><p>Nested function support in JDBC connector.</p></li>
+<li><p>Nested function support in ODBC connector.</p></li>
+</ul>
+</section>
+<section id="non-functional-requirements">
+<h2>2.2 Non-functional Requirements<a class="headerlink" href="#non-functional-requirements" title="Link to this heading">¶</a></h2>
+</section>
+<section id="a-reliability">
+<h2>A. Reliability<a class="headerlink" href="#a-reliability" title="Link to this heading">¶</a></h2>
+<p>After a <code class="docutils literal notranslate"><span class="pre">nested</span></code> query is pushed down to OpenSearch, post-processing is done with the response to flatten returned <code class="docutils literal notranslate"><span class="pre">nested</span></code> objects. When multiple array values are returned from <code class="docutils literal notranslate"><span class="pre">nested</span></code> object field types with differing path values, a cross join is executed on the returned rows. Post-processing Operator should be safe-guarded from out of memory error during result flattening. Efficiency should match or improve upon legacy implementation for response flattening.</p>
+</section>
+<section id="b-extensibility">
+<h2>B. Extensibility<a class="headerlink" href="#b-extensibility" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><p>The work of the <code class="docutils literal notranslate"><span class="pre">nested</span></code> function aims to be a building block for future work in PartiQL. Users can unnest <code class="docutils literal notranslate"><span class="pre">nested</span></code> collections using PartiQL syntax that follows the underlying logic of the <code class="docutils literal notranslate"><span class="pre">nested</span></code> function with only grammar changes.</p></li>
+<li><p>The nested function will require porting over to the PPL query language and a re-usable implementation in SQL should ease this porting.</p></li>
+<li><p>Post-processing for nested fields in SQL plugin should be generic to allow any struct or array fields passed in by additional data sources to follow implementation logic.</p></li>
+</ul>
+</section>
+<section id="tenets">
+<h2>2.3 Tenets<a class="headerlink" href="#tenets" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><p>The <code class="docutils literal notranslate"><span class="pre">nested</span></code> function maps to the OpenSearch nested query in DSL. After extracting inner hits from OpenSearch response the plugin is responsible for in-memory flattening of returned documents.</p></li>
+<li><p>If the SQL plugin fails to form a valid <code class="docutils literal notranslate"><span class="pre">nested</span></code> DSL query to push down to OpenSearch the query execution cannot be completed.</p></li>
+</ul>
+</section>
+<section id="scope">
+<h2>2.4 Scope<a class="headerlink" href="#scope" title="Link to this heading">¶</a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">nested</span></code> function in the legacy engine is supported in multiple clauses in SQL.  A user can use the nested function with the legacy engine in the SELECT, WHERE, GROUP BY, ORDER BY, and HAVING clauses of an SQL statement. The V2 engine has the additional query language PPL to support the nested function. The V2 engine implementation of the nested function may not include all syntax options as the legacy engine to save development time. For example when the <code class="docutils literal notranslate"><span class="pre">nested</span></code> function is used in the WHERE clause, a user can use both of the following syntax options:</p>
+<ul class="simple">
+<li><p><strong>nested(field | field, path) OPERATOR LITERAL</strong></p></li>
+<li><p><strong>nested(path, expression)</strong></p></li>
+</ul>
+<p>Both options serve the same functionality in querying an expression of a <code class="docutils literal notranslate"><span class="pre">nested</span></code> field with a literal. The goal of supporting the nested function in the SQL plugin is to reach functional parity with the legacy engine, port over implementation to the PPL query language, add support in the JDBC and ODBC Connectors, and create a base for future PartiQL development. Any remaining bugs from legacy engine should be resolved and any lack of implementations such as JDBC format for nested aggregation should be implemented.</p>
+</section>
+<section id="out-of-scope">
+<h2>2.5 Out of Scope<a class="headerlink" href="#out-of-scope" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><p>TBD.</p></li>
+</ul>
+</section>
+</section>
+<section id="additional-info">
+<h1>Additional Info<a class="headerlink" href="#additional-info" title="Link to this heading">¶</a></h1>
+<section id="release-schedule">
+<h2>Release Schedule<a class="headerlink" href="#release-schedule" title="Link to this heading">¶</a></h2>
+<p>See Issues Tracked under <a class="reference external" href="https://github.com/opensearch-project/sql/issues/1111">Issue 1111</a> for related PR’s and information.</p>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">Example</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;workshop participant.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 7.3.7</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 0.7.16</a>
+      
+      |
+      <a href="../_sources/dev/sql-nested-function.md.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

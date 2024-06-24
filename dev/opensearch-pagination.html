@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>OpenSearch SQL Cursor (Pagination) Support &#8212; Example 0.1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d1102ebc" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css?v=12dfc556" />
+    <script src="../_static/documentation_options.js?v=2709fde1"></script>
+    <script src="../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="opensearch-sql-cursor-pagination-support">
+<h1>OpenSearch SQL Cursor (Pagination) Support<a class="headerlink" href="#opensearch-sql-cursor-pagination-support" title="Link to this heading">¶</a></h1>
+<section id="overview">
+<h2>1. Overview<a class="headerlink" href="#overview" title="Link to this heading">¶</a></h2>
+<p>In database area, cursor is “a control structure that enables traversal over the records”. It is especially helpful for traversing large result set on a page by page basis. Without pagination or persistence, the entire result set will be resident in memory until last row comes in.</p>
+<p>In our SQL plugin the current functionality inherited is broken and missing for most queries. And it is challenging for JOIN query whose result set cannot be paginated by native OpenSearch Scroll easily.</p>
+<p>Support for cursor is a fundamental requirement of any SQL engine.</p>
+</section>
+<section id="requirements">
+<h2>2. Requirements<a class="headerlink" href="#requirements" title="Link to this heading">¶</a></h2>
+<p>General cursor support: https://github.com/opendistro-for-elasticsearch/sql/issues/16</p>
+<section id="use-case">
+<h3>2.1 Use Case<a class="headerlink" href="#use-case" title="Link to this heading">¶</a></h3>
+<p>There are two typical use cases of cursor:</p>
+<ul class="simple">
+<li><p>In the absence of cursor they are limited by the max of 10000 documents by OpenSearch by default. The max number fo results could be changed using <code class="docutils literal notranslate"><span class="pre">index.max_result_window</span></code> setting on index level. Since the number of docs for an index can vary, the user would not know unless they see inconsistent result, and they have to change this setting manually which is not a very good experience.</p></li>
+<li><p>Interaction with SQL plugin via OpenSearch Dashboards or other web interfaces to skim through only the first few pages of a large result set.</p></li>
+<li><p>Integration with BI tools or other batch processing program via JDBC/ODBC driver to load full result set for analysis.</p></li>
+</ul>
+</section>
+<section id="functionalities">
+<h3>2.2 Functionalities<a class="headerlink" href="#functionalities" title="Link to this heading">¶</a></h3>
+<p>Based on the use cases, the following capabilities are required:</p>
+<ul class="simple">
+<li><p><strong>Paging</strong>: Paginate and transfer large result set to client side.</p></li>
+<li><p><strong>Efficient</strong>: Make tradeoff between efficiency and system resource usage.</p></li>
+<li><p><strong>Reliable</strong>: Ensure no orphan context left and kept consuming resource in any case.</p></li>
+<li><p><strong>Variety</strong>: Should be able to work with different format types like JDBC, CSV etc</p></li>
+</ul>
+</section>
+<section id="scope">
+<h3>2.3 Scope<a class="headerlink" href="#scope" title="Link to this heading">¶</a></h3>
+<p><strong>Phase I</strong>:</p>
+<ul class="simple">
+<li><p>Type of Query</p>
+<ul>
+<li><p><em>SELECT</em> : Already  supported but in the hint manner which mixed long cursor ID with same query itself for each following fetch after the first one.</p></li>
+</ul>
+</li>
+<li><p>Format type: We will consider <strong>format for JDBC driver</strong> only for now as it used by both JDBC and ODBC driver. It is also used by SQL CLI.</p></li>
+<li><p>JDBC support for cursor</p></li>
+<li><p>ODBC support for cursor</p></li>
+</ul>
+<p><strong>Phase II:</strong></p>
+<ul class="simple">
+<li><p><em>SELECT</em> with GROUP BY (aggregation query)</p></li>
+</ul>
+<p><strong>Phase III:</strong></p>
+<ul class="simple">
+<li><p><em>EQUI-JOINS</em>: Since we only have query plan framework (unfinished physical plan) for equi-joins, we will be supporting this.</p></li>
+<li><p>Support for text based formats such as CSV , RAW (pipe separated).</p></li>
+</ul>
+<p><strong>Out of Scope:</strong></p>
+<ul class="simple">
+<li><p><em>Non EQUI-JOINS:</em> Nested Loop  joins are used for such queries. It does not use scroll optimization like HashJoin and needs to bring in all the data to the coordinating node for correct results.</p></li>
+<li><p><em>MULTI_QUERY:</em> Same problem as Nested Loop</p></li>
+</ul>
+</section>
+</section>
+<section id="design">
+<h2>3. Design<a class="headerlink" href="#design" title="Link to this heading">¶</a></h2>
+<section id="different-type-of-cursors">
+<h3>3.1 Different Type of Cursors<a class="headerlink" href="#different-type-of-cursors" title="Link to this heading">¶</a></h3>
+<p>Every cursor uses temporary resources to hold its data. These resources can be memory, a disk paging file, temporary disk files, or even temporary storage in the database. The cursor is called a client-side cursor when these resources are located on the client machine. The cursor is called a server-side cursor when these resources are located on the server machine.</p>
+<p><strong>(a) Client-Side Cursors</strong>
+With a non-keyset client-side cursor, the server sends the entire result set across the network to the client machine. The client machine provides and manages the temporary resources needed by the cursor and result set. The client-side application can browse through the entire result set to determine which rows it requires.</p>
+<p><strong>Pros:</strong></p>
+<ul class="simple">
+<li><p>One obvious benefit of the client-side cursor is quick response. After the result set has been downloaded to the client machine, browsing through the rows is very fast. Your application is generally more scalable with client-side cursors because the cursor’s resource requirements are placed on each separate client and not on the server.</p></li>
+</ul>
+<p><strong>Cons:</strong></p>
+<ul class="simple">
+<li><p>Client-side cursors may place a significant load on your workstation if they include too many rows</p></li>
+<li><p>Since we are limited by OpenSearch to get all the results we <strong>cannot</strong> materialize this.</p></li>
+<li><p>This will require significant work for each client JDBC driver, ODBC driver, SQL CLI,  OpenSearch Dashboards on how to maintain the client resources and parse the state. It is therefore not scalable.</p></li>
+<li><p>This defeats the purpose of pagination if we load the whole data to client side, as the user/application might only need the first few pages and discard the rest. This will also put pressure on network traffic and can increase latency.</p></li>
+</ul>
+<p><strong>(b) Server-Side Cursors</strong>
+With a server-side cursor, the server manages the result set using resources provided by the server machine. The server-side cursor returns only the requested data over the network. This type of cursor can sometimes provide better performance than the client-side cursor, especially in situations where excessive network traffic is a problem.</p>
+<p><strong>Pros:</strong></p>
+<ul class="simple">
+<li><p>The client does not need to cache large amounts of data or maintain information about the cursor position because the server is doing that.</p></li>
+<li><p>If you are going to access only some of the data in the result set, or access the data just a few times, a server-side cursor minimizes network traffic.</p></li>
+<li><p>Scalable to many clients as they shielded by implementation details of how the cursor context is handled, and allows for creating a clear , consistent and compatible interface.</p></li>
+</ul>
+<p><strong>Cons:</strong></p>
+<ul class="simple">
+<li><p>A server-side cursor is — at least temporarily — consuming precious server resources for every active client.</p></li>
+</ul>
+<p>Based on the cons of client side cursors, and the limitation imposed by OpenSearch, implementing client side cursor is not feasible.</p>
+</section>
+<section id="protocol">
+<h3>3.2 Protocol<a class="headerlink" href="#protocol" title="Link to this heading">¶</a></h3>
+<p>Here is a sample of the request response API for the cursor queries. The client only needs cursor field to fetch the next page. This interface allows clients to de-couple the parsing logic of state.</p>
+<p>Since we are implementing server side cursors, either OpenSearch SQL plugin or OpenSearch needs to maintain state which consumes hardware resources like memory, file descriptors etc. The conserve such resources we provide a clear cursor API to clear resources explicitly, before it is automatically cleaned after expiry.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span># 1.Creates a cursor
+POST _plugins/_sql?format=jdbc
+{
+  &quot;query&quot;: &quot;SELECT * FROM accounts&quot;,
+  &quot;fetch_size&quot;: 5
+}
+
+# Response
+{
+  &quot;status&quot;: 200,
+  &quot;total&quot;: 100,
+  &quot;size&quot;: 5,
+  &quot;schema&quot;: [...],
+  &quot;datarows&quot;: [...],
+  &quot;cursor&quot;: &quot;cursorId&quot;
+}
+
+# 2.Fetch next page by cursor provided in previous response
+POST _plugins/_sql?format=jdbc
+{
+  &quot;cursor&quot;: &quot;cursorId&quot;
+}
+# Response
+{
+  &quot;datarows&quot;: [...],
+  &quot;cursor&quot;: &quot;cursorId&quot;
+}
+
+# No cursor in the last page
+{
+  &quot;datarows&quot;: [...]
+}
+
+
+# 4.Clear the state forcibly earlier than last page be reached
+POST _plugins/_sql/close
+{
+  &quot;cursor&quot;: &quot;cursorId&quot;
+}
+
+# Response
+{
+    &quot;succeeded&quot; : true
+}
+
+</pre></div>
+</div>
+</section>
+<section id="support-in-jdbc">
+<h3>3.3 Support in JDBC<a class="headerlink" href="#support-in-jdbc" title="Link to this heading">¶</a></h3>
+<p>To use the pagination functionality programmatically using the<a class="reference external" href="https://download.oracle.com/otn-pub/jcp/jdbc-4_1-mrel-spec/jdbc4.1-fr-spec.pdf">JDBC 4.1 specification</a>, page size is being used as performance hint given by <code class="docutils literal notranslate"><span class="pre">Statement.setFetchSize()</span></code> and “applied to each result set produced by the statement”. We need to re-implement <code class="docutils literal notranslate"><span class="pre">Statement.executequery()</span></code> and <code class="docutils literal notranslate"><span class="pre">ResultSet.next()</span></code> to take advantage of cursor.</p>
+<p>We will not support backward scroll on result set. The <code class="docutils literal notranslate"><span class="pre">Statement</span></code> must be created with a <code class="docutils literal notranslate"><span class="pre">ResultSet</span></code> type of <code class="docutils literal notranslate"><span class="pre">ResultSet.TYPE_FORWARD_ONLY</span></code>. Attempt to scroll backwards or otherwise jump around in the <code class="docutils literal notranslate"><span class="pre">ResultSet</span></code> should throw an exception.</p>
+<p>A basic use case of using cursor is shown below. To support Tableau or other existing BI tools, we will turn on the cursor support by default if the backend SQL Plugin supports pagination.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Statement</span> <span class="n">stmt</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">createStatement</span><span class="p">();</span>
+
+<span class="o">//</span> <span class="n">Turn</span> <span class="n">the</span> <span class="n">cursor</span> <span class="n">on</span>
+<span class="n">stmt</span><span class="o">.</span><span class="n">setFetchSize</span><span class="p">(</span><span class="mi">20</span><span class="p">);</span>
+<span class="n">ResultSet</span> <span class="n">rs</span> <span class="o">=</span> <span class="n">stmt</span><span class="o">.</span><span class="n">executeQuery</span><span class="p">(</span><span class="s2">&quot;SELECT firstname, lastname FROM mytable&quot;</span><span class="p">);</span>
+
+<span class="k">while</span> <span class="p">(</span><span class="n">rs</span><span class="o">.</span><span class="n">next</span><span class="p">())</span>
+<span class="p">{</span>
+    <span class="n">System</span><span class="o">.</span><span class="n">out</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s2">&quot;a row was returned.&quot;</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="o">//</span> <span class="n">Explicitly</span> <span class="n">close</span> <span class="n">the</span> <span class="n">cursor</span>
+<span class="n">rs</span><span class="o">.</span><span class="n">close</span><span class="p">();</span>
+
+<span class="o">//</span> <span class="n">Turn</span> <span class="n">the</span> <span class="n">cursor</span> <span class="n">off</span><span class="o">.</span> 
+<span class="o">//</span> <span class="n">A</span> <span class="n">hint</span> <span class="n">to</span> <span class="n">fallback</span> <span class="n">on</span> <span class="n">default</span> <span class="n">implementation</span> <span class="n">to</span> <span class="n">fetch</span> <span class="nb">max</span> <span class="n">results</span> <span class="n">where</span> <span class="n">possible</span><span class="o">.</span>
+<span class="n">st</span><span class="o">.</span><span class="n">setFetchSize</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span>
+<span class="n">rs</span> <span class="o">=</span> <span class="n">st</span><span class="o">.</span><span class="n">executeQuery</span><span class="p">(</span><span class="s2">&quot;SELECT * FROM mytable&quot;</span><span class="p">);</span>
+<span class="k">while</span> <span class="p">(</span><span class="n">rs</span><span class="o">.</span><span class="n">next</span><span class="p">())</span>
+<span class="p">{</span>
+    <span class="n">System</span><span class="o">.</span><span class="n">out</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s2">&quot;many rows were returned.&quot;</span><span class="p">);</span>
+<span class="p">}</span>
+<span class="n">rs</span><span class="o">.</span><span class="n">close</span><span class="p">();</span>
+
+<span class="o">//</span> <span class="n">Close</span> <span class="n">the</span> <span class="n">statement</span><span class="o">.</span>
+<span class="n">st</span><span class="o">.</span><span class="n">close</span><span class="p">();</span>
+
+</pre></div>
+</div>
+</section>
+<section id="integrating-with-sql-plugin">
+<h3>3.4 Integrating with SQL Plugin<a class="headerlink" href="#integrating-with-sql-plugin" title="Link to this heading">¶</a></h3>
+<p><img alt="high-level-cursor-integration" src="../_images/high-level-cursor-design.jpg" /></p>
+<p>Since we are supporting cursor for different type of queries using different implementation, we <em><em>may</em></em> need to maintain some state (context). This <strong>context</strong> is used when we fetch next batch of results. Maintaining context is not a requirement, but may be needed.</p>
+</section>
+<section id="different-approaches-for-different-sql-queries">
+<h3>3.6 Different approaches for different SQL queries<a class="headerlink" href="#different-approaches-for-different-sql-queries" title="Link to this heading">¶</a></h3>
+<p><strong>3.6.1 SELECT</strong></p>
+<p>Simple SELECT with WHERE and ORDER BY clause can be supported by using the following OpenSearch APIs
+<strong>(A) From and Size</strong>
+From ideal pagination point of view from and size is API needed by the client. Pagination of results can be done by using the from and size but the cost becomes prohibitive when the deep pagination is reached. The <code class="docutils literal notranslate"><span class="pre">index.max_result_window</span></code> which defaults to 10,000 is a safeguard, search requests take heap memory and time proportional to <code class="docutils literal notranslate"><span class="pre">from</span> <span class="pre">+</span> <span class="pre">size</span></code>.</p>
+<p><strong>Cons:</strong> Inefficient</p>
+<p><strong>(B) <a class="reference external" href="https://www.elastic.co/guide/en/elasticsearch/reference/current/search-request-body.html#request-body-search-scroll">Scroll</a></strong></p>
+<p>While a <code class="docutils literal notranslate"><span class="pre">search</span></code> request returns a single “page” of results, the <code class="docutils literal notranslate"><span class="pre">scroll</span></code> API can be used to retrieve large numbers of results (or even all results) from a single search request, in much the same way as you would use a cursor on a traditional database.</p>
+<p><strong>Pros:</strong> A scroll returns all the documents which matched the search at the time of the initial search request. It ignores any subsequent changes to these documents.</p>
+<p><strong>Cons:</strong> Normally, the background merge process optimizes the index by merging together smaller segments to create new, bigger segments. Once the smaller segments are no longer needed they are deleted. This process continues during scrolling, but an open search context prevents the old segments from being deleted since they are still in use. Keeping older segments alive means that more disk space and file handles are needed. Ensure that you have configured your nodes to have ample free file handles</p>
+<p><strong>(C) <a class="reference external" href="https://www.elastic.co/guide/en/elasticsearch/reference/current/search-request-body.html#request-body-search-search-after">Search After</a></strong></p>
+<p>The Scroll API is recommended for efficient deep scrolling but scroll contexts are costly and it is not recommended to use it for real time user requests. The search_after parameter circumvents this problem by providing a live cursor. The idea is to use the results from the previous page to help the retrieval of the next page.</p>
+<p><strong>Cons:</strong> It is very similar to the <code class="docutils literal notranslate"><span class="pre">scroll</span></code> API but unlike it, the <code class="docutils literal notranslate"><span class="pre">search_after</span></code> parameter is stateless, it is always resolved against the latest version of the searcher. For this reason the sort order may change during a walk depending on the updates and deletes of your index.</p>
+<p><strong>(A)</strong> does not meet efficiency requirement. <strong>(C)</strong> has consistency problems.  So Scroll** (B)** would be the right solution , as it is consistent can be implemented in a stateless manner on plugin side. Even though it does maintains context natively, it expires eventually if not used.</p>
+<p><strong>3.6.2 SELECT WITH GROUP BY</strong></p>
+<p>The <a class="reference external" href="https://www.elastic.co/guide/en/elasticsearch/reference/current/search-aggregations-bucket-terms-aggregation.html">terms aggregation</a> is meant to return the top terms and does not allow pagination. If we want to retrieve all terms or all combinations of terms in a nested terms aggregation we should eventually migrate to <a class="reference external" href="https://www.elastic.co/guide/en/elasticsearch/reference/current/search-aggregations-bucket-composite-aggregation.html">Composite aggregation</a> which allows to paginate over all possible terms rather than setting a size greater than the cardinality of the field in the terms aggregation.</p>
+<p>This aggregation can be used to paginate all buckets from a multi-level aggregation efficiently. This aggregation provides a way to stream all buckets of a specific aggregation similarly to what scroll does for documents.</p>
+<p>How to paginate using Composite Aggregation natively without pagination support:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># initial query</span>
+<span class="n">curl</span> <span class="o">-</span><span class="n">X</span> <span class="n">GET</span> <span class="s2">&quot;localhost:9200/_search?pretty&quot;</span> <span class="o">-</span><span class="n">H</span> <span class="s1">&#39;Content-Type: application/json&#39;</span> <span class="o">-</span><span class="n">d</span><span class="s1">&#39;</span>
+<span class="p">{</span>
+    <span class="s2">&quot;aggs&quot;</span> <span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;my_buckets&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;composite&quot;</span> <span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;size&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span> <span class="o">&lt;-----</span><span class="n">fetch_size</span>
+                <span class="s2">&quot;sources&quot;</span> <span class="p">:</span> <span class="p">[</span>
+                    <span class="p">{</span> <span class="s2">&quot;date&quot;</span><span class="p">:</span> <span class="p">{</span> <span class="s2">&quot;date_histogram&quot;</span><span class="p">:</span> <span class="p">{</span> <span class="s2">&quot;field&quot;</span><span class="p">:</span> <span class="s2">&quot;timestamp&quot;</span><span class="p">,</span> <span class="s2">&quot;calendar_interval&quot;</span><span class="p">:</span> <span class="s2">&quot;1d&quot;</span> <span class="p">}</span> <span class="p">}</span> <span class="p">},</span>
+                    <span class="p">{</span> <span class="s2">&quot;product&quot;</span><span class="p">:</span> <span class="p">{</span> <span class="s2">&quot;terms&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;field&quot;</span><span class="p">:</span> <span class="s2">&quot;product&quot;</span> <span class="p">}</span> <span class="p">}</span> <span class="p">}</span>
+
+                <span class="p">]</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+<span class="s1">&#39;</span>
+
+<span class="c1"># Response</span>
+<span class="p">{</span>
+    <span class="o">...</span>
+    <span class="s2">&quot;aggregations&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;my_buckets&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;after_key&quot;</span><span class="p">:</span> <span class="p">{</span> 
+                <span class="s2">&quot;date&quot;</span><span class="p">:</span> <span class="mi">1494288000000</span><span class="p">,</span>
+                <span class="s2">&quot;product&quot;</span><span class="p">:</span> <span class="s2">&quot;mad max&quot;</span>
+
+            <span class="p">},</span>
+            <span class="s2">&quot;buckets&quot;</span><span class="p">:</span> <span class="p">[</span>
+                <span class="p">{</span>
+                    <span class="s2">&quot;key&quot;</span><span class="p">:</span> <span class="p">{</span>
+                        <span class="s2">&quot;date&quot;</span><span class="p">:</span> <span class="mi">1494201600000</span><span class="p">,</span>
+                        <span class="s2">&quot;product&quot;</span><span class="p">:</span> <span class="s2">&quot;rocky&quot;</span>
+                    <span class="p">},</span>
+                    <span class="s2">&quot;doc_count&quot;</span><span class="p">:</span> <span class="mi">1</span>
+                <span class="p">},</span>
+                <span class="p">{</span>
+                    <span class="s2">&quot;key&quot;</span><span class="p">:</span> <span class="p">{</span>
+                        <span class="s2">&quot;date&quot;</span><span class="p">:</span> <span class="mi">1494288000000</span><span class="p">,</span>
+                        <span class="s2">&quot;product&quot;</span><span class="p">:</span> <span class="s2">&quot;mad max&quot;</span>
+                    <span class="p">},</span>
+                    <span class="s2">&quot;doc_count&quot;</span><span class="p">:</span> <span class="mi">2</span>
+                <span class="p">}</span>
+            <span class="p">]</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+
+<span class="c1"># Paginating using after parameter:</span>
+<span class="n">curl</span> <span class="o">-</span><span class="n">X</span> <span class="n">GET</span> <span class="s2">&quot;localhost:9200/_search?pretty&quot;</span> <span class="o">-</span><span class="n">H</span> <span class="s1">&#39;Content-Type: application/json&#39;</span> <span class="o">-</span><span class="n">d</span><span class="s1">&#39;</span>
+<span class="p">{</span>
+    <span class="s2">&quot;aggs&quot;</span> <span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;my_buckets&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;composite&quot;</span> <span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;size&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
+                 <span class="s2">&quot;sources&quot;</span> <span class="p">:</span> <span class="p">[</span>
+                    <span class="p">{</span> <span class="s2">&quot;date&quot;</span><span class="p">:</span> <span class="p">{</span> <span class="s2">&quot;date_histogram&quot;</span><span class="p">:</span> <span class="p">{</span> <span class="s2">&quot;field&quot;</span><span class="p">:</span> <span class="s2">&quot;timestamp&quot;</span><span class="p">,</span> <span class="s2">&quot;calendar_interval&quot;</span><span class="p">:</span> <span class="s2">&quot;1d&quot;</span><span class="p">,</span> <span class="s2">&quot;order&quot;</span><span class="p">:</span> <span class="s2">&quot;desc&quot;</span> <span class="p">}</span> <span class="p">}</span> <span class="p">},</span>
+                    <span class="p">{</span> <span class="s2">&quot;product&quot;</span><span class="p">:</span> <span class="p">{</span> <span class="s2">&quot;terms&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;field&quot;</span><span class="p">:</span> <span class="s2">&quot;product&quot;</span><span class="p">,</span> <span class="s2">&quot;order&quot;</span><span class="p">:</span> <span class="s2">&quot;asc&quot;</span> <span class="p">}</span> <span class="p">}</span> <span class="p">}</span>
+                <span class="p">],</span>
+                <span class="s2">&quot;after&quot;</span><span class="p">:</span> <span class="p">{</span> <span class="s2">&quot;date&quot;</span><span class="p">:</span> <span class="mi">1494288000000</span><span class="p">,</span> <span class="s2">&quot;product&quot;</span><span class="p">:</span> <span class="s2">&quot;mad max&quot;</span> <span class="p">}</span> 
+            <span class="p">}</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+<span class="s1">&#39;</span>
+
+</pre></div>
+</div>
+<p>Since all the information needed to retrieve the next page requires the original query and after keys, this can be implemented in a stateless manner by decoding it in <code class="docutils literal notranslate"><span class="pre">cursor</span> <span class="pre">Id</span></code></p>
+<p><strong>3.6.3 JOINS</strong></p>
+<p>Query context contains unfinished physical plan with state in each operator which consists of hash table in Join and remaining rows in Join and Scroll.</p>
+<p><strong>3.6.3.1 Connect to Same Node From Client Side</strong>:</p>
+<p>One option is to try to connect to the same node with query plan all the time. However, it seems that either <strong>Load balancer Session Sticky</strong> or <strong>Keep-Alive HTTP Connection</strong> requires setup on load balancer side.</p>
+<ul class="simple">
+<li><p><strong>Pros:</strong>:</p>
+<ul>
+<li><p>Easy: to implement and understand because query plan execution is identical as before.</p></li>
+</ul>
+</li>
+<li><p><strong>Cons:</strong>:</p>
+<ul>
+<li><p>Dependency: on configuration of load balancer.</p></li>
+<li><p>Workload skew: because of no load balance any more.</p></li>
+</ul>
+</li>
+</ul>
+<p><img alt="equi-join-approach-1" src="../_images/equi-join-approach-1.png" /></p>
+<p><em><em>Diagram-1: Always connect to same data node</em></em></p>
+<p><strong>3.6.3.2 Context Lookup:</strong></p>
+<p>In the case that requests dispatched to different nodes is inevitable, context lookup in cluster is required with the following approaches.</p>
+<p><strong>A) Reroute to Node with Context Inside OpenSearch</strong>: route the request to stateful node with the context, fetch result set and return to client side:</p>
+<ul class="simple">
+<li><p><strong>Pros:</strong></p>
+<ul>
+<li><p>Lightweight: only 1 node maintains the context with small footprint in memory.</p></li>
+</ul>
+</li>
+<li><p><strong>Cons:</strong></p>
+<ul>
+<li><p>One more hop: to pass the result from stateful node to “coordinator” node.</p></li>
+<li><p>Workload skew.</p></li>
+<li><p>Concurrency control.</p></li>
+</ul>
+</li>
+</ul>
+<p><img alt="equi-join-approach-2" src="../_images/equi-join-approach-2.png" /></p>
+<p><em><em>Diagram-2: Reroute request to the node with context</em></em></p>
+<p><strong>B)</strong> <strong>Persist Context to OpenSearch Index</strong>:</p>
+<p>Persist context to OpenSearch index and query it from any node that is serving client request.</p>
+<ul class="simple">
+<li><p><strong>Pros:</strong></p>
+<ul>
+<li><p>Explicit node communication logic is not required since OpenSearch query API can take care of the context lookup.</p></li>
+<li><p>In the event of loss of node the context is not lost, as index will be replicated by OpenSearch.</p></li>
+</ul>
+</li>
+<li><p><strong>Cons:</strong></p>
+<ul>
+<li><p>Extra overhead: of (de-)serialization and network communication incurred by OpenSearch query.</p></li>
+<li><p>Index maintenance: OpenSearch index is not designed for frequent update so new context should be appended. It is possible that the index becomes huge without deleting old context documents in the case of large context.</p></li>
+</ul>
+</li>
+</ul>
+<p><img alt="equi-join-approach-3" src="../_images/equi-join-approach-3.png" /></p>
+<p><em><em>Diagram-3: Persist context to OpenSearch index</em></em></p>
+<p><strong>3.6.3.3 Context Rebuild</strong></p>
+<p>Instead of maintain the context, this solution focus on rebuild the context on the fly.
+Let us take an example join query</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="s2">&quot;query&quot;</span><span class="p">:</span> <span class="s2">&quot;SELECT a.name, b.name FROM A as a JOIN B as B on a.name = b.name&quot;</span>
+    <span class="s2">&quot;fetch_size&quot;</span><span class="p">:</span> <span class="mi">10</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>In the current implementation, the HashJoin scrolls both the tables block-by-block till it exhausts all the rows from both tables and passes the whole result set to the client.</p>
+<p>For cursor, instead of fetching rows exhaustively we can scroll the until we have enough rows needed by the client. There <em><em>may</em></em> be more rows than requested by <code class="docutils literal notranslate"><span class="pre">fetch_size</span></code>. We can pass the extra datarows to client including <code class="docutils literal notranslate"><span class="pre">fetch_size</span></code> datarows, and serialize the unfinished physical plan in cursor Id (which includes the scroll Id of both the tables).</p>
+<p>For subsequent request for next pages, we have all the information needed to retrieve next page as the execution plan and scroll Ids can be decode from <code class="docutils literal notranslate"><span class="pre">cursor</span> <span class="pre">Id</span></code></p>
+<p><strong>Pros:</strong></p>
+<ul class="simple">
+<li><p>Stateless implementation.</p></li>
+<li><p>Fixed Space Complexity.</p></li>
+<li><p>No need to maintain the context.</p></li>
+</ul>
+<p><strong>Cons:</strong></p>
+<ul class="simple">
+<li><p>We will be sending extra datarows to the client than initially requested by the client using fetch_size but this can be handled transparently by the JDBC driver which is our major use case.</p></li>
+<li><p><em>(A)</em> is good option for cursor used by customers in the <em>interactive</em> way who just glance over a few pages. This will require major work to implement the transport action to communicate “context host node” with “coordinator node“.  It will also require home grown solution to clear the context by the plugin. This can be big blocker if implementation needs changes on OpenSearch.</p></li>
+<li><p><em>(3.6.3.3)</em> From the point of view of SQL plugin this approach is stateless and resolves the node to node communication problem. Since the scroll context will be handled natively by OpenSearch, contexts will cleared automatically when it timeouts or explicitly by using <code class="docutils literal notranslate"><span class="pre">clear</span> <span class="pre">cursor</span></code> API. This solution also aligns with the stateless solution for simple and aggregation queries.</p></li>
+</ul>
+<p>Based on above analysis <em>3.6.3.3</em> is the solution to go ahead for <em>JOINS</em>.</p>
+<p><strong>3.6.4 SUBQUERY</strong></p>
+<p>Right now subqueries are converted internally to simple queries or JOINS. So, if the above cases work subqueries should be handled.</p>
+</section>
+<section id="other-formats">
+<h3>3.6 Other Formats<a class="headerlink" href="#other-formats" title="Link to this heading">¶</a></h3>
+<p>To support additional text formats such as CSV, RAW or TABLE (<em>format=table</em>) in future, the only additional change required is to how to send the <code class="docutils literal notranslate"><span class="pre">cursor</span></code>. This can be achieved by sending the <code class="docutils literal notranslate"><span class="pre">cursor</span></code> through <code class="docutils literal notranslate"><span class="pre">Cursor</span></code> HTTP header.</p>
+<p>Right now there is inconsistency in results for <code class="docutils literal notranslate"><span class="pre">csv</span></code> and <code class="docutils literal notranslate"><span class="pre">jdbc</span></code> format. This is because CSV and JDBC result formatting have 2 parallel codebases, so fix in one wouldn’t work with another and one needs to always remember to double check. Example: CSV formatter supported all aggregations (Percentile, Numeric SimpleValue, Numeric Multiple), and JDBC supported only one: Numeric SimpleValue. <strong>This would be another major work to cleanly support other text formats.</strong></p>
+<p><strong>Recommendation</strong>: The <code class="docutils literal notranslate"><span class="pre">csv</span></code> (or other formats) should use results of JDBC formatter and do simple transformation of results. The logic, that is currently not presented in JDBC formatter must be brought there.</p>
+</section>
+</section>
+<section id="detailed-design">
+<h2>4. Detailed Design<a class="headerlink" href="#detailed-design" title="Link to this heading">¶</a></h2>
+<section id="general-flow">
+<h3>4.1 General flow:<a class="headerlink" href="#general-flow" title="Link to this heading">¶</a></h3>
+<p><strong>4.1.1 First page request:</strong></p>
+<p><img alt="cursor-initial-request-flow" src="../_images/cursor-initial-request-flow.jpg" /></p>
+<p><strong>4.1.2 Subsequent page request and last page request</strong></p>
+<p><img alt="cursor-subsequent-request-flow" src="../_images/cursor-subsequent-request-flow.png" /></p>
+</section>
+<section id="salient-points">
+<h3>4.2 Salient Points:<a class="headerlink" href="#salient-points" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>By default all requests will be a cursor request - meaning the response will contain <code class="docutils literal notranslate"><span class="pre">cursor</span></code> key to fetch next page of result. This is true for all queries which cursor is supported.</p></li>
+<li><p>Cursor is supported only via <code class="docutils literal notranslate"><span class="pre">POST</span></code> HTTP request.</p></li>
+<li><p>If <code class="docutils literal notranslate"><span class="pre">fetch_size</span></code> is omitted from request, the query will fallback to non-cursor behavior.</p></li>
+<li><p>A <code class="docutils literal notranslate"><span class="pre">fetch_size</span></code> value of <strong>0</strong>, will imply no cursor and query will fallback to non-cursor behavior too. This will allow to use/not-use cursor on a per query basis.</p></li>
+<li><p>If SQL query limit is less than <code class="docutils literal notranslate"><span class="pre">fetch_size</span></code>, no cursor context will be open and all results will be fetched in first page.</p></li>
+<li><p>Negative or non-numeric values of <code class="docutils literal notranslate"><span class="pre">fetch_size</span></code> will throw <code class="docutils literal notranslate"><span class="pre">400</span></code> exception.</p></li>
+<li><p>If <code class="docutils literal notranslate"><span class="pre">cursor</span></code> is given as JSON field in request, other fields like <code class="docutils literal notranslate"><span class="pre">fetch_size</span></code> , <code class="docutils literal notranslate"><span class="pre">query</span></code>, <code class="docutils literal notranslate"><span class="pre">filter</span></code>, <code class="docutils literal notranslate"><span class="pre">parameters</span></code> will be ignored.</p></li>
+<li><p>Like OpenSearch’s scroll, SQL plugin may keep state in OpenSearch to support the cursor. Unlike scroll, receiving the last page is enough to guarantee that the OpenSearch state is cleared.</p></li>
+<li><p>Multiple invocations of clearing the cursor, will succeed.</p></li>
+<li><p>Using the cursor after context is expired will throw error.</p></li>
+</ul>
+</section>
+<section id="settings">
+<h3>4.3 Settings:<a class="headerlink" href="#settings" title="Link to this heading">¶</a></h3>
+<p>When OpenSearch bootstraps, SQL plugin will register a few settings in OpenSearch cluster settings.
+Most of the settings are able to change dynamically so you can control the behavior of SQL plugin without need to bounce your cluster.
+For cursors we will be exposing the following settings:</p>
+<section id="plugins-sql-cursor-keep-alive">
+<h4>plugins.sql.cursor.keep_alive<a class="headerlink" href="#plugins-sql-cursor-keep-alive" title="Link to this heading">¶</a></h4>
+<p>This setting controls the how long the cursor context is open for all cursor requests.
+You can five the time in human readable time format like <code class="docutils literal notranslate"><span class="pre">5h</span></code> (5 hours) or <code class="docutils literal notranslate"><span class="pre">20s</span></code> (20 seconds) etc.</p>
+<ul class="simple">
+<li><p>The default value is <strong>1m</strong>.</p></li>
+<li><p>This setting is node scope.</p></li>
+<li><p>This setting can be updated dynamically.</p></li>
+<li><p>This can be <code class="docutils literal notranslate"><span class="pre">persistent</span></code> and <code class="docutils literal notranslate"><span class="pre">transient</span></code>.</p></li>
+</ul>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">&gt;&gt;</span> <span class="n">curl</span> <span class="o">-</span><span class="n">H</span> <span class="s1">&#39;Content-Type: application/json&#39;</span> <span class="o">-</span><span class="n">X</span> <span class="n">PUT</span> <span class="n">localhost</span><span class="p">:</span><span class="mi">9200</span><span class="o">/</span><span class="n">_cluster</span><span class="o">/</span><span class="n">settings</span> <span class="o">-</span><span class="n">d</span> <span class="s1">&#39;{</span>
+  <span class="s2">&quot;transient&quot;</span> <span class="p">:</span> <span class="p">{</span>
+    <span class="s2">&quot;plugins.sql.cursor.keep_alive&quot;</span> <span class="p">:</span> <span class="s2">&quot;200s&quot;</span>
+  <span class="p">}</span>
+<span class="p">}</span><span class="s1">&#39;</span>
+</pre></div>
+</div>
+<p>Response:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+  <span class="s2">&quot;acknowledged&quot;</span> <span class="p">:</span> <span class="n">true</span><span class="p">,</span>
+  <span class="s2">&quot;persistent&quot;</span> <span class="p">:</span> <span class="p">{</span> <span class="p">},</span>
+  <span class="s2">&quot;transient&quot;</span> <span class="p">:</span> <span class="p">{</span>
+    <span class="s2">&quot;plugins&quot;</span> <span class="p">:</span> <span class="p">{</span>
+      <span class="s2">&quot;sql&quot;</span> <span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;cursor&quot;</span> <span class="p">:</span> <span class="p">{</span>
+          <span class="s2">&quot;keep_alive&quot;</span> <span class="p">:</span> <span class="s2">&quot;200s&quot;</span>
+        <span class="p">}</span>
+      <span class="p">}</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+
+
+</pre></div>
+</div>
+</section>
+</section>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">Example</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;workshop participant.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 7.3.7</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 0.7.16</a>
+      
+      |
+      <a href="../_sources/dev/opensearch-pagination.md.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

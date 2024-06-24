@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Semantic Analysis &#8212; Example 0.1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d1102ebc" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css?v=12dfc556" />
+    <script src="../_static/documentation_options.js?v=2709fde1"></script>
+    <script src="../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="semantic-analysis">
+<h1>Semantic Analysis<a class="headerlink" href="#semantic-analysis" title="Link to this heading">¶</a></h1>
+<hr class="docutils" />
+<section id="overview">
+<h2>1.Overview<a class="headerlink" href="#overview" title="Link to this heading">¶</a></h2>
+<p>Previously SQL plugin didn’t do semantic analysis, for example field doesn’t exist, function call on field with wrong type etc. So it had to rely on OpenSearch engine to perform the “check” which is actual execution.
+This led to bad user experience because of missing careful verification, cost of actual execution and confusing error message. In this work, we built a new semantic analyzer based on the new ANTLR generated parser introduced recently.
+With the new semantic analyzer, we manage to perform various verification in terms of meaning of the query and return clear and helpful message to user for troubleshoot.</p>
+<p>So in this work our initial goal is to add capability to perform basic semantic analysis including:</p>
+<ol class="arabic simple">
+<li><p>Check field name and found if any typo.</p></li>
+<li><p>Check if function is in use with correct arguments.</p></li>
+<li><p>Apart from basic check above, it would be nice to do some simple check for JOIN, subquery and multi-query etc.</p></li>
+</ol>
+<p>For both exception, we want to return useful message to customer and even suggest to change the wrong symbol to possibly right one.</p>
+</section>
+<hr class="docutils" />
+<section id="use-cases">
+<h2>2.Use Cases<a class="headerlink" href="#use-cases" title="Link to this heading">¶</a></h2>
+<p>Firstly, you could go through the following examples of semantic check with our new analyzer. In the use cases, you should be able to get a taste of what benefits the new semantic analyzer is bring to us:</p>
+<section id="field-name-typo">
+<h3>2.1 Field Name Typo<a class="headerlink" href="#field-name-typo" title="Link to this heading">¶</a></h3>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">POST</span> <span class="n">_plugins</span><span class="o">/</span><span class="n">_sql</span>
+<span class="p">{</span>
+  <span class="s2">&quot;query&quot;</span><span class="p">:</span> <span class="s2">&quot;SELECT balace FROM accounts&quot;</span>
+<span class="p">}</span>
+
+<span class="p">{</span>
+  <span class="s2">&quot;error&quot;</span><span class="p">:</span> <span class="p">{</span>
+    <span class="s2">&quot;reason&quot;</span><span class="p">:</span> <span class="s2">&quot;Invalid SQL query&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;details&quot;</span><span class="p">:</span> <span class="s2">&quot;Field [balace] cannot be found or used here. Did you mean [balance]?&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;SemanticAnalysisException&quot;</span>
+  <span class="p">},</span>
+  <span class="s2">&quot;status&quot;</span><span class="p">:</span> <span class="mi">400</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="function-call-on-incompatible-field-type">
+<h3>2.2 Function Call on Incompatible Field Type<a class="headerlink" href="#function-call-on-incompatible-field-type" title="Link to this heading">¶</a></h3>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">POST</span> <span class="n">_plugins</span><span class="o">/</span><span class="n">_sql</span>
+<span class="p">{</span>
+  <span class="s2">&quot;query&quot;</span><span class="p">:</span> <span class="s2">&quot;SELECT * FROM accounts WHERE SUBSTRING(balance, 0, 1) = &#39;test&#39;&quot;</span>
+<span class="p">}</span>
+
+<span class="p">{</span>
+  <span class="s2">&quot;error&quot;</span><span class="p">:</span> <span class="p">{</span>
+    <span class="s2">&quot;reason&quot;</span><span class="p">:</span> <span class="s2">&quot;Invalid SQL query&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;details&quot;</span><span class="p">:</span> <span class="s2">&quot;Function [SUBSTRING] cannot work with [LONG, INTEGER, INTEGER]. Usage: SUBSTRING(STRING T, INTEGER, INTEGER) -&gt; T&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;SemanticAnalysisException&quot;</span>
+  <span class="p">},</span>
+  <span class="s2">&quot;status&quot;</span><span class="p">:</span> <span class="mi">400</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="an-index-join-non-nested-field">
+<h3>2.3 An index Join Non-nested Field<a class="headerlink" href="#an-index-join-non-nested-field" title="Link to this heading">¶</a></h3>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">POST</span> <span class="n">_plugins</span><span class="o">/</span><span class="n">_sql</span>
+<span class="p">{</span>
+  <span class="s2">&quot;query&quot;</span><span class="p">:</span> <span class="s2">&quot;SELECT * FROM accounts a, a.firstname&quot;</span>
+<span class="p">}</span>
+
+<span class="p">{</span>
+  <span class="s2">&quot;error&quot;</span><span class="p">:</span> <span class="p">{</span>
+    <span class="s2">&quot;reason&quot;</span><span class="p">:</span> <span class="s2">&quot;Invalid SQL query&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;details&quot;</span><span class="p">:</span> <span class="s2">&quot;Operator [JOIN] cannot work with [INDEX, TEXT]. Usage: Please join index with other index or its nested field.&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;SemanticAnalysisException&quot;</span>
+  <span class="p">},</span>
+  <span class="s2">&quot;status&quot;</span><span class="p">:</span> <span class="mi">400</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="wrong-reference-in-subquery">
+<h3>2.4 Wrong Reference in Subquery<a class="headerlink" href="#wrong-reference-in-subquery" title="Link to this heading">¶</a></h3>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">POST</span> <span class="n">_plugins</span><span class="o">/</span><span class="n">_sql</span>
+<span class="p">{</span>
+  <span class="s2">&quot;query&quot;</span><span class="p">:</span> <span class="s2">&quot;SELECT * FROM accounts a WHERE EXISTS (SELECT * FROM accounts b WHERE b.address LIKE &#39;Seattle&#39;) AND b.age &gt; 10&quot;</span>
+<span class="p">}</span>
+
+<span class="p">{</span>
+  <span class="s2">&quot;error&quot;</span><span class="p">:</span> <span class="p">{</span>
+    <span class="s2">&quot;reason&quot;</span><span class="p">:</span> <span class="s2">&quot;Invalid SQL query&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;details&quot;</span><span class="p">:</span> <span class="s2">&quot;Field [b.age] cannot be found or used here. Did you mean [a.age]?&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;SemanticAnalysisException&quot;</span>
+  <span class="p">},</span>
+  <span class="s2">&quot;status&quot;</span><span class="p">:</span> <span class="mi">400</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="operator-use-on-incompatible-field-type">
+<h3>2.5 Operator Use on Incompatible Field Type<a class="headerlink" href="#operator-use-on-incompatible-field-type" title="Link to this heading">¶</a></h3>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">POST</span> <span class="n">_plugins</span><span class="o">/</span><span class="n">_sql</span>
+<span class="p">{</span>
+  <span class="s2">&quot;query&quot;</span><span class="p">:</span> <span class="s2">&quot;SELECT * FROM accounts WHERE lastname IS FALSE&quot;</span>
+<span class="p">}</span>
+
+<span class="p">{</span>
+  <span class="s2">&quot;error&quot;</span><span class="p">:</span> <span class="p">{</span>
+    <span class="s2">&quot;reason&quot;</span><span class="p">:</span> <span class="s2">&quot;Invalid SQL query&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;details&quot;</span><span class="p">:</span> <span class="s2">&quot;Operator [IS] cannot work with [TEXT, BOOLEAN]. Usage: Please use compatible types from each side.&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;SemanticAnalysisException&quot;</span>
+  <span class="p">},</span>
+  <span class="s2">&quot;status&quot;</span><span class="p">:</span> <span class="mi">400</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="subquery-return-incompatible-type">
+<h3>2.6 Subquery Return Incompatible Type<a class="headerlink" href="#subquery-return-incompatible-type" title="Link to this heading">¶</a></h3>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">POST</span> <span class="n">_plugins</span><span class="o">/</span><span class="n">_sql</span>
+<span class="p">{</span>
+  <span class="s2">&quot;query&quot;</span><span class="p">:</span> <span class="s2">&quot;SELECT * FROM accounts WHERE lastname IN (SELECT age FROM accounts)&quot;</span>
+<span class="p">}</span>
+
+<span class="p">{</span>
+  <span class="s2">&quot;error&quot;</span><span class="p">:</span> <span class="p">{</span>
+    <span class="s2">&quot;reason&quot;</span><span class="p">:</span> <span class="s2">&quot;Invalid SQL query&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;details&quot;</span><span class="p">:</span> <span class="s2">&quot;Operator [IN] cannot work with [TEXT, LONG]. Usage: Please return field(s) of compatible type from each query.&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;SemanticAnalysisException&quot;</span>
+  <span class="p">},</span>
+  <span class="s2">&quot;status&quot;</span><span class="p">:</span> <span class="mi">400</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="multi-query-on-incompatible-type">
+<h3>2.7 Multi-query On Incompatible Type<a class="headerlink" href="#multi-query-on-incompatible-type" title="Link to this heading">¶</a></h3>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">POST</span> <span class="n">_plugins</span><span class="o">/</span><span class="n">_sql</span>
+<span class="p">{</span>
+  <span class="s2">&quot;query&quot;</span><span class="p">:</span> <span class="s2">&quot;SELECT balance FROM accounts UNION ALL SELECT city FROM accounts&quot;</span>
+<span class="p">}</span>
+
+<span class="p">{</span>
+  <span class="s2">&quot;error&quot;</span><span class="p">:</span> <span class="p">{</span>
+    <span class="s2">&quot;reason&quot;</span><span class="p">:</span> <span class="s2">&quot;Invalid SQL query&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;details&quot;</span><span class="p">:</span> <span class="s2">&quot;Operator [UNION] cannot work with [LONG, TEXT]. Usage: Please return field(s) of compatible type from each query.&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;SemanticAnalysisException&quot;</span>
+  <span class="p">},</span>
+  <span class="s2">&quot;status&quot;</span><span class="p">:</span> <span class="mi">400</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+</section>
+<hr class="docutils" />
+<section id="high-level-design">
+<h2>3.High Level Design<a class="headerlink" href="#high-level-design" title="Link to this heading">¶</a></h2>
+<p>The semantic analyzer consists of 2 core components: semantic context and type system.</p>
+<section id="semantic-context">
+<h3>3.1 Semantic Context<a class="headerlink" href="#semantic-context" title="Link to this heading">¶</a></h3>
+<p>Semantic context manages Environment in a stack for scope management for nested subquery. Precisely, an Environment is the storage of symbols associated with its type. To perform analysis, looking up in the environments in the semantic context is first step. Only after determining the symbol exists and what’s its type, further analysis like type checking can happen. We use the same terminology in compiler theory:</p>
+<ul class="simple">
+<li><p><strong>Define</strong>: stores symbol name along with its attribute (type only for now) to the current environment in context.</p></li>
+<li><p><strong>Resolve</strong>: looks up symbol name to find its attribute associated.</p></li>
+</ul>
+<p>To avoid naming conflict, we need to introduce one more layer inside each environment - namespace. For example, it’s supposed to be allowed to have field name or alias in SQL query which has the same name as built-in function such as <code class="docutils literal notranslate"><span class="pre">SUM</span></code>. To implement this, we divide each environment into 3 namespaces for better management:</p>
+<ul class="simple">
+<li><p><strong>Field namespace</strong>: field name loaded from index mapping.</p></li>
+<li><p><strong>Function namespace</strong>: built-in function names.</p></li>
+<li><p><strong>Operator namespace</strong>: mainly comparison operator such as <code class="docutils literal notranslate"><span class="pre">=</span></code>, <code class="docutils literal notranslate"><span class="pre">&gt;</span></code>, <code class="docutils literal notranslate"><span class="pre">IS</span></code> etc.</p></li>
+</ul>
+<p>Here is a simple diagram showing what Semantic Context looks like at runtime:</p>
+<p><img alt="What Semantic Context Looks Like" src="../_images/what-semantic-context-looks-like.png" /></p>
+</section>
+<section id="type-system">
+<h3>3.2 Type System<a class="headerlink" href="#type-system" title="Link to this heading">¶</a></h3>
+<p>Type system allows for type check for all symbols present in the SQL query. First of all, we need to define what is type. Typically, type consists of 2 kinds:</p>
+<ul class="simple">
+<li><p><strong>Base type</strong>: is based on OpenSearch data type and organized into hierarchy with “class” type internally.</p>
+<ul>
+<li><p><strong>OpenSearch data type</strong>: For example, INTEGER and LONG belongs to NUMBER, TEXT and KEYWORD belongs to STRING.</p></li>
+<li><p><strong>OpenSearch index</strong>: we also have specific type for index, index pattern and nested field.</p></li>
+</ul>
+</li>
+<li><p><strong>Type expression</strong>: is expression of multiple base type as argument type along with a constructor, for example, array constructor can construct integer to integer array, struct constructor can construct couple of base type into a new struct type. Similarly, function and comparison operator accepts arguments and generate result type.</p>
+<ul>
+<li><p><strong>Function</strong>: including scalar and aggregate function in SQL standard as well as functions for OpenSearch.</p></li>
+<li><p><strong>Operator</strong>: including comparison operator (=, &lt;, &gt;), set operator (UNION, MINUS) and join operator (JOIN).</p></li>
+</ul>
+</li>
+</ul>
+<p>But support for only simple type is not sufficient. The following special types needs to be covered:</p>
+<ul class="simple">
+<li><p><strong>Generic type</strong>: when we say <code class="docutils literal notranslate"><span class="pre">LOG(NUMBER)</span> <span class="pre">-&gt;</span> <span class="pre">NUMBER</span></code> actually we want to return whatever input type (INTEGER, FLOAT) specifically instead of NUMBER.</p></li>
+<li><p><strong>Vararg</strong>: for example, function <code class="docutils literal notranslate"><span class="pre">CONCAT</span></code> can apply to arbitrary number of strings.</p></li>
+<li><p><strong>Overloading</strong>: function like <code class="docutils literal notranslate"><span class="pre">LOG</span></code> can have multiple specifications, one for not specifying base and another for base.</p></li>
+<li><p><strong>Named argument</strong>: most functions for OpenSearch feature use named argument, for example <code class="docutils literal notranslate"><span class="pre">TOPHITS('size'=3,'age'='desc'</span></code>.</p></li>
+<li><p><strong>Optional argument</strong>: essentially this is same as function overloading.</p></li>
+</ul>
+<p>Currently we can add support for Generic Type and Overloading. To clarify, function specification involved in generic type like <code class="docutils literal notranslate"><span class="pre">SUBSTRING(func(T(STRING),</span> <span class="pre">INTEGER,</span> <span class="pre">INTEGER).to(T))</span></code> is similar as that in Java <code class="docutils literal notranslate"><span class="pre">&lt;T</span> <span class="pre">extends</span> <span class="pre">String&gt;</span> <span class="pre">T</span> <span class="pre">Substring(T,</span> <span class="pre">int,</span> <span class="pre">int)</span></code>.
+As for other unsupported feature, we use empty specification to convey the function exists in our type system but we want to skip type check for now.</p>
+</section>
+<section id="string-similarity">
+<h3>3.3 String Similarity<a class="headerlink" href="#string-similarity" title="Link to this heading">¶</a></h3>
+<p>Apart from the core components above, another interesting part is the string similarity algorithm that provides suggestion when semantic analysis error occurred. Currently we make use of classic edit distance algorithm in Lucene library to guess a similar symbol when we suspect user put wrong name. That’s why you can see the “Did you mean XXX?” in the examples in Use Cases section.</p>
+</section>
+</section>
+<hr class="docutils" />
+<section id="detailed-design">
+<h2>4.Detailed Design<a class="headerlink" href="#detailed-design" title="Link to this heading">¶</a></h2>
+<p>Basically the components of semantic analysis works together in the manner shown in the following diagram:</p>
+<p><img alt="How Semantic Analysis Works" src="../_images/how-semantic-analysis-works.png" /></p>
+<section id="parse-tree-visitor">
+<h3>4.1 Parse Tree Visitor<a class="headerlink" href="#parse-tree-visitor" title="Link to this heading">¶</a></h3>
+<p>Parse Tree Visitor that walks through the SQL parse tree is driver of the whole semantic analysis process. So this section tries to make clear how Semantic Context, Type System and other parts work together by providing an example.
+Suppose an index <code class="docutils literal notranslate"><span class="pre">accounts</span></code> has mapping as below:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s2">&quot;mappings&quot;</span><span class="p">:</span> <span class="p">{</span>
+  <span class="s2">&quot;account&quot;</span><span class="p">:</span> <span class="p">{</span>
+    <span class="s2">&quot;properties&quot;</span><span class="p">:</span> <span class="p">{</span>
+      <span class="s2">&quot;age&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;integer&quot;</span>
+      <span class="p">},</span>
+      <span class="s2">&quot;city&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;keyword&quot;</span>
+      <span class="p">},</span>
+      <span class="s2">&quot;birthday&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;date&quot;</span>
+      <span class="p">},</span>
+      <span class="s2">&quot;employer&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;text&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;fields&quot;</span><span class="p">:</span> <span class="p">{</span>
+          <span class="s2">&quot;keyword&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;keyword&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;ignore_above&quot;</span><span class="p">:</span> <span class="mi">256</span>
+          <span class="p">}</span>
+        <span class="p">}</span>
+      <span class="p">},</span>
+      <span class="s2">&quot;projects&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;nested&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;properties&quot;</span><span class="p">:</span> <span class="p">{</span>
+          <span class="s2">&quot;members&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;nested&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;properties&quot;</span><span class="p">:</span> <span class="p">{</span>
+              <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;text&quot;</span>
+              <span class="p">}</span>
+            <span class="p">}</span>
+          <span class="p">},</span>
+          <span class="s2">&quot;active&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;boolean&quot;</span>
+          <span class="p">}</span>
+        <span class="p">}</span>
+      <span class="p">},</span>
+      <span class="s2">&quot;manager&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;properties&quot;</span><span class="p">:</span> <span class="p">{</span>
+          <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;text&quot;</span>
+          <span class="p">}</span>
+        <span class="p">}</span>
+      <span class="p">}</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Firstly, visitor needs to enforce the visiting order of SQL query. Because some clause like FROM is essentially the definition of symbol, it is required to be visited before other clause such as WHERE which is the resolution of symbol. Currently the visiting process is being performed in the following order:</p>
+<ol class="arabic simple">
+<li><p><strong>FROM</strong>: define all symbols in index mapping in context for later resolution</p></li>
+<li><p><strong>WHERE</strong></p></li>
+<li><p><strong>SELECT</strong>: the reason why SELECT visiting is so early is alias in SELECT could be used in GROUP BY, ex. SELECT SUBSTRING(city) substr … GROUP BY substr</p></li>
+<li><p><strong>GROUP BY</strong></p></li>
+<li><p><strong>HAVING</strong></p></li>
+<li><p><strong>ORDER BY</strong></p></li>
+<li><p><strong>LIMIT</strong></p></li>
+</ol>
+</section>
+<section id="context-initialization">
+<h3>4.2 Context Initialization<a class="headerlink" href="#context-initialization" title="Link to this heading">¶</a></h3>
+<p>This part is done in <code class="docutils literal notranslate"><span class="pre">OpenSearchMappingLoader</span></code> visitor each of whose visit methods runs ahead of <code class="docutils literal notranslate"><span class="pre">TypeChecker</span></code>. Take query <code class="docutils literal notranslate"><span class="pre">SELECT</span> <span class="pre">*</span> <span class="pre">FROM</span> <span class="pre">accounts</span> <span class="pre">a,</span> <span class="pre">a.projects</span> <span class="pre">p</span> <span class="pre">WHERE</span> <span class="pre">age</span> <span class="pre">&gt;</span> <span class="pre">20</span> <span class="pre">AND</span> <span class="pre">p.active</span> <span class="pre">IS</span> <span class="pre">TRUE</span></code> for example. After visiting the FROM clause, the context completes the initialization with symbol well defined as follows:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span> <span class="c1"># field names without alias prefix because alias is optional</span>
+ <span class="n">age</span> <span class="o">-&gt;</span> <span class="n">INTEGER</span>
+ <span class="n">city</span> <span class="o">-&gt;</span> <span class="n">KEYWORD</span>
+ <span class="n">birthday</span> <span class="o">-&gt;</span> <span class="n">DATE</span>
+ <span class="n">employer</span> <span class="o">-&gt;</span> <span class="n">TEXT</span>
+ <span class="n">employer</span><span class="o">.</span><span class="n">keyword</span> <span class="o">-&gt;</span> <span class="n">KEYWORD</span>
+ <span class="n">projects</span> <span class="o">-&gt;</span> <span class="n">NESTED</span>
+ <span class="n">projects</span><span class="o">.</span><span class="n">active</span> <span class="o">-&gt;</span> <span class="n">BOOLEAN</span>
+ <span class="n">projects</span><span class="o">.</span><span class="n">members</span> <span class="o">-&gt;</span> <span class="n">NESTED</span>
+ <span class="n">projects</span><span class="o">.</span><span class="n">members</span><span class="o">.</span><span class="n">name</span> <span class="o">-&gt;</span> <span class="n">TEXT</span>
+ <span class="n">manager</span> <span class="o">-&gt;</span> <span class="n">OBJECT</span>
+ <span class="n">manager</span><span class="o">.</span><span class="n">name</span> <span class="o">-&gt;</span> <span class="n">TEXT</span>
+
+ <span class="c1"># field names with alias prefix</span>
+ <span class="n">a</span><span class="o">.</span><span class="n">age</span> <span class="o">-&gt;</span> <span class="n">INTEGER</span>
+ <span class="n">a</span><span class="o">.</span><span class="n">city</span> <span class="o">-&gt;</span> <span class="n">KEYWORD</span>
+ <span class="n">a</span><span class="o">.</span><span class="n">birthday</span> <span class="o">-&gt;</span> <span class="n">DATE</span>
+ <span class="n">a</span><span class="o">.</span><span class="n">employer</span> <span class="o">-&gt;</span> <span class="n">TEXT</span>
+ <span class="n">a</span><span class="o">.</span><span class="n">employer</span><span class="o">.</span><span class="n">keyword</span> <span class="o">-&gt;</span> <span class="n">KEYWORD</span>
+ <span class="n">a</span><span class="o">.</span><span class="n">projects</span> <span class="o">-&gt;</span> <span class="n">NESTED</span>
+ <span class="n">a</span><span class="o">.</span><span class="n">projects</span><span class="o">.</span><span class="n">active</span> <span class="o">-&gt;</span> <span class="n">BOOLEAN</span>
+ <span class="n">a</span><span class="o">.</span><span class="n">projects</span><span class="o">.</span><span class="n">members</span> <span class="o">-&gt;</span> <span class="n">NESTED</span>
+ <span class="n">a</span><span class="o">.</span><span class="n">projects</span><span class="o">.</span><span class="n">members</span><span class="o">.</span><span class="n">name</span> <span class="o">-&gt;</span> <span class="n">TEXT</span>
+ <span class="n">a</span><span class="o">.</span><span class="n">manager</span> <span class="o">-&gt;</span> <span class="n">OBJECT</span>
+ <span class="n">a</span><span class="o">.</span><span class="n">manager</span><span class="o">.</span><span class="n">name</span> <span class="o">-&gt;</span> <span class="n">TEXT</span>
+
+ <span class="c1"># nested field names with nested field alias prefix</span>
+ <span class="n">p</span> <span class="o">-&gt;</span> <span class="n">NESTED</span>
+ <span class="n">p</span><span class="o">.</span><span class="n">active</span> <span class="o">-&gt;</span> <span class="n">BOOLEAN</span>
+ <span class="n">p</span><span class="o">.</span><span class="n">members</span> <span class="o">-&gt;</span> <span class="n">NESTED</span>
+ <span class="n">p</span><span class="o">.</span><span class="n">members</span><span class="o">.</span><span class="n">name</span> <span class="o">-&gt;</span> <span class="n">TEXT</span>
+</pre></div>
+</div>
+<p>And then when we meet symbol in WHERE clause or elsewhere, we resolve the symbol, ex. <code class="docutils literal notranslate"><span class="pre">age</span></code> and <code class="docutils literal notranslate"><span class="pre">p.active</span></code>, in the context and identify its type. If not found, semantic analysis will end up throwing exception with root cause and suggestion.</p>
+</section>
+<section id="type-checking">
+<h3>4.3 Type Checking<a class="headerlink" href="#type-checking" title="Link to this heading">¶</a></h3>
+<p>The trivial field name symbol resolution is very straightforward. Let’s take a look at how type checking works for function and operator.</p>
+<ul class="simple">
+<li><p><strong>Leaf node</strong>: simply resolve the symbol and return its type. Leaf node includes constant literal (number, boolean), function name, operator name etc.</p></li>
+<li><p><strong>Internal node</strong>:</p>
+<ol class="arabic simple">
+<li><p><strong>Define alias if any</strong>: internal node such as <code class="docutils literal notranslate"><span class="pre">FROM</span></code> and <code class="docutils literal notranslate"><span class="pre">SELECT</span></code> may define alias for index or field. For example, SELECT AVG(age) AS avg or SELECT * FROM accounts a.</p></li>
+<li><p><strong>Synthesize types</strong>: types returned from leaf node needs to be synthesized to a single type as result. Precisely, synthesize here means reduce multiple types into one by applying <code class="docutils literal notranslate"><span class="pre">construct</span></code> method defined by each type in our type system.</p></li>
+</ol>
+</li>
+</ul>
+<p><img alt="How Types Synthesized" src="../_images/how-types-synthesized.png" /></p>
+</section>
+</section>
+<hr class="docutils" />
+<section id="what-s-next">
+<h2>5.What’s Next<a class="headerlink" href="#what-s-next" title="Link to this heading">¶</a></h2>
+<p>Although we read many literature and other open source code for reference, the semantic analysis introduced today is far from being mature. For example, we don’t have semantic check for only field in GROUP BY can be used in SELECT without aggregate function wrapped.
+Beside improvement on semantic analyzer itself, there are other things we can benefit from:</p>
+<ol class="arabic simple">
+<li><p><strong>A <code class="docutils literal notranslate"><span class="pre">HELP</span></code> command</strong>: which gets information in type system so customer doesn’t necessarily learn what’s right until they fail their query.</p></li>
+<li><p><strong>Correctness testing</strong>: Generate test cases from grammar. Those cases can be used either for finding gaps between grammar/semantic and our backend code or for performing correctness testing by comparing with other based database.</p></li>
+<li><p><strong>Symbol table</strong>: is useful for the entire process from semantic analysis here to logical and physical planning. So it should be either kept (flat to single table or avoid real popping when exit visit query) or annotated into Abstract Syntax Tree and pass to backend.</p></li>
+</ol>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">Example</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;workshop participant.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 7.3.7</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 0.7.16</a>
+      
+      |
+      <a href="../_sources/dev/query-semantic-analysis.md.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

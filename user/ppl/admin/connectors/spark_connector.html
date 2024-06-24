@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Spark Connector &#8212; Example 0.1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=d1102ebc" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/alabaster.css?v=12dfc556" />
+    <script src="../../../../_static/documentation_options.js?v=2709fde1"></script>
+    <script src="../../../../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="spark-connector">
+<h1>Spark Connector<a class="headerlink" href="#spark-connector" title="Link to this heading">¶</a></h1>
+<p class="rubric">Table of contents</p>
+<nav class="contents local" id="contents">
+<ul class="simple">
+<li><p><a class="reference internal" href="#introduction" id="id1">Introduction</a></p></li>
+<li><p><a class="reference internal" href="#spark-connector-properties-in-datasource-configuration" id="id2">Spark Connector Properties in DataSource Configuration</a></p></li>
+<li><p><a class="reference internal" href="#example-spark-datasource-configuration" id="id3">Example spark dataSource configuration</a></p></li>
+<li><p><a class="reference internal" href="#spark-sql-support" id="id4">Spark SQL Support</a></p></li>
+</ul>
+</nav>
+<section id="introduction">
+<h2><a class="toc-backref" href="#id1" role="doc-backlink">Introduction</a><a class="headerlink" href="#introduction" title="Link to this heading">¶</a></h2>
+<p>This page covers spark connector properties for dataSource configuration
+and the nuances associated with spark connector.</p>
+</section>
+<section id="spark-connector-properties-in-datasource-configuration">
+<h2><a class="toc-backref" href="#id2" role="doc-backlink">Spark Connector Properties in DataSource Configuration</a><a class="headerlink" href="#spark-connector-properties-in-datasource-configuration" title="Link to this heading">¶</a></h2>
+<p>Spark Connector Properties.</p>
+<ul class="simple">
+<li><dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">spark.connector</span></code> [Required].</dt><dd><ul>
+<li><p>This parameters provides the spark client information for connection.</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">spark.sql.application</span></code> [Optional].</dt><dd><ul>
+<li><p>This parameters provides the spark sql application jar. Default value is <code class="docutils literal notranslate"><span class="pre">s3://spark-datasource/sql-job.jar</span></code>.</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">emr.cluster</span></code> [Required].</dt><dd><ul>
+<li><p>This parameters provides the emr cluster id information.</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">emr.auth.type</span></code> [Required]</dt><dd><ul>
+<li><p>This parameters provides the authentication type information.</p></li>
+<li><dl class="simple">
+<dt>Spark emr connector currently supports <code class="docutils literal notranslate"><span class="pre">awssigv4</span></code> authentication mechanism and following parameters are required.</dt><dd><ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">emr.auth.region</span></code>, <code class="docutils literal notranslate"><span class="pre">emr.auth.access_key</span></code> and <code class="docutils literal notranslate"><span class="pre">emr.auth.secret_key</span></code></p></li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">spark.datasource.flint.*</span></code> [Optional]</dt><dd><ul>
+<li><p>This parameters provides the Opensearch domain host information for flint integration.</p></li>
+<li><dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">spark.datasource.flint.integration</span></code> [Optional]</dt><dd><ul>
+<li><p>Default value for integration jar is <code class="docutils literal notranslate"><span class="pre">s3://spark-datasource/flint-spark-integration-assembly-0.3.0-SNAPSHOT.jar</span></code>.</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">spark.datasource.flint.host</span></code> [Optional]</dt><dd><ul>
+<li><p>Default value for host is <code class="docutils literal notranslate"><span class="pre">localhost</span></code>.</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">spark.datasource.flint.port</span></code> [Optional]</dt><dd><ul>
+<li><p>Default value for port is <code class="docutils literal notranslate"><span class="pre">9200</span></code>.</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">spark.datasource.flint.scheme</span></code> [Optional]</dt><dd><ul>
+<li><p>Default value for scheme is <code class="docutils literal notranslate"><span class="pre">http</span></code>.</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">spark.datasource.flint.auth</span></code> [Optional]</dt><dd><ul>
+<li><p>Default value for auth is <code class="docutils literal notranslate"><span class="pre">false</span></code>.</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">spark.datasource.flint.region</span></code> [Optional]</dt><dd><ul>
+<li><p>Default value for auth is <code class="docutils literal notranslate"><span class="pre">us-west-2</span></code>.</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+</section>
+<section id="example-spark-datasource-configuration">
+<h2><a class="toc-backref" href="#id3" role="doc-backlink">Example spark dataSource configuration</a><a class="headerlink" href="#example-spark-datasource-configuration" title="Link to this heading">¶</a></h2>
+<p>AWSSigV4 Auth:</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span><span class="o">[{</span>
+<span class="w">    </span><span class="s2">&quot;name&quot;</span><span class="w"> </span>:<span class="w"> </span><span class="s2">&quot;my_spark&quot;</span>,
+<span class="w">    </span><span class="s2">&quot;connector&quot;</span>:<span class="w"> </span><span class="s2">&quot;spark&quot;</span>,
+<span class="w">    </span><span class="s2">&quot;properties&quot;</span><span class="w"> </span>:<span class="w"> </span><span class="o">{</span>
+<span class="w">        </span><span class="s2">&quot;spark.connector&quot;</span>:<span class="w"> </span><span class="s2">&quot;emr&quot;</span>,
+<span class="w">        </span><span class="s2">&quot;emr.cluster&quot;</span><span class="w"> </span>:<span class="w"> </span><span class="s2">&quot;{{clusterId}}&quot;</span>,
+<span class="w">        </span><span class="s2">&quot;emr.auth.type&quot;</span><span class="w"> </span>:<span class="w"> </span><span class="s2">&quot;awssigv4&quot;</span>,
+<span class="w">        </span><span class="s2">&quot;emr.auth.region&quot;</span><span class="w"> </span>:<span class="w"> </span><span class="s2">&quot;us-east-1&quot;</span>,
+<span class="w">        </span><span class="s2">&quot;emr.auth.access_key&quot;</span><span class="w"> </span>:<span class="w"> </span><span class="s2">&quot;{{accessKey}}&quot;</span>
+<span class="w">        </span><span class="s2">&quot;emr.auth.secret_key&quot;</span><span class="w"> </span>:<span class="w"> </span><span class="s2">&quot;{{secretKey}}&quot;</span>
+<span class="w">        </span><span class="s2">&quot;spark.datasource.flint.host&quot;</span><span class="w"> </span>:<span class="w"> </span><span class="s2">&quot;{{opensearchHost}}&quot;</span>,
+<span class="w">        </span><span class="s2">&quot;spark.datasource.flint.port&quot;</span><span class="w"> </span>:<span class="w"> </span><span class="s2">&quot;{{opensearchPort}}&quot;</span>,
+<span class="w">        </span><span class="s2">&quot;spark.datasource.flint.scheme&quot;</span><span class="w"> </span>:<span class="w"> </span><span class="s2">&quot;{{opensearchScheme}}&quot;</span>,
+<span class="w">        </span><span class="s2">&quot;spark.datasource.flint.auth&quot;</span><span class="w"> </span>:<span class="w"> </span><span class="s2">&quot;{{opensearchAuth}}&quot;</span>,
+<span class="w">        </span><span class="s2">&quot;spark.datasource.flint.region&quot;</span><span class="w"> </span>:<span class="w"> </span><span class="s2">&quot;{{opensearchRegion}}&quot;</span>,
+<span class="w">    </span><span class="o">}</span>
+<span class="o">}]</span>
+</pre></div>
+</div>
+</section>
+<section id="spark-sql-support">
+<h2><a class="toc-backref" href="#id4" role="doc-backlink">Spark SQL Support</a><a class="headerlink" href="#spark-sql-support" title="Link to this heading">¶</a></h2>
+<section id="sql-function">
+<h3><cite>sql</cite> Function<a class="headerlink" href="#sql-function" title="Link to this heading">¶</a></h3>
+<p>Spark connector offers <cite>sql</cite> function. This function can be used to run spark sql query.
+The function takes spark sql query as input. Argument should be either passed by name or positionArguments should be either passed by name or position.
+<cite>source=my_spark.sql(‘select 1’)</cite>
+or
+<cite>source=my_spark.sql(query=’select 1’)</cite>
+Example:</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>&gt;<span class="w"> </span><span class="nv">source</span><span class="o">=</span>my_spark.sql<span class="o">(</span><span class="s1">&#39;select 1&#39;</span><span class="o">)</span>
++---+
+<span class="p">|</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="p">|</span>
+<span class="p">|</span>---+
+<span class="p">|</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="p">|</span>
++---+
+</pre></div>
+</div>
+</section>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../../index.html">Example</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../../index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;workshop participant.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 7.3.7</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 0.7.16</a>
+      
+      |
+      <a href="../../../../_sources/user/ppl/admin/connectors/spark_connector.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
