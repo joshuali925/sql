@@ -3,65 +3,65 @@
 OpenSearch SQL Reference Manual
 ===============================
 
-OpenSearch SQL enables you to extract insights out of OpenSearch using the familiar SQL query syntax. Please refer to the `technical documentation <https://docs-beta.opensearch.org/>`_ for detailed information on installing and configuring opendistro-elasticsearch-sql plugin. In this user reference manual, you can find many information for your reference. In each part, we try to make it clear by adding work example along with detailed description. Here is table of contents of the documentation:
+OpenSearch SQL enables you to extract insights out of OpenSearch using the familiar SQL query syntax. Please refer to the `technical documentation <https://docs-beta.opensearch.org/>`_ for detailed information on installing and configuring opendistro-elasticsearch-sql plugin. In this user reference manual, you can find many information for your reference. In each part, we try to make it clear by adding work example along with detailed description. Here is table of contents of the documentation: 
 
 * **Interfaces**
 
-  - `Endpoint <interfaces/endpoint.rst>`_
+  - :ref:`Endpoint`
 
-  - `Protocol <interfaces/protocol.rst>`_
+  - :ref:`Protocol`
 
 * **Administration**
 
-  - `Monitoring <admin/monitoring.rst>`_
+  - :ref:`Monitoring`
 
-  - `Plugin Settings <admin/settings.rst>`_
+  - :ref:`Plugin Settings`
 
 * **Language Structure**
 
-  - `Identifiers <general/identifiers.rst>`_
+  - :ref:`Identifiers`
 
-  - `Data Types <general/datatypes.rst>`_
+  - :ref:`Data Types`
 
-  - `Values <general/values.rst>`_
+  - :ref:`Values`
 
-  - `Comments <general/comments.rst>`_
+  - :ref:`Comments`
 
 * **Data Query Language**
 
-  - `Expressions <dql/expressions.rst>`_
+  - :ref:`Expressions`
 
-  - `Basic Queries <dql/basics.rst>`_
+  - :ref:`Basic Queries`
 
-  - `Complex Queries <dql/complex.rst>`_
+  - :ref:`Complex Queries`
 
-  - `Metadata Queries <dql/metadata.rst>`_
+  - :ref:`Metadata Queries`
 
-  - `SQL Functions <dql/functions.rst>`_
+  - :ref:`SQL Functions`
 
-  - `SQL Aggregations <dql/aggregations.rst>`_
+  - :ref:`SQL Aggregations`
 
-  - `Window Functions <dql/window.rst>`_
+  - :ref:`Window Functions`
 
 * **Data Manipulation Language**
 
-  - `DELETE Statement <dml/delete.rst>`_
+  - :ref:`DELETE Statement`
 
 * **Beyond SQL**
 
-  - `PartiQL (JSON) Support <beyond/partiql.rst>`_
+  - :ref:`PartiQL (JSON) Support`
 
-  - `Full-text Search <beyond/fulltext.rst>`_
+  - :ref:`Full-text Search`
 
 * **Optimization**
 
-  - `Optimization <optimization/optimization.rst>`_
+  - :ref:`Optimization`
 
 * **Troubleshooting**
 
-  - `Troubleshooting <dql/troubleshooting.rst>`_
+  - :ref:`Troubleshooting`
 
 * **Limitations**
 
-  - `Limitations <limitations/limitations.rst>`_
+  - :ref:`Limitations`
 
